@@ -1,8 +1,8 @@
 # Plan Maestro de Desarrollo — Core ERP Empresarial
 **Empresa / Proyecto:** Depósito 4 de Marzo  
 **Arquitectura:** Next.js (App Router) + TypeScript + Tailwind CSS + Neon PostgreSQL Serverless + Prisma ORM + Neon Auth  
-**Hosting / Infraestructura:** Vercel Serverless  
-**Estado General:** En Ejecución — Etapa 1 Activa  
+**Hosting / Infraestructura:** Vercel Serverless (Producción en https://24de-marzo.vercel.app)  
+**Estado General:** Producción Activa — 100% Desplegado y Operativo  
 
 ---
 
@@ -114,3 +114,4 @@ Cualquier requerimiento no contemplado originalmente debe ser clasificado e inco
 | 05/11/2026 | Dashboard / UI | Expansión de Gráficos al 100% Ancho & Rediseño de Medidor Radial | Gráfico de ventas ahora se extiende de borde a borde sin márgenes vacíos (preserveAspectRatio: none); medidor radial ampliado a gran escala con textura rayada, cifras destacadas y panel de telemetría de metas. |
 | 05/11/2026 | Despliegue / DevOps | Publicación Oficial en GitHub (`Kurupi12/24deMarzo`) | Inicialización y vinculación del repositorio Git remoto en la rama principal `main` con protección de variables en `.gitignore`. |
 | 05/11/2026 | Despliegue / Vercel | Resolución de Conflicto de Dependencias (`.npmrc`) | Inclusión de `legacy-peer-deps=true` para resolver compatibilidad entre `@neon/auth` y Next.js 14 en los runners de Vercel. |
+| 05/11/2026 | Producción / En Vivo | Lanzamiento Oficial en Vercel (`https://24de-marzo.vercel.app`) | Despliegue exitoso conectado a GitHub y Neon Serverless. Dashboard, Inventario, Facturación POS y RRHH operativos en la nube. |

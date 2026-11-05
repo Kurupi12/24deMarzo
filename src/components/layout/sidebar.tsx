@@ -12,6 +12,7 @@ import {
   Users,
   Settings,
   ChevronRight,
+  Landmark,
 } from 'lucide-react';
 import { DepositoLogo } from './deposito-logo';
 
@@ -20,6 +21,7 @@ const navigationItems = [
   { name: 'Catálogo & Inventario', href: '/inventory', icon: Boxes },
   { name: 'Compras a Proveedores', href: '/purchases', icon: Truck },
   { name: 'Ventas & Facturación SIFEN', href: '/billing', icon: ReceiptText },
+  { name: 'Caja & Tesorería', href: '/billing?tab=shifts', icon: Landmark },
   { name: 'Reportes & Obras', href: '/reports', icon: FileBarChart },
   { name: 'Recursos Humanos & Nómina', href: '/hr', icon: Users },
   { name: 'Configuración & Flota', href: '/settings', icon: Settings },

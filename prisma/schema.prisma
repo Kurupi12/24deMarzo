@@ -219,6 +219,13 @@ enum SifenStatus {
   CANCELLED
 }
 
+enum CashMovementType {
+  INCOME_CHANGE        // Ingreso de sencillo / cambio para dar vuelto
+  EXPENSE_OPERATION    // Egreso / Gasto operativo (compra de agua, limpieza, etc.)
+  EXPENSE_ADVANCE      // Adelanto de sueldo a personal (ej: Carlos Cabañas)
+  SAFE_DEPOSIT         // Retiro de excedente de billetes grandes (100k / 50k) a sobre / caja fuerte
+}
+
 model CashRegister {
   id          String      @id @default(uuid())
   code        String      @unique // Ej: CAJA-01
@@ -233,22 +240,60 @@ model CashRegister {
 }
 
 model CashShift {
-  id              String       @id @default(uuid())
-  cashRegisterId  String
-  openedByUserId  String
-  closedByUserId  String?
-  openedAt        DateTime     @default(now())
-  closedAt        DateTime?
-  openingBalance  Decimal      @db.Decimal(14, 2)
-  closingBalance  Decimal?     @db.Decimal(14, 2)
-  expectedBalance Decimal?     @db.Decimal(14, 2)
-  difference      Decimal?     @db.Decimal(14, 2)
-  isOpen          Boolean      @default(true)
+  id                     String         @id @default(uuid())
+  cashRegisterId         String
+  openedByUserId         String
+  closedByUserId         String?
+  openedAt               DateTime       @default(now())
+  closedAt               DateTime?
 
-  cashRegister    CashRegister @relation(fields: [cashRegisterId], references: [id])
-  sales           Sale[]
+  // Arqueo y Comprobación Inicial a Ciegas ("Blind Count")
+  openingBalance         Decimal        @db.Decimal(14, 2) // Lo que el cajero cuenta físicamente
+  expectedOpeningBalance Decimal?       @db.Decimal(14, 2) // Saldo que dejó el cierre anterior
+  openingDifference      Decimal?       @db.Decimal(14, 2) // openingBalance - expectedOpeningBalance
+  openingNotes           String?        // Observación justificada si hubo diferencia al abrir
 
+  // Cierre de Turno Inmutable
+  closingBalance         Decimal?       @db.Decimal(14, 2) // Efectivo físico en cajón al cierre
+  expectedBalance        Decimal?       @db.Decimal(14, 2) // Efectivo calculado por sistema
+  difference             Decimal?       @db.Decimal(14, 2) // closingBalance - expectedBalance
+  closingNotes           String?
+
+  // Totales Resumidos del Turno
+  totalCashSales         Decimal        @default(0) @db.Decimal(14, 2)
+  totalIncomes           Decimal        @default(0) @db.Decimal(14, 2) // Total ingresos de sencillo
+  totalExpenses          Decimal        @default(0) @db.Decimal(14, 2) // Total gastos/adelantos
+  totalSafeDeposits      Decimal        @default(0) @db.Decimal(14, 2) // Total retirado a sobres
+
+  isOpen                 Boolean        @default(true)
+
+  cashRegister           CashRegister   @relation(fields: [cashRegisterId], references: [id])
+  sales                  Sale[]
+  movements              CashMovement[]
+
+  createdAt              DateTime       @default(now())
+  updatedAt              DateTime       @default(now()) @updatedAt
+
+  @@index([cashRegisterId, openedAt])
   @@map("cash_shifts")
+}
+
+model CashMovement {
+  id           String           @id @default(uuid())
+  cashShiftId  String
+  type         CashMovementType
+  category     String           // "SENCILLO", "ADELANTO_PERSONAL", "BIDONES_AGUA", "FLETE_MENOR", "EXTRACCION_SOBRE", "OTROS"
+  amount       Decimal          @db.Decimal(14, 2)
+  description  String           // Motivo / justificación obligatoria
+  beneficiary  String?          // Persona que recibió o entregó (ej: "Carlos Cabañas")
+  envelopeCode String?          // N° o código de sobre si es extracción de billetes
+  receiptNo    String?          // N° recibo físico de respaldo
+
+  shift        CashShift        @relation(fields: [cashShiftId], references: [id], onDelete: Cascade)
+  createdAt    DateTime         @default(now())
+
+  @@index([cashShiftId])
+  @@map("cash_movements")
 }
 
 model Sale {

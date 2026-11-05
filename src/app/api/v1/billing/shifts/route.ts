@@ -6,26 +6,97 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
-    // Buscar caja principal o crearla si no existe
     let register = await prisma.cashRegister.findFirst({
       where: { code: 'CAJA-01' },
-      include: {
-        shifts: {
-          where: { isOpen: true },
-          include: { sales: true },
-        },
-      },
     });
 
     if (!register) {
       register = await prisma.cashRegister.create({
         data: { code: 'CAJA-01', name: 'Caja Mostrador Central' },
-        include: { shifts: { where: { isOpen: true }, include: { sales: true } } },
       });
     }
 
-    const currentShift = register.shifts[0] || null;
-    return NextResponse.json(createSuccessResponse({ register, currentShift }));
+    // 1. Buscar turno actualmente abierto
+    const currentShift = await prisma.cashShift.findFirst({
+      where: { cashRegisterId: register.id, isOpen: true },
+      include: {
+        sales: {
+          select: { id: true, saleNumber: true, paymentMethod: true, grandTotal: true, createdAt: true, status: true },
+        },
+        movements: {
+          orderBy: { createdAt: 'desc' },
+        },
+      },
+      orderBy: { openedAt: 'desc' },
+    });
+
+    // 2. Buscar último turno cerrado para la comprobación inicial a ciegas (Blind Count)
+    const lastClosedShift = await prisma.cashShift.findFirst({
+      where: { cashRegisterId: register.id, isOpen: false },
+      orderBy: { closedAt: 'desc' },
+      select: {
+        id: true,
+        closedAt: true,
+        closingBalance: true,
+        expectedBalance: true,
+        difference: true,
+        totalSafeDeposits: true,
+      },
+    });
+
+    // 3. Historial de turnos recientes
+    const history = await prisma.cashShift.findMany({
+      where: { cashRegisterId: register.id },
+      take: 15,
+      orderBy: { openedAt: 'desc' },
+      include: {
+        movements: true,
+        _count: { select: { sales: true } },
+      },
+    });
+
+    // 4. Calcular métricas en vivo si hay turno abierto
+    let metrics = null;
+    if (currentShift) {
+      const cashSales = currentShift.sales
+        .filter((s) => s.paymentMethod === 'EFECTIVO' && s.status === 'COMPLETED')
+        .reduce((sum, s) => sum + Number(s.grandTotal), 0);
+
+      const incomes = currentShift.movements
+        .filter((m) => m.type === 'INCOME_CHANGE')
+        .reduce((sum, m) => sum + Number(m.amount), 0);
+
+      const expenses = currentShift.movements
+        .filter((m) => m.type === 'EXPENSE_OPERATION' || m.type === 'EXPENSE_ADVANCE')
+        .reduce((sum, m) => sum + Number(m.amount), 0);
+
+      const safeDeposits = currentShift.movements
+        .filter((m) => m.type === 'SAFE_DEPOSIT')
+        .reduce((sum, m) => sum + Number(m.amount), 0);
+
+      const opening = Number(currentShift.openingBalance);
+      const expectedCashInDrawer = opening + cashSales + incomes - expenses - safeDeposits;
+
+      metrics = {
+        openingBalance: opening,
+        cashSales,
+        incomes,
+        expenses,
+        safeDeposits,
+        expectedCashInDrawer,
+        totalSafeAndDrawer: expectedCashInDrawer + safeDeposits,
+      };
+    }
+
+    return NextResponse.json(
+      createSuccessResponse({
+        register,
+        currentShift,
+        lastClosedShift,
+        metrics,
+        history,
+      })
+    );
   } catch (error: any) {
     return NextResponse.json(
       createErrorResponse(error.message, 'CASH_SHIFT_ERROR'),
@@ -37,10 +108,10 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action, openingBalance, closingBalance, shiftId } = body;
+    const { action, openingBalance, closingBalance, shiftId, notes, openingNotes } = body;
 
-    const admin = await prisma.user.findFirst({ select: { id: true } });
-    const userId = req.headers.get('x-user-id') || admin?.id || '';
+    const admin = await prisma.user.findFirst({ select: { id: true, name: true } });
+    const userId = req.headers.get('x-user-id') || admin?.id || 'cajera-central';
 
     let register = await prisma.cashRegister.findFirst({ where: { code: 'CAJA-01' } });
     if (!register) {
@@ -49,46 +120,105 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    // ACCIÓN 1: APERTURA DE CAJA CON COMPROBACIÓN A CIEGAS
     if (action === 'OPEN') {
-      const openShift = await prisma.cashShift.create({
+      // Regla: No permitir más de un turno abierto a la vez
+      const existingOpen = await prisma.cashShift.findFirst({
+        where: { cashRegisterId: register.id, isOpen: true },
+      });
+
+      if (existingOpen) {
+        return NextResponse.json(
+          createErrorResponse('Ya existe un turno de caja abierto actualmente en esta terminal. Debe cerrar el turno previo antes de abrir uno nuevo.', 'SHIFT_ALREADY_OPEN'),
+          { status: 400 }
+        );
+      }
+
+      // Regla: Buscar el saldo con el que cerró el turno anterior
+      const lastClosed = await prisma.cashShift.findFirst({
+        where: { cashRegisterId: register.id, isOpen: false },
+        orderBy: { closedAt: 'desc' },
+      });
+
+      const actualOpening = Number(openingBalance) || 0;
+      const expectedOpening = lastClosed ? Number(lastClosed.closingBalance) : actualOpening;
+      const openingDifference = actualOpening - expectedOpening;
+
+      const newShift = await prisma.cashShift.create({
         data: {
           cashRegisterId: register.id,
           openedByUserId: userId,
-          openingBalance: Number(openingBalance) || 0,
+          openingBalance: actualOpening,
+          expectedOpeningBalance: expectedOpening,
+          openingDifference,
+          openingNotes: openingNotes ? openingNotes.trim() : null,
           isOpen: true,
         },
       });
-      return NextResponse.json(createSuccessResponse(openShift), { status: 201 });
+
+      return NextResponse.json(createSuccessResponse(newShift), { status: 201 });
     }
 
+    // ACCIÓN 2: CIERRE INMUTABLE DE CAJA Y ARQUEO FINAL
     if (action === 'CLOSE' && shiftId) {
       const shift = await prisma.cashShift.findUnique({
         where: { id: shiftId },
-        include: { sales: true },
+        include: {
+          sales: true,
+          movements: true,
+        },
       });
 
       if (!shift) {
-        return NextResponse.json(createErrorResponse('Turno no encontrado', 'NOT_FOUND'), { status: 404 });
+        return NextResponse.json(createErrorResponse('Turno de caja no encontrado', 'NOT_FOUND'), { status: 404 });
       }
 
-      // Calcular ventas en efectivo realizadas en este turno
+      if (!shift.isOpen) {
+        return NextResponse.json(
+          createErrorResponse('Este turno de caja ya fue cerrado previamente. Las cajas cerradas son inmutables.', 'SHIFT_ALREADY_CLOSED'),
+          { status: 403 }
+        );
+      }
+
+      // 1. Ventas cobradas en efectivo
       const cashSalesTotal = shift.sales
         .filter((s) => s.paymentMethod === 'EFECTIVO' && s.status === 'COMPLETED')
         .reduce((sum, s) => sum + Number(s.grandTotal), 0);
 
-      const expected = Number(shift.openingBalance) + cashSalesTotal;
-      const actual = Number(closingBalance) || 0;
-      const difference = actual - expected;
+      // 2. Ingresos de sencillo
+      const incomesTotal = shift.movements
+        .filter((m) => m.type === 'INCOME_CHANGE')
+        .reduce((sum, m) => sum + Number(m.amount), 0);
+
+      // 3. Egresos operativos y adelantos
+      const expensesTotal = shift.movements
+        .filter((m) => m.type === 'EXPENSE_OPERATION' || m.type === 'EXPENSE_ADVANCE')
+        .reduce((sum, m) => sum + Number(m.amount), 0);
+
+      // 4. Extracciones de billetes grandes a sobres / caja fuerte
+      const safeDepositsTotal = shift.movements
+        .filter((m) => m.type === 'SAFE_DEPOSIT')
+        .reduce((sum, m) => sum + Number(m.amount), 0);
+
+      // 5. Saldo esperado en el cajón del mostrador
+      const expectedInDrawer = Number(shift.openingBalance) + cashSalesTotal + incomesTotal - expensesTotal - safeDepositsTotal;
+      const actualDeclared = Number(closingBalance) || 0;
+      const difference = actualDeclared - expectedInDrawer;
 
       const closedShift = await prisma.cashShift.update({
         where: { id: shiftId },
         data: {
           closedByUserId: userId,
           closedAt: new Date(),
-          closingBalance: actual,
-          expectedBalance: expected,
+          closingBalance: actualDeclared,
+          expectedBalance: expectedInDrawer,
           difference,
-          isOpen: false,
+          totalCashSales: cashSalesTotal,
+          totalIncomes: incomesTotal,
+          totalExpenses: expensesTotal,
+          totalSafeDeposits: safeDepositsTotal,
+          closingNotes: notes ? notes.trim() : null,
+          isOpen: false, // Turno cerrado e inmutable
         },
       });
 
@@ -98,9 +228,8 @@ export async function POST(req: NextRequest) {
     return NextResponse.json(createErrorResponse('Acción inválida', 'BAD_REQUEST'), { status: 400 });
   } catch (error: any) {
     return NextResponse.json(
-      createErrorResponse(error.message, 'SHIFT_OPERATION_ERROR'),
+      createErrorResponse(error.message, 'SHIFT_PROCESS_ERROR'),
       { status: 500 }
     );
   }
 }
-

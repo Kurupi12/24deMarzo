@@ -10,7 +10,9 @@ export default function BillingPage() {
       <div className="pl-64 flex flex-col min-h-screen">
         <Header />
         <main className="flex-1 p-8">
-          <BillingView />
+          <React.Suspense fallback={<div className="p-8 text-xs text-muted-foreground font-mono">Cargando facturación y cajas...</div>}>
+            <BillingView />
+          </React.Suspense>
         </main>
       </div>
     </div>

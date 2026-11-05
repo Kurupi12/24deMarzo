@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useCallback } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { PosTerminal } from './pos-terminal';
 import { SalesHistoryTable } from './sales-history-table';
 import { InvoiceDetailModal } from './invoice-detail-modal';
@@ -9,7 +10,9 @@ import { ReceiptText, History, Landmark, DollarSign, Receipt, CheckCircle2 } fro
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 
 export function BillingView() {
-  const [activeTab, setActiveTab] = useState<'pos' | 'history' | 'shifts'>('pos');
+  const searchParams = useSearchParams();
+  const initialTab = (searchParams.get('tab') as any) || 'pos';
+  const [activeTab, setActiveTab] = useState<'pos' | 'history' | 'shifts'>(initialTab);
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSaleForDetail, setSelectedSaleForDetail] = useState<any>(null);

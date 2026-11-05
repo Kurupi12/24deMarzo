@@ -30,6 +30,9 @@ export const CreateSaleSchema = z.object({
   vehiclePlate: z.string().optional().nullable(),
   deliveryStatus: z.string().optional().default('DELIVERED'),
   deliveryNotes: z.string().optional().nullable(),
+  secondaryDriverId: z.string().uuid().optional().nullable(),
+  secondaryHelperIds: z.array(z.string()).optional().default([]),
+  secondaryVehiclePlate: z.string().optional().nullable(),
   items: z.array(SaleItemSchema).min(1, 'Debe incluir al menos un producto'),
   issueInvoiceImmediately: z.boolean().default(true),
 });

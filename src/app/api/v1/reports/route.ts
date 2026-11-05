@@ -134,6 +134,7 @@ export async function GET(req: NextRequest) {
           where,
           include: {
             driver: true,
+            secondaryDriver: true,
             project: true,
             invoice: { select: { invoiceNumber: true } },
           },
@@ -160,6 +161,9 @@ export async function GET(req: NextRequest) {
         driverCode: s.driver?.code || '-',
         helpers: (s.helperIds || []).map((hId) => empMap.get(hId) || hId),
         vehiclePlate: s.vehiclePlate || 'Furgón 4M',
+        secondaryDriverName: s.secondaryDriver ? `${s.secondaryDriver.firstName} ${s.secondaryDriver.lastName}` : null,
+        secondaryVehiclePlate: s.secondaryVehiclePlate || null,
+        secondaryHelpers: (s.secondaryHelperIds || []).map((hId) => empMap.get(hId) || hId),
         deliveryStatus: s.deliveryStatus,
         deliveryNotes: s.deliveryNotes || '',
         grandTotal: Number(s.grandTotal),
@@ -274,3 +278,4 @@ export async function GET(req: NextRequest) {
     );
   }
 }
+

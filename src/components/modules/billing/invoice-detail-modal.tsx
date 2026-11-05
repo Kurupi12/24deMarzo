@@ -71,12 +71,22 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
             )}
             <div className="flex flex-wrap gap-x-4 text-[11px] text-muted-foreground font-mono">
               {sale.driver && (
-                <span>Chofer: <strong className="text-foreground">{sale.driver.firstName} {sale.driver.lastName}</strong></span>
+                <span>Chofer 1: <strong className="text-foreground">{sale.driver.firstName} {sale.driver.lastName}</strong></span>
               )}
               {sale.vehiclePlate && (
-                <span>Vehículo: <strong className="text-foreground">{sale.vehiclePlate}</strong></span>
+                <span>Camión 1: <strong className="text-foreground">{sale.vehiclePlate}</strong></span>
               )}
             </div>
+            {(sale.secondaryDriver || sale.secondaryVehiclePlate) && (
+              <div className="flex flex-wrap gap-x-4 text-[11px] text-accent font-mono pt-1 border-t border-card-border/60">
+                {sale.secondaryDriver && (
+                  <span>Chofer 2: <strong className="text-foreground">{sale.secondaryDriver.firstName} {sale.secondaryDriver.lastName}</strong></span>
+                )}
+                {sale.secondaryVehiclePlate && (
+                  <span>Camión 2: <strong className="text-foreground">{sale.secondaryVehiclePlate}</strong></span>
+                )}
+              </div>
+            )}
             {sale.deliveryNotes && (
               <p className="text-[11px] text-muted-foreground italic">
                 Obs: &quot;{sale.deliveryNotes}&quot;

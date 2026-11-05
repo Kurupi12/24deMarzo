@@ -181,13 +181,31 @@ export async function POST(req: NextRequest) {
           });
         }
 
-        // Actualizar último precio de costo del producto
-        await tx.product.update({
+        // Obtener costo actual del producto antes de la compra para cálculo de PPP
+        const currentProduct = await tx.product.findUnique({
           where: { id: item.productId },
-          data: { costPrice: item.unitCost },
+          select: { costPrice: true, name: true },
         });
 
-        // Kardex Entrada
+        const prevCost = Number(currentProduct?.costPrice || 0);
+        let weightedCost = item.unitCost;
+
+        if (prevStock > 0 && prevCost > 0) {
+          // Fórmula oficial de Precio Promedio Ponderado (PPP):
+          // [(Stock_Previo * Costo_Previo) + (Cantidad_Comprada * Costo_Nuevo)] / (Stock_Previo + Cantidad_Comprada)
+          const totalPrevValue = prevStock * prevCost;
+          const totalNewValue = item.quantity * item.unitCost;
+          const totalUnits = prevStock + item.quantity;
+          weightedCost = Math.round((totalPrevValue + totalNewValue) / totalUnits);
+        }
+
+        // Actualizar costo del producto con el Precio Promedio Ponderado (PPP)
+        await tx.product.update({
+          where: { id: item.productId },
+          data: { costPrice: weightedCost },
+        });
+
+        // Kardex Entrada con detalle del lote y nuevo PPP
         await tx.stockMovement.create({
           data: {
             movementType: 'IN_PURCHASE',
@@ -200,7 +218,7 @@ export async function POST(req: NextRequest) {
             newStock,
             referenceType: 'FACTURA_COMPRA',
             referenceId: purchase.invoiceNumber,
-            notes: `Entrada compra a ${purchase.supplierName} (${purchase.purchaseNumber})`,
+            notes: `Entrada compra a ${purchase.supplierName} (${purchase.purchaseNumber}) - Costo lote: Gs. ${item.unitCost.toLocaleString('es-PY')} | Nuevo PPP: Gs. ${weightedCost.toLocaleString('es-PY')}`,
             userId,
           },
         });
@@ -217,3 +235,4 @@ export async function POST(req: NextRequest) {
     );
   }
 }
+

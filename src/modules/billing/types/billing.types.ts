@@ -24,6 +24,9 @@ export interface CreateSaleInput {
   vehiclePlate?: string | null;
   deliveryStatus?: string;
   deliveryNotes?: string | null;
+  secondaryDriverId?: string | null;
+  secondaryHelperIds?: string[];
+  secondaryVehiclePlate?: string | null;
   items: CreateSaleItemInput[];
   issueInvoiceImmediately?: boolean;
 }

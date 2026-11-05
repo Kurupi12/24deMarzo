@@ -72,10 +72,12 @@ export function ReportsView() {
         });
       });
     } else if (activeTab === 'deliveries_by_driver') {
-      csvContent += 'Nro Venta;Factura;Fecha;Cliente;RUC;Obra / Destino;Direccion;Chofer;Ayudantes;Vehiculo;Estado Entrega;Monto (Gs)\n';
+      csvContent += 'Nro Venta;Factura;Fecha;Cliente;RUC;Obra / Destino;Direccion;Chofer 1;Ayudantes 1;Vehiculo 1;Chofer 2;Vehiculo 2;Estado Entrega;Monto (Gs)\n';
       data.deliveries?.forEach((d: any) => {
         const helpers = d.helpers?.join(', ') || '-';
-        csvContent += `"${d.saleNumber}";"${d.invoiceNumber}";"${format(new Date(d.date), 'dd/MM/yyyy HH:mm')}";"${d.customerName}";"${d.customerRuc}";"${d.projectName}";"${d.destinationAddress}";"${d.driverName}";"${helpers}";"${d.vehiclePlate}";"${d.deliveryStatus}";${d.grandTotal}\n`;
+        const secDriver = d.secondaryDriverName || '-';
+        const secVeh = d.secondaryVehiclePlate || '-';
+        csvContent += `"${d.saleNumber}";"${d.invoiceNumber}";"${format(new Date(d.date), 'dd/MM/yyyy HH:mm')}";"${d.customerName}";"${d.customerRuc}";"${d.projectName}";"${d.destinationAddress}";"${d.driverName}";"${helpers}";"${d.vehiclePlate}";"${secDriver}";"${secVeh}";"${d.deliveryStatus}";${d.grandTotal}\n`;
       });
     } else if (activeTab === 'kardex_valuation') {
       csvContent += 'SKU;Codigo Barras;Nombre Producto;Unidad;Stock Actual;Costo Unitario (Gs);Precio Venta (Gs);Valuacion Costo (Gs);Valuacion Venta (Gs);Margen %\n';
@@ -348,8 +350,13 @@ export function ReportsView() {
                             <span className="font-medium text-foreground block">{d.projectName}</span>
                             <span className="text-[10px] text-muted-foreground truncate block max-w-xs">{d.destinationAddress}</span>
                           </td>
-                          <td className="py-2.5 px-3 text-foreground font-sans font-bold">
-                            {d.driverName}
+                          <td className="py-2.5 px-3 font-sans">
+                            <span className="font-bold text-foreground block">{d.driverName}</span>
+                            {d.secondaryDriverName && (
+                              <span className="text-[10px] text-accent font-semibold block mt-0.5">
+                                Chofer 2: {d.secondaryDriverName}
+                              </span>
+                            )}
                           </td>
                           <td className="py-2.5 px-3 font-sans">
                             {d.helpers && d.helpers.length > 0 ? (
@@ -364,7 +371,14 @@ export function ReportsView() {
                               <span className="text-[10px] text-muted-foreground">Sin ayudantes</span>
                             )}
                           </td>
-                          <td className="py-2.5 px-3 text-[11px]">{d.vehiclePlate}</td>
+                          <td className="py-2.5 px-3 text-[11px]">
+                            <span className="block text-foreground">{d.vehiclePlate}</span>
+                            {d.secondaryVehiclePlate && (
+                              <span className="text-[10px] text-accent block font-mono">
+                                Camión 2: {d.secondaryVehiclePlate}
+                              </span>
+                            )}
+                          </td>
                           <td className="py-2.5 px-3 text-center">
                             <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-bold">
                               {d.deliveryStatus}
@@ -502,3 +516,4 @@ export function ReportsView() {
     </div>
   );
 }
+

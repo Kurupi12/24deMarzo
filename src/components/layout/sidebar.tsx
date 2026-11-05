@@ -22,7 +22,7 @@ const navigationItems = [
   { name: 'Ventas & Facturación SIFEN', href: '/billing', icon: ReceiptText },
   { name: 'Reportes & Obras', href: '/reports', icon: FileBarChart },
   { name: 'Recursos Humanos & Nómina', href: '/hr', icon: Users },
-  { name: 'Configuración & Accesos', href: '/settings', icon: Settings },
+  { name: 'Configuración & Flota', href: '/settings', icon: Settings },
 ];
 
 export function Sidebar() {

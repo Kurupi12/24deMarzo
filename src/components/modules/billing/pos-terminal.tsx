@@ -16,6 +16,8 @@ import {
   ChevronUp,
   X,
   PlusCircle,
+  AlertTriangle,
+  Layers,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { calculateVatBreakdown } from '@/shared/utils/vat-calculator';
@@ -43,14 +45,22 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
   const [newProjectPhone, setNewProjectPhone] = useState('');
   const [savingProject, setSavingProject] = useState(false);
 
-  // Logística y Despacho
+  // Flota y Logística de Despacho (1er Envío / Camión Principal)
   const [showDeliverySection, setShowDeliverySection] = useState(true);
   const [employees, setEmployees] = useState<any[]>([]);
+  const [vehicles, setVehicles] = useState<any[]>([]);
+  
   const [driverId, setDriverId] = useState<string>('');
   const [selectedHelperIds, setSelectedHelperIds] = useState<string[]>([]);
-  const [vehiclePlate, setVehiclePlate] = useState<string>('Camión Reparto 4M (Central)');
+  const [vehiclePlate, setVehiclePlate] = useState<string>('');
   const [deliveryStatus, setDeliveryStatus] = useState<string>('DELIVERED');
   const [deliveryNotes, setDeliveryNotes] = useState<string>('');
+
+  // 2do Camión y 2do Chofer (para pedidos divididos o de gran volumen)
+  const [enableSecondaryDelivery, setEnableSecondaryDelivery] = useState(false);
+  const [secondaryDriverId, setSecondaryDriverId] = useState<string>('');
+  const [secondaryVehiclePlate, setSecondaryVehiclePlate] = useState<string>('');
+  const [secondaryHelperIds, setSecondaryHelperIds] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
 
@@ -66,6 +76,21 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
       .catch(() => {});
   }, []);
 
+  // Cargar Flota de Vehículos Oficiales
+  useEffect(() => {
+    fetch('/api/v1/logistics/vehicles')
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data && json.data.length > 0) {
+          setVehicles(json.data);
+          if (!vehiclePlate) {
+            setVehiclePlate(json.data[0].plateNumber);
+          }
+        }
+      })
+      .catch(() => {});
+  }, []);
+
   // Cargar Obras del Cliente al cambiar RUC
   useEffect(() => {
     if (customerRuc && customerRuc.trim().length >= 4) {
@@ -74,7 +99,6 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
         .then((json) => {
           if (json.success) {
             setCustomerProjects(json.data || []);
-            // Si el cliente tiene obras, no forzar, mantener o sugerir
           }
         })
         .catch(() => {});
@@ -109,6 +133,8 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
           name: product.name,
           sku: product.sku,
           unitPrice: Number(product.salePrice),
+          originalPrice: Number(product.salePrice),
+          costPrice: Number(product.costPrice) || 0,
           vatRate: product.vatRate,
           quantity: 1,
         },
@@ -127,11 +153,25 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
     setCart(cart.map((i) => (i.productId === productId ? { ...i, quantity: qty } : i)));
   };
 
-  const toggleHelper = (id: string) => {
-    if (selectedHelperIds.includes(id)) {
-      setSelectedHelperIds(selectedHelperIds.filter((h) => h !== id));
+  // Modificar precio de venta unitario negociado para un cliente
+  const updateUnitPrice = (productId: string, newPrice: number) => {
+    if (newPrice < 0) return;
+    setCart(cart.map((i) => (i.productId === productId ? { ...i, unitPrice: newPrice } : i)));
+  };
+
+  const toggleHelper = (id: string, isSecondary = false) => {
+    if (isSecondary) {
+      if (secondaryHelperIds.includes(id)) {
+        setSecondaryHelperIds(secondaryHelperIds.filter((h) => h !== id));
+      } else {
+        setSecondaryHelperIds([...secondaryHelperIds, id]);
+      }
     } else {
-      setSelectedHelperIds([...selectedHelperIds, id]);
+      if (selectedHelperIds.includes(id)) {
+        setSelectedHelperIds(selectedHelperIds.filter((h) => h !== id));
+      } else {
+        setSelectedHelperIds([...selectedHelperIds, id]);
+      }
     }
   };
 
@@ -171,7 +211,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
     }
   };
 
-  // Desglose impositivo en tiempo real
+  // Desglose impositivo en tiempo real (considerando el precio negociado)
   const breakdown = calculateVatBreakdown(
     cart.map((i) => ({ total: i.quantity * i.unitPrice, vatRate: i.vatRate }))
   );
@@ -198,6 +238,10 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
           vehiclePlate: vehiclePlate || null,
           deliveryStatus,
           deliveryNotes: deliveryNotes || null,
+          // 2do Chofer y 2do Camión si está habilitado
+          secondaryDriverId: enableSecondaryDelivery ? (secondaryDriverId || null) : null,
+          secondaryVehiclePlate: enableSecondaryDelivery ? (secondaryVehiclePlate || null) : null,
+          secondaryHelperIds: enableSecondaryDelivery ? secondaryHelperIds : [],
           items: cart.map((i) => ({
             productId: i.productId,
             quantity: i.quantity,
@@ -212,6 +256,10 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
         setCart([]);
         setSelectedProjectId('');
         setDeliveryNotes('');
+        setEnableSecondaryDelivery(false);
+        setSecondaryDriverId('');
+        setSecondaryVehiclePlate('');
+        setSecondaryHelperIds([]);
         onSaleCompleted();
       } else {
         alert(data.error?.message || 'Error al emitir factura');
@@ -232,7 +280,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
             type="text"
             value={productSearch}
             onChange={(e) => setProductSearch(e.target.value)}
-            placeholder="Buscar por SKU o descripción (ej: Cemento, Varilla, Cal, Arena)..."
+            placeholder="Buscar por SKU o descripción (ej: Cemento, Varilla, Cal, Ladrillo, Arena)..."
             className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
           />
           {searchResults.length > 0 && (
@@ -254,11 +302,11 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
           )}
         </div>
 
-        {/* Lista del carrito */}
+        {/* Lista del carrito con Precio Editable */}
         <div className="bg-card border border-card-border rounded-lg p-4 min-h-[380px] flex flex-col justify-between">
           <div className="space-y-2">
             <div className="flex items-center justify-between pb-2 border-b border-card-border text-[11px] font-mono text-muted-foreground uppercase">
-              <span>Material / Producto</span>
+              <span>Material / Producto (Precio Unit. Editable)</span>
               <span>Subtotal</span>
             </div>
             {cart.length === 0 ? (
@@ -268,36 +316,77 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
               </div>
             ) : (
               <div className="space-y-2 max-h-80 overflow-y-auto pr-1">
-                {cart.map((item) => (
-                  <div key={item.productId} className="flex items-center justify-between p-2.5 rounded bg-[#0d121c] border border-card-border text-xs">
-                    <div className="flex-1 pr-2 truncate">
-                      <p className="font-medium text-foreground truncate">{item.name}</p>
-                      <p className="text-[10px] text-muted-foreground font-mono">{item.sku} &bull; {formatCurrencyPYG(item.unitPrice)} c/u</p>
+                {cart.map((item) => {
+                  const isBelowCost = item.costPrice > 0 && item.unitPrice < item.costPrice;
+                  const isModified = item.unitPrice !== item.originalPrice;
+
+                  return (
+                    <div key={item.productId} className="p-2.5 rounded bg-[#0d121c] border border-card-border text-xs space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 pr-2 truncate">
+                          <p className="font-medium text-foreground truncate">{item.name}</p>
+                          <span className="text-[10px] text-muted-foreground font-mono">SKU: {item.sku}</span>
+                          {isModified && (
+                            <span className="ml-2 text-[9px] font-mono text-primary bg-primary/10 px-1 py-0.2 rounded border border-primary/20">
+                              Precio de lista: {formatCurrencyPYG(item.originalPrice)}
+                            </span>
+                          )}
+                          {isBelowCost && (
+                            <div className="inline-flex items-center gap-1 text-[9px] font-mono text-warning bg-warning/10 px-1.5 py-0.5 rounded border border-warning/20 ml-2">
+                              <AlertTriangle className="w-3 h-3 text-warning" />
+                              <span>Alerta: Menor al costo ({formatCurrencyPYG(item.costPrice)})</span>
+                            </div>
+                          )}
+                        </div>
+
+                        <button type="button" onClick={() => removeFromCart(item.productId)} className="text-muted-foreground hover:text-danger p-1">
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-1 border-t border-card-border/60">
+                        {/* Selector de Cantidad */}
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-mono text-muted-foreground">Cant:</span>
+                          <input
+                            type="number"
+                            min="1"
+                            value={item.quantity}
+                            onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 1)}
+                            className="w-14 bg-card border border-card-border rounded px-1.5 py-0.5 text-center font-mono text-foreground text-xs"
+                          />
+                        </div>
+
+                        {/* Modificador de Precio Unitario (Precio Negociado) */}
+                        <div className="flex items-center gap-1.5">
+                          <span className="text-[10px] font-mono text-muted-foreground">P. Unit:</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="100"
+                            value={item.unitPrice}
+                            onChange={(e) => updateUnitPrice(item.productId, parseInt(e.target.value) || 0)}
+                            className={`w-28 bg-card border rounded px-1.5 py-0.5 text-right font-mono font-bold text-xs focus:outline-none ${
+                              isBelowCost ? 'border-warning text-warning' : isModified ? 'border-primary text-primary' : 'border-card-border text-foreground'
+                            }`}
+                          />
+                        </div>
+
+                        {/* Subtotal de Fila */}
+                        <span className="w-24 text-right font-mono font-bold text-foreground">
+                          {formatCurrencyPYG(item.quantity * item.unitPrice)}
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 1)}
-                        className="w-14 bg-card border border-card-border rounded px-1.5 py-0.5 text-center font-mono text-foreground text-xs"
-                      />
-                      <span className="w-24 text-right font-mono font-bold text-foreground">
-                        {formatCurrencyPYG(item.quantity * item.unitPrice)}
-                      </span>
-                      <button type="button" onClick={() => removeFromCart(item.productId)} className="text-muted-foreground hover:text-danger p-1">
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* Columna Derecha: Datos Fiscales, Obras y Logística */}
+      {/* Columna Derecha: Datos Fiscales, Obras y Logística con Doble Camión */}
       <div className="lg:col-span-5 bg-card border border-card-border rounded-lg p-5 flex flex-col justify-between space-y-4">
         <form onSubmit={handleCheckout} className="space-y-3 font-sans text-xs flex-1 flex flex-col justify-between">
           <div className="space-y-3">
@@ -409,7 +498,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
               </div>
             </div>
 
-            {/* Sección Desplegable: Logística y Despacho */}
+            {/* Logística y Despacho con Soporte de Dos Choferes y Camiones */}
             <div className="border border-card-border rounded-md bg-[#0b0f19] overflow-hidden">
               <button
                 type="button"
@@ -417,91 +506,189 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
                 className="w-full px-3 py-2 flex items-center justify-between text-left hover:bg-muted/20 transition-colors"
               >
                 <span className="text-[11px] font-mono uppercase text-muted-foreground font-semibold flex items-center gap-1.5">
-                  <Truck className="w-3.5 h-3.5 text-warning" /> Despacho, Chofer & Ayudantes
+                  <Truck className="w-3.5 h-3.5 text-warning" /> Despacho, Choferes & Flota de Camiones
                 </span>
                 {showDeliverySection ? <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" /> : <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />}
               </button>
 
               {showDeliverySection && (
-                <div className="p-3 border-t border-card-border space-y-2.5">
-                  <div className="grid grid-cols-2 gap-2">
-                    <div>
-                      <label className="block text-[10px] font-mono text-muted-foreground mb-1">Chofer Responsable</label>
-                      <select
-                        value={driverId}
-                        onChange={(e) => setDriverId(e.target.value)}
-                        className="w-full bg-[#0d121c] border border-card-border rounded-md px-2 py-1 text-foreground text-xs"
-                      >
-                        <option value="">(Mostrador / Retiro Propio)</option>
-                        {employees.map((emp) => (
-                          <option key={emp.id} value={emp.id}>
-                            {emp.firstName} {emp.lastName} ({emp.code})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-
-                    <div>
-                      <label className="block text-[10px] font-mono text-muted-foreground mb-1">Estado de Entrega</label>
+                <div className="p-3 border-t border-card-border space-y-3">
+                  {/* CAMIÓN Y CHOFER PRINCIPAL (ENVÍO 1) */}
+                  <div className="p-2.5 rounded bg-[#0d121c] border border-card-border space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-[10px] font-mono font-bold text-foreground flex items-center gap-1">
+                        <Truck className="w-3 h-3 text-primary" /> Camión 1 (Envío Principal)
+                      </span>
                       <select
                         value={deliveryStatus}
                         onChange={(e) => setDeliveryStatus(e.target.value)}
-                        className="w-full bg-[#0d121c] border border-card-border rounded-md px-2 py-1 text-foreground text-xs"
+                        className="bg-card border border-card-border rounded px-1.5 py-0.5 text-foreground text-[10px] font-mono"
                       >
-                        <option value="DELIVERED">Entregado en Destino</option>
-                        <option value="IN_TRANSIT">En Camino (Cargado en Camión)</option>
-                        <option value="PENDING">Pendiente de Despacho</option>
-                        <option value="STORE_PICKUP">Retirado en Depósito</option>
+                        <option value="DELIVERED">Entregado</option>
+                        <option value="IN_TRANSIT">En Camino</option>
+                        <option value="PENDING">Pendiente</option>
+                        <option value="STORE_PICKUP">Retiro Mostrador</option>
                       </select>
                     </div>
-                  </div>
 
-                  {/* Vehículo / Chapa */}
-                  <div>
-                    <label className="block text-[10px] font-mono text-muted-foreground mb-1">Vehículo / Chapa</label>
-                    <input
-                      type="text"
-                      value={vehiclePlate}
-                      onChange={(e) => setVehiclePlate(e.target.value)}
-                      placeholder="Ej: Camión Scania 4M - Chapa ABC 123"
-                      className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1 text-foreground text-xs font-mono"
-                    />
-                  </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <label className="block text-[10px] font-mono text-muted-foreground mb-0.5">Chofer 1</label>
+                        <select
+                          value={driverId}
+                          onChange={(e) => setDriverId(e.target.value)}
+                          className="w-full bg-card border border-card-border rounded px-2 py-1 text-foreground text-xs"
+                        >
+                          <option value="">(Mostrador / Retiro Propio)</option>
+                          {employees.map((emp) => (
+                            <option key={emp.id} value={emp.id}>
+                              {emp.firstName} {emp.lastName} ({emp.code})
+                            </option>
+                          ))}
+                        </select>
+                      </div>
 
-                  {/* Ayudantes de descarga */}
-                  <div>
-                    <label className="block text-[10px] font-mono text-muted-foreground mb-1 flex items-center gap-1">
-                      <Users className="w-3 h-3 text-muted-foreground" /> Ayudante(s) de Cuadrilla:
-                    </label>
-                    <div className="flex flex-wrap gap-1.5 max-h-20 overflow-y-auto p-1 bg-[#0d121c] border border-card-border rounded-md">
-                      {employees.map((emp) => {
-                        const isSelected = selectedHelperIds.includes(emp.id);
-                        return (
-                          <button
-                            key={emp.id}
-                            type="button"
-                            onClick={() => toggleHelper(emp.id)}
-                            className={`px-2 py-0.5 rounded text-[10px] font-mono transition-colors border ${
-                              isSelected
-                                ? 'bg-primary/20 border-primary text-primary font-bold'
-                                : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
-                            }`}
-                          >
-                            {emp.firstName} {emp.lastName.charAt(0)}.
-                          </button>
-                        );
-                      })}
+                      <div>
+                        <label className="block text-[10px] font-mono text-muted-foreground mb-0.5">Camión / Chapa 1</label>
+                        <select
+                          value={vehiclePlate}
+                          onChange={(e) => setVehiclePlate(e.target.value)}
+                          className="w-full bg-card border border-card-border rounded px-2 py-1 text-foreground text-xs font-mono"
+                        >
+                          <option value="">(Sin vehículo oficial)</option>
+                          {vehicles.map((v) => (
+                            <option key={v.id} value={v.plateNumber}>
+                              {v.plateNumber} &bull; {v.brand} {v.model} ({v.capacityTons || 0} Tn)
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Ayudantes Cuadrilla 1 */}
+                    <div>
+                      <label className="block text-[9px] font-mono text-muted-foreground mb-1 flex items-center gap-1">
+                        <Users className="w-3 h-3 text-muted-foreground" /> Ayudantes Cuadrilla 1:
+                      </label>
+                      <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto p-1 bg-card border border-card-border rounded">
+                        {employees.map((emp) => {
+                          const isSelected = selectedHelperIds.includes(emp.id);
+                          return (
+                            <button
+                              key={emp.id}
+                              type="button"
+                              onClick={() => toggleHelper(emp.id, false)}
+                              className={`px-1.5 py-0.5 rounded text-[9px] font-mono border ${
+                                isSelected ? 'bg-primary/20 border-primary text-primary font-bold' : 'border-card-border text-muted-foreground'
+                              }`}
+                            >
+                              {emp.firstName} {emp.lastName.charAt(0)}.
+                            </button>
+                          );
+                        })}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Observaciones de entrega */}
+                  {/* BOTÓN OBLIGATORIO PARA 2DO CAMIÓN */}
+                  {!enableSecondaryDelivery ? (
+                    <button
+                      type="button"
+                      onClick={() => setEnableSecondaryDelivery(true)}
+                      className="w-full py-1.5 rounded border border-dashed border-primary/50 hover:border-primary text-primary hover:bg-primary/5 text-xs font-mono font-semibold flex items-center justify-center gap-1.5 transition-colors"
+                    >
+                      <Layers className="w-3.5 h-3.5" />
+                      <span>+ Cargar 2do Camión / Chofer (Pedido Dividido)</span>
+                    </button>
+                  ) : (
+                    /* CAMIÓN Y CHOFER SECUNDARIO (ENVÍO 2) */
+                    <div className="p-2.5 rounded bg-[#0d121c] border border-primary/30 space-y-2 animate-in fade-in duration-150">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[10px] font-mono font-bold text-accent flex items-center gap-1">
+                          <Truck className="w-3 h-3 text-accent" /> Camión 2 (Segundo Envío de la Misma Factura)
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEnableSecondaryDelivery(false);
+                            setSecondaryDriverId('');
+                            setSecondaryVehiclePlate('');
+                            setSecondaryHelperIds([]);
+                          }}
+                          className="text-muted-foreground hover:text-danger text-[10px] font-mono flex items-center gap-0.5"
+                        >
+                          <X className="w-3 h-3" /> Quitar 2do Camión
+                        </button>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-2">
+                        <div>
+                          <label className="block text-[10px] font-mono text-muted-foreground mb-0.5">Chofer 2</label>
+                          <select
+                            value={secondaryDriverId}
+                            onChange={(e) => setSecondaryDriverId(e.target.value)}
+                            className="w-full bg-card border border-card-border rounded px-2 py-1 text-foreground text-xs"
+                          >
+                            <option value="">(Seleccionar Chofer 2)</option>
+                            {employees.map((emp) => (
+                              <option key={emp.id} value={emp.id}>
+                                {emp.firstName} {emp.lastName} ({emp.code})
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+
+                        <div>
+                          <label className="block text-[10px] font-mono text-muted-foreground mb-0.5">Camión / Chapa 2</label>
+                          <select
+                            value={secondaryVehiclePlate}
+                            onChange={(e) => setSecondaryVehiclePlate(e.target.value)}
+                            className="w-full bg-card border border-card-border rounded px-2 py-1 text-foreground text-xs font-mono"
+                          >
+                            <option value="">(Seleccionar Camión 2)</option>
+                            {vehicles.map((v) => (
+                              <option key={v.id} value={v.plateNumber}>
+                                {v.plateNumber} &bull; {v.brand} {v.model} ({v.capacityTons || 0} Tn)
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+
+                      {/* Ayudantes Cuadrilla 2 */}
+                      <div>
+                        <label className="block text-[9px] font-mono text-muted-foreground mb-1 flex items-center gap-1">
+                          <Users className="w-3 h-3 text-muted-foreground" /> Ayudantes Cuadrilla 2:
+                        </label>
+                        <div className="flex flex-wrap gap-1 max-h-16 overflow-y-auto p-1 bg-card border border-card-border rounded">
+                          {employees.map((emp) => {
+                            const isSelected = secondaryHelperIds.includes(emp.id);
+                            return (
+                              <button
+                                key={emp.id}
+                                type="button"
+                                onClick={() => toggleHelper(emp.id, true)}
+                                className={`px-1.5 py-0.5 rounded text-[9px] font-mono border ${
+                                  isSelected ? 'bg-accent/20 border-accent text-accent font-bold' : 'border-card-border text-muted-foreground'
+                                }`}
+                              >
+                                {emp.firstName} {emp.lastName.charAt(0)}.
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Observaciones generales de entrega */}
                   <div>
-                    <label className="block text-[10px] font-mono text-muted-foreground mb-1">Notas / Instrucciones al Chofer</label>
+                    <label className="block text-[10px] font-mono text-muted-foreground mb-1">Notas / Instrucciones de Entrega</label>
                     <input
                       type="text"
                       value={deliveryNotes}
                       onChange={(e) => setDeliveryNotes(e.target.value)}
-                      placeholder="Ej: Entregar al capataz Arq. Martínez antes de las 16hs"
+                      placeholder="Ej: Entregar al capataz en obra antes de las 16hs"
                       className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1 text-foreground text-xs"
                     />
                   </div>
@@ -510,7 +697,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
             </div>
           </div>
 
-          {/* Desglose impositivo fiscal */}
+          {/* Desglose impositivo fiscal con precios negociados */}
           <div className="p-3.5 rounded-lg bg-[#0d121c] border border-card-border font-mono text-xs space-y-1.5">
             <div className="flex justify-between text-muted-foreground text-[11px]">
               <span>Gravada IVA 10%:</span>

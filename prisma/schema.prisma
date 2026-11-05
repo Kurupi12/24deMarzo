@@ -280,7 +280,7 @@ model Sale {
 
   status           SaleStatus       @default(COMPLETED)
 
-  // Despacho y Logística de Entrega (Trazabilidad de Chofer y Ayudantes)
+  // Despacho y Logística de Entrega (Trazabilidad de Chofer y Ayudantes - 1er Envío)
   projectId        String?
   project          CustomerProject? @relation(fields: [projectId], references: [id])
   driverId         String?
@@ -289,6 +289,12 @@ model Sale {
   vehiclePlate     String?
   deliveryStatus   String           @default("DELIVERED")
   deliveryNotes    String?
+
+  // 2do Chofer y 2do Camión (para envíos dobles o de gran volumen)
+  secondaryDriverId String?
+  secondaryDriver   Employee?       @relation("SaleSecondaryDriver", fields: [secondaryDriverId], references: [id])
+  secondaryHelperIds String[]       @default([])
+  secondaryVehiclePlate String?
 
   // Relaciones
   user             User             @relation(fields: [userId], references: [id])
@@ -452,6 +458,7 @@ model Employee {
   leaveRequests   LeaveRequest[]
   attendances     AttendanceRecord[]
   drivenSales     Sale[]             @relation("SaleDriver")
+  secondaryDrivenSales Sale[]        @relation("SaleSecondaryDriver")
 
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
@@ -603,5 +610,25 @@ model PurchaseItem {
   product    Product  @relation(fields: [productId], references: [id])
 
   @@map("purchase_items")
+}
+
+// ------------------------------------------------------------------------------
+// DOMINIO: LOGÍSTICA & FLOTA DE VEHÍCULOS
+// ------------------------------------------------------------------------------
+
+model Vehicle {
+  id           String   @id @default(uuid())
+  code         String?  @unique // Ej: CAM-01, FUR-02
+  plateNumber  String   @unique // Chapa (ej: ABC-123)
+  brand        String   // Ej: Scania, Mercedes-Benz, Kia, Isuzu
+  model        String   // Ej: 113H, 1114, K2700
+  capacityTons Decimal? @db.Decimal(8, 2)
+  notes        String?
+  isActive     Boolean  @default(true)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("vehicles")
 }
 

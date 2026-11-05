@@ -57,6 +57,9 @@ export class BillingService {
           vehiclePlate: input.vehiclePlate?.trim() || null,
           deliveryStatus: input.deliveryStatus || 'DELIVERED',
           deliveryNotes: input.deliveryNotes?.trim() || null,
+          secondaryDriverId: input.secondaryDriverId || null,
+          secondaryHelperIds: input.secondaryHelperIds || [],
+          secondaryVehiclePlate: input.secondaryVehiclePlate?.trim() || null,
           subtotal: taxSummary.grandTotal,
           grandTotal: taxSummary.grandTotal,
           totalExempt: taxSummary.exempt,
@@ -136,7 +139,13 @@ export class BillingService {
 
       return tx.sale.findUnique({
         where: { id: sale.id },
-        include: { items: { include: { product: true } }, invoice: true, project: true, driver: true },
+        include: {
+          items: { include: { product: true } },
+          invoice: true,
+          project: true,
+          driver: true,
+          secondaryDriver: true,
+        },
       });
     });
   }

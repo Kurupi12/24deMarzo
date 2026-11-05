@@ -537,3 +537,4 @@ export function PurchasesView() {
     </div>
   );
 }
+

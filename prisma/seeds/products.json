@@ -1,0 +1,6532 @@
+[
+  {
+    "sku": "A144",
+    "name": "Aceite de Lino 1lt.",
+    "salePrice": 29000.0,
+    "costPrice": 20300.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A145",
+    "name": "Aceite de Lino 5lt.",
+    "salePrice": 125000.0,
+    "costPrice": 87500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A165",
+    "name": "Aceleral 5lt",
+    "salePrice": 159000.0,
+    "costPrice": 111300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A113",
+    "name": "Aceleral SC 1Lt. Sika",
+    "salePrice": 28500.0,
+    "costPrice": 19950.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A142",
+    "name": "Ácido Muriático 18lt.",
+    "salePrice": 240000.0,
+    "costPrice": 168000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A107",
+    "name": "Ácido Muriático 1Lt. (AM)",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A141",
+    "name": "Ácido Muriático 5lt.",
+    "salePrice": 59000.0,
+    "costPrice": 41300.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A114",
+    "name": "Adhesivo 17gr. Tigre",
+    "salePrice": 6000.0,
+    "costPrice": 4200.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A115",
+    "name": "Adhesivo 75gr. Tigre",
+    "salePrice": 10000.0,
+    "costPrice": 7000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A122",
+    "name": "Adoquín Paraguari por Mt2",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A121",
+    "name": "Adoquín Paraguari por Unidad",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A146",
+    "name": "Aerosol Ama. Blanco Brillante",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A147",
+    "name": "Aerosol Ama. Negro Brillante 39",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A148",
+    "name": "Aerosol Ama. Negro Mate 4",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A149",
+    "name": "Aerosol Ama. Rojo 6",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A108",
+    "name": "Aguarrás Ultra Dil. 1Lt. (AM)",
+    "salePrice": 16000.0,
+    "costPrice": 11200.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A106",
+    "name": "Aislapol Negro 1x2Mt.",
+    "salePrice": 3500.0,
+    "costPrice": 2450.0,
+    "initialStock": 107.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A133",
+    "name": "Alambre Atar (Gallo) 1kg.",
+    "salePrice": 20000.0,
+    "costPrice": 14000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A136",
+    "name": "Alambre Trinca 14",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A109",
+    "name": "Alambre de Atar Por Kg.",
+    "salePrice": 20000.0,
+    "costPrice": 14000.0,
+    "initialStock": 18.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A125",
+    "name": "Alma Doble Rosc. 3/4 (TIGRE)",
+    "salePrice": 2500.0,
+    "costPrice": 1750.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A159",
+    "name": "Alumbrado Kit 12 COB - BL-T06",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A130",
+    "name": "Alumbrado Solar 100W. Mitra",
+    "salePrice": 215000.0,
+    "costPrice": 150500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A164",
+    "name": "Alumbrado Solar 100W. BMC",
+    "salePrice": 170000.0,
+    "costPrice": 119000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A131",
+    "name": "Alumbrado Solar 200W. BiFacial C/ Poste",
+    "salePrice": 165000.0,
+    "costPrice": 115500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A129",
+    "name": "Alumbrado Solar 200W. Mitra",
+    "salePrice": 270000.0,
+    "costPrice": 189000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A134",
+    "name": "Alumbrado Solar 250W.",
+    "salePrice": 525000.0,
+    "costPrice": 367500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A135",
+    "name": "Alumbrado Solar 400W. Bi-Facial",
+    "salePrice": 274500.0,
+    "costPrice": 192150.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A132",
+    "name": "Alumbrado Solar 500W.",
+    "salePrice": 375000.0,
+    "costPrice": 262500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A143",
+    "name": "Alumbrado Solar 80W. (Redondo)",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A150",
+    "name": "Alumbrado Solar 90w 3 COB",
+    "salePrice": 44500.0,
+    "costPrice": 31150.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A161",
+    "name": "Alumbrado Solar Eco 100W. - 20193",
+    "salePrice": 199500.0,
+    "costPrice": 139650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A153",
+    "name": "Alumbrado Solar Kit Completo 180w",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1345",
+    "name": "Alumbrado Vial 300w",
+    "salePrice": 374500.0,
+    "costPrice": 262150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A110",
+    "name": "Amatech Fibra 4Kg. Blanco",
+    "salePrice": 75000.0,
+    "costPrice": 52500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A111",
+    "name": "Amatech Fibra 4Kg. Cerámica",
+    "salePrice": 75000.0,
+    "costPrice": 52500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A112",
+    "name": "Amatech Fibra 4Kg. Gris",
+    "salePrice": 75000.0,
+    "costPrice": 52500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A137",
+    "name": "Ampolleta Led Bulb 30w",
+    "salePrice": 29500.0,
+    "costPrice": 20650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A140",
+    "name": "Ampolleta Led Bulb 80w",
+    "salePrice": 69500.0,
+    "costPrice": 48650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A116",
+    "name": "Anticorrosivo M500 300ml.",
+    "salePrice": 16500.0,
+    "costPrice": 11550.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1264",
+    "name": "Aplique 100 LED solar CL-100",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A154",
+    "name": "Aplique 3 Led C/F. Solar",
+    "salePrice": 59500.0,
+    "costPrice": 41650.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1267",
+    "name": "Aplique 4 LED Premium",
+    "salePrice": 59500.0,
+    "costPrice": 41650.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A158",
+    "name": "Aplique Solar 15 Led / piso",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 89.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A157",
+    "name": "Aplique Solar 2 Tiras",
+    "salePrice": 29500.0,
+    "costPrice": 20650.0,
+    "initialStock": 19.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A160",
+    "name": "Aplique Solar 6 LED Frío Super 20191",
+    "salePrice": 44500.0,
+    "costPrice": 31150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A155",
+    "name": "Aplique Solar Aleta Normal",
+    "salePrice": 32500.0,
+    "costPrice": 22750.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A152",
+    "name": "Aplique Solar Cálido 4 Led Garden",
+    "salePrice": 44500.0,
+    "costPrice": 31150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A151",
+    "name": "Aplique Solar Cálido Aleta G Land",
+    "salePrice": 85000.0,
+    "costPrice": 59500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A162",
+    "name": "Aplique Vintage (CASE BLANCO)",
+    "salePrice": 29500.0,
+    "costPrice": 20650.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A163",
+    "name": "Aplique Vintage Rejas - Cálido",
+    "salePrice": 44500.0,
+    "costPrice": 31150.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A156",
+    "name": "Aplique Vintage Solar",
+    "salePrice": 20000.0,
+    "costPrice": 14000.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A103",
+    "name": "Arena Gorda Por Carga",
+    "salePrice": 190000.0,
+    "costPrice": 133000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A128",
+    "name": "Arena Lavada 1/2 Mt3.",
+    "salePrice": 50000.0,
+    "costPrice": 35000.0,
+    "initialStock": 49.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A119",
+    "name": "Arena Lavada Media Carga (2mt3)",
+    "salePrice": 160000.0,
+    "costPrice": 112000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A100",
+    "name": "Arena Lavada Por Bolsa",
+    "salePrice": 7000.0,
+    "costPrice": 4900.0,
+    "initialStock": 361.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A117",
+    "name": "Arena Lavada Por Carga (4mt3)",
+    "salePrice": 300000.0,
+    "costPrice": 210000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A118",
+    "name": "Arena Lavada Por Carga (5Mt3)",
+    "salePrice": 325000.0,
+    "costPrice": 227500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A124",
+    "name": "Arena Lavada Por Carga (5mt3-)",
+    "salePrice": 325000.0,
+    "costPrice": 227500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A101",
+    "name": "Arena Lavada Por Mt3",
+    "salePrice": 87500.0,
+    "costPrice": 61250.0,
+    "initialStock": 752.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A104",
+    "name": "Arena Lavada x Mt3 (Sobrante)",
+    "salePrice": 80000.0,
+    "costPrice": 56000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A123",
+    "name": "Arena Refractaria 10kg.",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A120",
+    "name": "Arena Roja Por Carga (4mt3)",
+    "salePrice": 300000.0,
+    "costPrice": 210000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A105",
+    "name": "Arena Roja Por Mt3",
+    "salePrice": 62500.0,
+    "costPrice": 43750.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A126",
+    "name": "Argamix Cerámico 20kg.",
+    "salePrice": 19000.0,
+    "costPrice": 13300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A127",
+    "name": "Argamix Porcelanato 20kg.",
+    "salePrice": 38000.0,
+    "costPrice": 26600.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B102",
+    "name": "BX Antióxido 0.850Lt. Gris (AM)",
+    "salePrice": 42000.0,
+    "costPrice": 29400.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B103",
+    "name": "BX Antióxido 0.850Lt. Negro (AM)",
+    "salePrice": 42000.0,
+    "costPrice": 29400.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B104",
+    "name": "BX Antióxido 3.6Lt. Gris (AM)",
+    "salePrice": 129000.0,
+    "costPrice": 90300.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B105",
+    "name": "BX Antióxido 3.6Lt. Negro (AM)",
+    "salePrice": 129000.0,
+    "costPrice": 90300.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B126",
+    "name": "BX. Antióxido 0.850lt. Blanco",
+    "salePrice": 42000.0,
+    "costPrice": 29400.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B127",
+    "name": "BX. Antióxido 3.6Lt. Blanco",
+    "salePrice": 129000.0,
+    "costPrice": 90300.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B111",
+    "name": "BX. Antióxido 3.6Lt Azul Francia (AM)",
+    "salePrice": 129000.0,
+    "costPrice": 90300.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B114",
+    "name": "Balancín C/ Vidrio 20x30cm.",
+    "salePrice": 65000.0,
+    "costPrice": 45500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B115",
+    "name": "Balancín C/ Vidrio 20x50cm.",
+    "salePrice": 70000.0,
+    "costPrice": 49000.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B116",
+    "name": "Balancín C/ Vidrio 30x30cm. Doble Hoja",
+    "salePrice": 74000.0,
+    "costPrice": 51800.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B117",
+    "name": "Balancín C/ Vidrio 30x40cm.",
+    "salePrice": 77000.0,
+    "costPrice": 53900.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B118",
+    "name": "Balancín C/ Vidrio 30x50cm.",
+    "salePrice": 80000.0,
+    "costPrice": 56000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B119",
+    "name": "Balancín C/ Vidrio 40x40cm.",
+    "salePrice": 80000.0,
+    "costPrice": 56000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B120",
+    "name": "Balancín C/ Vidrio 40x50cm. Doble Hoja",
+    "salePrice": 85000.0,
+    "costPrice": 59500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B108",
+    "name": "Balde Albañil Con Manija",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 27.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B135",
+    "name": "Balde Albañil VOSS",
+    "salePrice": 17000.0,
+    "costPrice": 11900.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B100",
+    "name": "Baldosón Gris 40x40cm. Por Unidad",
+    "salePrice": 4500.0,
+    "costPrice": 3150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B128",
+    "name": "Baldosón por Mt2",
+    "salePrice": 32000.0,
+    "costPrice": 22400.0,
+    "initialStock": 55.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B112",
+    "name": "Bandeja Roma P/ Pint. 15cm. (ATL)",
+    "salePrice": 7000.0,
+    "costPrice": 4900.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B113",
+    "name": "Bandeja Roma P/ Pint. 23cm. (ATL)",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B107",
+    "name": "Barniz Copal BX 0.850Lt. Nogal (AM)",
+    "salePrice": 29000.0,
+    "costPrice": 20300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B106",
+    "name": "Barniz Copal BX 3.6Lt Nogal (AM)",
+    "salePrice": 99000.0,
+    "costPrice": 69300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B124",
+    "name": "Basurero Metal 70x40x110cm",
+    "salePrice": 280000.0,
+    "costPrice": 196000.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B125",
+    "name": "Basurero Metal 80x50x150cm",
+    "salePrice": 350000.0,
+    "costPrice": 245000.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B133",
+    "name": "Batería 180Ah. Mitra",
+    "salePrice": 1215000.0,
+    "costPrice": 850500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B134",
+    "name": "Batería En Gel Boocniga 150Ah.",
+    "salePrice": 895000.0,
+    "costPrice": 626500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B131",
+    "name": "Batería Gel - 100Ah.",
+    "salePrice": 495000.0,
+    "costPrice": 346500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B129",
+    "name": "Batería Gel 150ah - GM",
+    "salePrice": 895000.0,
+    "costPrice": 626500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B132",
+    "name": "Batería Gel 200Ah. Namkoo",
+    "salePrice": 1245000.0,
+    "costPrice": 871500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B130",
+    "name": "Batería Gel 250ah - GM",
+    "salePrice": 1445000.0,
+    "costPrice": 1011500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B121",
+    "name": "Bobina Manguera TopFlex 1/2 pulgadas",
+    "salePrice": 4600.0,
+    "costPrice": 3220.0,
+    "initialStock": 37.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B101",
+    "name": "Bolsa Vacía PVC",
+    "salePrice": 1000.0,
+    "costPrice": 700.0,
+    "initialStock": 658.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B110",
+    "name": "Brocha #48 Blanca 190x76mm.",
+    "salePrice": 12000.0,
+    "costPrice": 8400.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B109",
+    "name": "Brocha #51 Blanca 165x58mm.",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B122",
+    "name": "Brocha #54 Blanca 123x45mm",
+    "salePrice": 7500.0,
+    "costPrice": 5250.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "B123",
+    "name": "Busca Polo Amarillo",
+    "salePrice": 7000.0,
+    "costPrice": 4900.0,
+    "initialStock": 16.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C377",
+    "name": "Cable Solar Negro 6mm. x mt",
+    "salePrice": 12500.0,
+    "costPrice": 8750.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C368",
+    "name": "Caja Dist. Redonda 80x50",
+    "salePrice": 14000.0,
+    "costPrice": 9800.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C373",
+    "name": "Caja Rectangular Naranja",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C367",
+    "name": "Caja Sif. Crom. 150x150x50 nro5",
+    "salePrice": 58000.0,
+    "costPrice": 40600.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C365",
+    "name": "Caja Sif. Cuad/Blaco 150x150x50 n101",
+    "salePrice": 39000.0,
+    "costPrice": 27300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C364",
+    "name": "Caja Sif. Cuad/Blanco 100x100x50 n71",
+    "salePrice": 24000.0,
+    "costPrice": 16800.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C366",
+    "name": "Caja Sif. Cuadrado Crom. 100x100x50 RVCO",
+    "salePrice": 39000.0,
+    "costPrice": 27300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C372",
+    "name": "Caja Tablero 15 de embutir",
+    "salePrice": 70000.0,
+    "costPrice": 49000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C361",
+    "name": "Caja Tablero 2 Módulos Emb. Elektron",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C362",
+    "name": "Caja Tablero 4 Módulos Emb. Elektron",
+    "salePrice": 27000.0,
+    "costPrice": 18900.0,
+    "initialStock": 7.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C376",
+    "name": "Cal Cem 20kg.",
+    "salePrice": 27000.0,
+    "costPrice": 18900.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C311",
+    "name": "Cal En Pasta LaCal 4Kg.",
+    "salePrice": 8500.0,
+    "costPrice": 5950.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C305",
+    "name": "Cal Hidratada Concrecal 25kg.",
+    "salePrice": 29000.0,
+    "costPrice": 20300.0,
+    "initialStock": 284.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C307",
+    "name": "Cal Hidratada Concrecal Bolsa 5kg",
+    "salePrice": 10000.0,
+    "costPrice": 7000.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C304",
+    "name": "Cal Hidratada Inpacal 20kg.",
+    "salePrice": 27000.0,
+    "costPrice": 18900.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C306",
+    "name": "Cal Hidratada Inpacal Bolsa 5kg.",
+    "salePrice": 10000.0,
+    "costPrice": 7000.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C314",
+    "name": "Cal Hidratada Zu-Cal 20Kg.",
+    "salePrice": 24000.0,
+    "costPrice": 16800.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C374",
+    "name": "Cámara Falso Solar",
+    "salePrice": 32500.0,
+    "costPrice": 22750.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C369",
+    "name": "Caminero Metal Rectangular 220v.",
+    "salePrice": 19000.0,
+    "costPrice": 13300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C310",
+    "name": "Canto Rodado Amarillo Por Mt2 11 Uds.",
+    "salePrice": 43000.0,
+    "costPrice": 30100.0,
+    "initialStock": 21.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C308",
+    "name": "Canto Rodado Negro Por Mt2 11 Uds.",
+    "salePrice": 43000.0,
+    "costPrice": 30100.0,
+    "initialStock": 29.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C309",
+    "name": "Canto Rodado Rojo Por Mt2 11 Uds.",
+    "salePrice": 43000.0,
+    "costPrice": 30100.0,
+    "initialStock": 50.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C360",
+    "name": "Carretilla Azul Rueda Maciza",
+    "salePrice": 450000.0,
+    "costPrice": 315000.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C347",
+    "name": "Casco Amarillo ECO (ATL)",
+    "salePrice": 28000.0,
+    "costPrice": 19600.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C371",
+    "name": "Caño 3Mt. 100mm.",
+    "salePrice": 50000.0,
+    "costPrice": 35000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C337",
+    "name": "Caño Cloacal 100mm. Blanco Tigre",
+    "salePrice": 93000.0,
+    "costPrice": 65100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C325",
+    "name": "Caño Cloacal 150mm. PVC Blanco Titan",
+    "salePrice": 199000.0,
+    "costPrice": 139300.0,
+    "initialStock": 9.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C330",
+    "name": "Caño Cloacal 40mm. Blanco - titan",
+    "salePrice": 45000.0,
+    "costPrice": 31500.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C331",
+    "name": "Caño Cloacal 50mm. Blanco - titan",
+    "salePrice": 49000.0,
+    "costPrice": 34300.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C315",
+    "name": "Caño Cloacal De 100mm. ECO Blanco Titan",
+    "salePrice": 79000.0,
+    "costPrice": 55300.0,
+    "initialStock": 16.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C323",
+    "name": "Caño Corrugado (1/2)",
+    "salePrice": 39000.0,
+    "costPrice": 27300.0,
+    "initialStock": 7.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C324",
+    "name": "Caño Corrugado (3/4)",
+    "salePrice": 49000.0,
+    "costPrice": 34300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C382",
+    "name": "Caño Metal 20x30cm 1.5",
+    "salePrice": 79000.0,
+    "costPrice": 55300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C336",
+    "name": "Caño PE ROS AP de 1/2 Tigre Negro x Mt.",
+    "salePrice": 6000.0,
+    "costPrice": 4200.0,
+    "initialStock": 48.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C349",
+    "name": "Caño Rosc. 1/2 (TIGRE)",
+    "salePrice": 59000.0,
+    "costPrice": 41300.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C350",
+    "name": "Caño Rosc. 3/4 (TIGRE)",
+    "salePrice": 69000.0,
+    "costPrice": 48300.0,
+    "initialStock": 12.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C370",
+    "name": "Caño de 1/2 - 6mt - TITAN",
+    "salePrice": 45000.0,
+    "costPrice": 31500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C320",
+    "name": "Cemento Blanco 1Kg.",
+    "salePrice": 8500.0,
+    "costPrice": 5950.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C353",
+    "name": "Cemento De Contacto 125cc. (ATL)",
+    "salePrice": 12500.0,
+    "costPrice": 8750.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C300",
+    "name": "Cemento PZ Vallemí Rojo 50kg.",
+    "salePrice": 60000.0,
+    "costPrice": 42000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C303",
+    "name": "Cemento PZ Vallemí Rojo Bolsa 5kg.",
+    "salePrice": 10000.0,
+    "costPrice": 7000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C301",
+    "name": "Cemento Yguazú 50kg.",
+    "salePrice": 69000.0,
+    "costPrice": 48300.0,
+    "initialStock": 47.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C302",
+    "name": "Cemento Yguazú Por Kg.",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": 188.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C356",
+    "name": "Cemento de Contacto 3.6Lt. (POLI)",
+    "salePrice": 115000.0,
+    "costPrice": 80500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C355",
+    "name": "Cemento de Contacto 850cc. (POLI)",
+    "salePrice": 27000.0,
+    "costPrice": 18900.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C381",
+    "name": "Chapa Ondulada 0.90x3mt nro-28",
+    "salePrice": 115000.0,
+    "costPrice": 80500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C380",
+    "name": "Chatarra x KG.",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C357",
+    "name": "Cianocrilato Líquido 20g.",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C327",
+    "name": "Cinta Aisl. Millon Negro 10mt.",
+    "salePrice": 7000.0,
+    "costPrice": 4900.0,
+    "initialStock": 9.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C328",
+    "name": "Cinta Aisl. Millon Negro 20mt.",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C326",
+    "name": "Cinta Aisl. Millon Negro 5mt.",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C313",
+    "name": "Cinta Asf. Vedacit 0.10x1Mt. (ATL)",
+    "salePrice": 4000.0,
+    "costPrice": 2800.0,
+    "initialStock": 55.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C341",
+    "name": "Cinta Asf. Vedacit 0.15x1mt. (ATL)",
+    "salePrice": 4500.0,
+    "costPrice": 3150.0,
+    "initialStock": 40.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C342",
+    "name": "Cinta Asf. Vedacit 0.20x1mt. (ATL)",
+    "salePrice": 6900.0,
+    "costPrice": 4830.0,
+    "initialStock": 60.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C343",
+    "name": "Cinta Asf. Vedacit 0.30x1mt. (ATL)",
+    "salePrice": 9200.0,
+    "costPrice": 6440.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C344",
+    "name": "Cinta Asf. Vedacit 0.45x1mt. (ATL)",
+    "salePrice": 13500.0,
+    "costPrice": 9450.0,
+    "initialStock": 9.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C345",
+    "name": "Cinta Asf. Vedacit 0.90x1mt. (ATL)",
+    "salePrice": 21500.0,
+    "costPrice": 15050.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C359",
+    "name": "Cinta Sep. Rapifix 12mm. (ATL)",
+    "salePrice": 7500.0,
+    "costPrice": 5250.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C318",
+    "name": "Cinta Sep. Rapifix 18mm.",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C319",
+    "name": "Cinta Sep. Rapifix 24mm.",
+    "salePrice": 11500.0,
+    "costPrice": 8050.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C322",
+    "name": "Cinta Teflon 12mmx25m.",
+    "salePrice": 5500.0,
+    "costPrice": 3850.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C321",
+    "name": "Cinta Teflon 18mmx10m.",
+    "salePrice": 4500.0,
+    "costPrice": 3150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C358",
+    "name": "Clavo 2x11 Gallo",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 17.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C346",
+    "name": "Clavo 2x11 por Kg. (HP) Gerdau",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C312",
+    "name": "Clavos 1Kg. 2x11 (AA)",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C379",
+    "name": "Cobre x KG.",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C340",
+    "name": "Codo 100x45 Tigre",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 24.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C338",
+    "name": "Codo 100x90 Tigre",
+    "salePrice": 17000.0,
+    "costPrice": 11900.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C316",
+    "name": "Codo 100x90 Titan",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 16.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C339",
+    "name": "Codo 150x45 Tigre",
+    "salePrice": 45000.0,
+    "costPrice": 31500.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C335",
+    "name": "Codo 40x45 Tigre",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C334",
+    "name": "Codo 40x90 Tigre",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 13.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C332",
+    "name": "Codo 50x45 Tigre",
+    "salePrice": 7000.0,
+    "costPrice": 4900.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C333",
+    "name": "Codo 50x90 Tigre",
+    "salePrice": 6000.0,
+    "costPrice": 4200.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C329",
+    "name": "Codo Liviano 150x90 Titan",
+    "salePrice": 59000.0,
+    "costPrice": 41300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C352",
+    "name": "Codo Rosc. 45x3/4 (TIGRE)",
+    "salePrice": 8000.0,
+    "costPrice": 5600.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C348",
+    "name": "Codo Rosc. 90x1/2 (TIGRE)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C351",
+    "name": "Codo Rosc. 90x3/4 (TIGRE)",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 20.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C354",
+    "name": "Cola Vinílica 1kg. (POLI)",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C378",
+    "name": "Colgante Falta Solar - 20262",
+    "salePrice": 29500.0,
+    "costPrice": 20650.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C375",
+    "name": "Conector MC4 Mitra",
+    "salePrice": 10400.0,
+    "costPrice": 7280.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1276",
+    "name": "Convoco Inclinado Irene",
+    "salePrice": 3500.0,
+    "costPrice": 2450.0,
+    "initialStock": 121.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C317",
+    "name": "Cuchara Para Albañil Tramontina 7",
+    "salePrice": 23000.0,
+    "costPrice": 16100.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "C363",
+    "name": "Cuerpo Caja Sif. 100x100x50mm.",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D403",
+    "name": "Dintel Hormigón 1.3mts.",
+    "salePrice": 95000.0,
+    "costPrice": 66500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D404",
+    "name": "Dintel Hormigón 1.5mts.",
+    "salePrice": 110000.0,
+    "costPrice": 77000.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D405",
+    "name": "Dintel Hormigón 1.8mts.",
+    "salePrice": 129000.0,
+    "costPrice": 90300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D406",
+    "name": "Dintel Hormigón 2.0mts.",
+    "salePrice": 159000.0,
+    "costPrice": 111300.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D419",
+    "name": "Dintel Hormigón 2.5mts",
+    "salePrice": 199000.0,
+    "costPrice": 139300.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D407",
+    "name": "Dintel Hormigón 3.0mts.",
+    "salePrice": 229000.0,
+    "costPrice": 160300.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D400",
+    "name": "Dintel Hormigón 3.5mt",
+    "salePrice": 269000.0,
+    "costPrice": 188300.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D412",
+    "name": "Disco Diam. Norton Seco 7 pulgadas",
+    "salePrice": 49000.0,
+    "costPrice": 34300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D411",
+    "name": "Disco Diam. Seco Optima 230mm.",
+    "salePrice": 55000.0,
+    "costPrice": 38500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D410",
+    "name": "Disco Diam. húmedo 110x20 Norton (ATL)",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D409",
+    "name": "Disco Diam. seco 110x22 Norton (ATL)",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D417",
+    "name": "Disco P/ Lijar Flap 115mm GR 40",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D416",
+    "name": "Disco P/ Lijar Flap 115mm GR 80",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D418",
+    "name": "Disco P/ Lijar Flap GR 60",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D414",
+    "name": "Disco P/ Madera 40T 115mm",
+    "salePrice": 23000.0,
+    "costPrice": 16100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D415",
+    "name": "Disco P/ Madera 40T 180mm",
+    "salePrice": 27000.0,
+    "costPrice": 18900.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D413",
+    "name": "Disco P/ Madera 40T 230mm.",
+    "salePrice": 55000.0,
+    "costPrice": 38500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D401",
+    "name": "Disco de Corte Norton (1.0mm) BNA-12 4.5 pulgadas",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D402",
+    "name": "Disco de Corte Norton (1.6mm) BNA-12 7 pulgadas",
+    "salePrice": 22000.0,
+    "costPrice": 15400.0,
+    "initialStock": 22.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "D408",
+    "name": "Disco de Corte Tram.Pro Acero 4.5 pulgadas (ATL)",
+    "salePrice": 6000.0,
+    "costPrice": 4200.0,
+    "initialStock": 14.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E503",
+    "name": "Electrodo 2.5mm. SH421.01 por unidad.",
+    "salePrice": 430.0,
+    "costPrice": 301.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E507",
+    "name": "Enduido (Env. Azul) 26Kg. (AM)",
+    "salePrice": 133000.0,
+    "costPrice": 93100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E508",
+    "name": "Enduido (Env. Azul) 6Kg. (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E538",
+    "name": "Enduido Blascor 15kg. Interior",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E511",
+    "name": "Enduido Cementicio Blanco 10kg. (AM)",
+    "salePrice": 49000.0,
+    "costPrice": 34300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E512",
+    "name": "Enduido Cementicio Blanco 5kg. (AM)",
+    "salePrice": 29000.0,
+    "costPrice": 20300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E513",
+    "name": "Enduido Cementicio Gris 10kg. (AM)",
+    "salePrice": 42000.0,
+    "costPrice": 29400.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E514",
+    "name": "Enduido Cementicio Gris 5kg. (AM)",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E534",
+    "name": "Enduido Envase Azul 1.6kg.",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E509",
+    "name": "Enduido Interior 15Kg. Bolsa (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E522",
+    "name": "Entonador Amarillo 120cc Uni.",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E523",
+    "name": "Entonador Azul 120cc Uni.",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E524",
+    "name": "Entonador Bermellón 120cc",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E525",
+    "name": "Entonador Cedro 120cc",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E526",
+    "name": "Entonador Marrón 120cc Uni.",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E527",
+    "name": "Entonador Naranja 120cc Uni.",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E28",
+    "name": "Entonador Negro 120cc Uni.",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E533",
+    "name": "Entonador Negro 120cc Uni.",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E529",
+    "name": "Entonador Ocre 120cc",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E530",
+    "name": "Entonador Siena 120cc",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E531",
+    "name": "Entonador Verde Claro 120cc",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E532",
+    "name": "Entonador Verde Oscuro 120cc",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E521",
+    "name": "Entonador Violeta 120cc",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E500",
+    "name": "Escombro Por Bolsa",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E501",
+    "name": "Escombro Por Mt3",
+    "salePrice": 90000.0,
+    "costPrice": 63000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E519",
+    "name": "Escuadra 25cm",
+    "salePrice": 10500.0,
+    "costPrice": 7350.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E520",
+    "name": "Escuadra 35cm",
+    "salePrice": 18000.0,
+    "costPrice": 12600.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E506",
+    "name": "Espátula China 3 pulgadas",
+    "salePrice": 6000.0,
+    "costPrice": 4200.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E504",
+    "name": "Espátula China 4 pulgadas",
+    "salePrice": 7000.0,
+    "costPrice": 4900.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E505",
+    "name": "Espátula China 5 pulgadas",
+    "salePrice": 10000.0,
+    "costPrice": 7000.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E516",
+    "name": "Espátula Goma 2 pulgadas",
+    "salePrice": 9000.0,
+    "costPrice": 6300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E517",
+    "name": "Espátula Goma 3 pulgadas",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E518",
+    "name": "Espátula Goma 4 pulgadas",
+    "salePrice": 10500.0,
+    "costPrice": 7350.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E510",
+    "name": "Espuma Expansiva Poliuretano 500M",
+    "salePrice": 32500.0,
+    "costPrice": 22750.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E549",
+    "name": "Estaca Flor Solar - 20260",
+    "salePrice": 44500.0,
+    "costPrice": 31150.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E539",
+    "name": "Estaca Mata Mosquito",
+    "salePrice": 29500.0,
+    "costPrice": 20650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E537",
+    "name": "Estaca Mini Frío",
+    "salePrice": 12500.0,
+    "costPrice": 8750.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E544",
+    "name": "Estaca Navideño Reno Led Solar 5pc",
+    "salePrice": 74500.0,
+    "costPrice": 52150.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E545",
+    "name": "Estaca Navideño Santa Solar 5pcs",
+    "salePrice": 84500.0,
+    "costPrice": 59150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E540",
+    "name": "Estaca Premium / Farol",
+    "salePrice": 49750.0,
+    "costPrice": 34825.0,
+    "initialStock": 24.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E546",
+    "name": "Estaca Redondo Solar Pelota Blanco",
+    "salePrice": 34500.0,
+    "costPrice": 24150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E542",
+    "name": "Estaca Rosa Flor Rojo 70cm. 130304",
+    "salePrice": 64500.0,
+    "costPrice": 45150.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E543",
+    "name": "Estaca Solar Cactus Verde 20133",
+    "salePrice": 44500.0,
+    "costPrice": 31150.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E550",
+    "name": "Estaca Solar Cálida Rect - 20261",
+    "salePrice": 34500.0,
+    "costPrice": 24150.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E548",
+    "name": "Estaca Solar Cálida Cilíndrico",
+    "salePrice": 129000.0,
+    "costPrice": 90300.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E547",
+    "name": "Estaca Solar Flor Rosa - Fucsia - 2 Uni.",
+    "salePrice": 84500.0,
+    "costPrice": 59150.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E541",
+    "name": "Estaca Solar Flor Rosado 70cm. 130295",
+    "salePrice": 64500.0,
+    "costPrice": 45150.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E536",
+    "name": "Estaca Solar Frío / Mosquito",
+    "salePrice": 29500.0,
+    "costPrice": 20650.0,
+    "initialStock": 15.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E535",
+    "name": "Estaca Solar RGB",
+    "salePrice": 14500.0,
+    "costPrice": 10150.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E502",
+    "name": "Estopa de Algodón Blanco Chico",
+    "salePrice": 6000.0,
+    "costPrice": 4200.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "E515",
+    "name": "Exterminador Cupim 0.90Lt. (FORT)",
+    "salePrice": 48000.0,
+    "costPrice": 33600.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "F603",
+    "name": "Farol/Caminero Cálido/Frío KY-BKZTD-1022",
+    "salePrice": 44500.0,
+    "costPrice": 31150.0,
+    "initialStock": 11.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "F604",
+    "name": "Foco Eléctrico 40W. 20215",
+    "salePrice": 18000.0,
+    "costPrice": 12600.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "F601",
+    "name": "Foco Eléctrico 5w Frío / Metal",
+    "salePrice": 6250.0,
+    "costPrice": 4375.0,
+    "initialStock": 17.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "F605",
+    "name": "Foco Eléctrico 65W. 20217",
+    "salePrice": 28000.0,
+    "costPrice": 19600.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "F600",
+    "name": "Foco Solar 5w. Con Gancho",
+    "salePrice": 85000.0,
+    "costPrice": 59500.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "F606",
+    "name": "Foco Solar Retro - T01",
+    "salePrice": 29500.0,
+    "costPrice": 20650.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "F602",
+    "name": "Frasco Decorativo Solar",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "G705",
+    "name": "Generador Solar + Panel 160w Electro.",
+    "salePrice": 2713000.0,
+    "costPrice": 1899100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "G700",
+    "name": "Grampyta 8Py-Color Blanco",
+    "salePrice": 160.0,
+    "costPrice": 112.0,
+    "initialStock": 250.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "G704",
+    "name": "Grinfa Dobladora 10-12mm.",
+    "salePrice": 55000.0,
+    "costPrice": 38500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "G702",
+    "name": "Grinfa Dobladora 6-8mm.",
+    "salePrice": 50000.0,
+    "costPrice": 35000.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "G703",
+    "name": "Grinfa Dobladora 8-10mm.",
+    "salePrice": 52000.0,
+    "costPrice": 36400.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "G701",
+    "name": "Guante Anti-Deslizante Azul-Blanco (ATL)",
+    "salePrice": 10000.0,
+    "costPrice": 7000.0,
+    "initialStock": 23.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "G706",
+    "name": "Guazukol AC1 20kg.",
+    "salePrice": 29000.0,
+    "costPrice": 20300.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1292",
+    "name": "Guirnalda 100mt / Blanco Piscas",
+    "salePrice": 174500.0,
+    "costPrice": 122150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1275",
+    "name": "Guirnalda 100mt / MultiColor Piscas",
+    "salePrice": 174500.0,
+    "costPrice": 122150.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1274",
+    "name": "Guirnalda 30mt",
+    "salePrice": 89500.0,
+    "costPrice": 62650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1294",
+    "name": "Guirnalda 30mt 300 piscas blanco",
+    "salePrice": 99500.0,
+    "costPrice": 69650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1293",
+    "name": "Guirnalda Piscas 500 luces piscas multi",
+    "salePrice": 124500.0,
+    "costPrice": 87150.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1262",
+    "name": "Guirnalda Solar 5mt/20focos Blanco",
+    "salePrice": 44500.0,
+    "costPrice": 31150.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1291",
+    "name": "Guirnalda Solar Cálido 6mt. pelota",
+    "salePrice": 55000.0,
+    "costPrice": 38500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1287",
+    "name": "Guirnalda Solar Gota 7mt/50f 20139",
+    "salePrice": 44500.0,
+    "costPrice": 31150.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "H805",
+    "name": "Hidrófugo Ceresita Titan 10Lt.",
+    "salePrice": 79000.0,
+    "costPrice": 55300.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "H803",
+    "name": "Hidrófugo Ceresita Titan 1Lt.",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 19.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "H806",
+    "name": "Hidrófugo Ceresita Titan 20Lt.",
+    "salePrice": 125000.0,
+    "costPrice": 87500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "H804",
+    "name": "Hidrófugo Ceresita Titan 3.6Lt.",
+    "salePrice": 39000.0,
+    "costPrice": 27300.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "H808",
+    "name": "Hoja Sierra Nicholson Flex 18 (ATL)",
+    "salePrice": 6500.0,
+    "costPrice": 4550.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "H807",
+    "name": "Hoja Sierra Nicholson Flex 24 (ATL)",
+    "salePrice": 6500.0,
+    "costPrice": 4550.0,
+    "initialStock": 9.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "H800",
+    "name": "Hormifix 1Lt. Sika",
+    "salePrice": 37000.0,
+    "costPrice": 25900.0,
+    "initialStock": 14.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "H802",
+    "name": "Hormifix 20Lt. Sika",
+    "salePrice": 549000.0,
+    "costPrice": 384300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "H801",
+    "name": "Hormifix 5Lt. Sika",
+    "salePrice": 159000.0,
+    "costPrice": 111300.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "H809",
+    "name": "Hormigonera Ansa",
+    "salePrice": 2150000.0,
+    "costPrice": 1505000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "I901",
+    "name": "Impacril Sika 20Lt. Blanco",
+    "salePrice": 490000.0,
+    "costPrice": 343000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "I902",
+    "name": "Impacril Sika 20Lt. Cerámica",
+    "salePrice": 490000.0,
+    "costPrice": 343000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "I908",
+    "name": "Impacril Sika 20Lt. Gris",
+    "salePrice": 490000.0,
+    "costPrice": 343000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "I903",
+    "name": "Impacril Sika 5Lt. Blanco",
+    "salePrice": 165000.0,
+    "costPrice": 115500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "I904",
+    "name": "Impacril Sika 5Lt. Cerámica",
+    "salePrice": 165000.0,
+    "costPrice": 115500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "I907",
+    "name": "Impacril Sika 5Lt. Gris",
+    "salePrice": 165000.0,
+    "costPrice": 115500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "I905",
+    "name": "Impermeab. P/ Cerámicos 1lt. (FORT)",
+    "salePrice": 17000.0,
+    "costPrice": 11900.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "I906",
+    "name": "Impermiab. P/ Cerámicos 5lt. (FORT)",
+    "salePrice": 59000.0,
+    "costPrice": 41300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "I900",
+    "name": "Inkor Kolatop Interno AC1 20Kg.",
+    "salePrice": 24000.0,
+    "costPrice": 16800.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "I909",
+    "name": "Inversor 5kw. G-Land",
+    "salePrice": 1925000.0,
+    "costPrice": 1347500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "K1105",
+    "name": "Kerosen 5Lt.",
+    "salePrice": 69000.0,
+    "costPrice": 48300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "K1101",
+    "name": "Kerosene 1Lt. Plástico (POLI)",
+    "salePrice": 17000.0,
+    "costPrice": 11900.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "K1106",
+    "name": "Kit Solar Camping EP-521",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "K1107",
+    "name": "Kit Ventilador Mini LED - Solar",
+    "salePrice": 69500.0,
+    "costPrice": 48650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "K1102",
+    "name": "KlauMix Pastina Piscina Azul Os. 1kg.",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "K1104",
+    "name": "KlauMix Pastina Piscina Celeste 1kg.",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "K1103",
+    "name": "KlauMix Pastina Piscinas Azul Cl. 1kg.",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1297",
+    "name": "L",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1260",
+    "name": "LED Sensor de Movimiento Solar 20LED",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1230",
+    "name": "LX Acr. 18Lt. Arena (AM)",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1234",
+    "name": "LX Acr. 18Lt. Blanco (AM)",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1231",
+    "name": "LX Acr. 18Lt. Gris Hielo (AM)",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1232",
+    "name": "LX Acr. 18Lt. Ladrillo (AM)",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1233",
+    "name": "LX Acr. 18Lt. Mostaza (AM)",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1239",
+    "name": "LX Acr. 18lt. Celeste",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1240",
+    "name": "LX Acr. 18lt. Damasco",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1241",
+    "name": "LX Acr. 18lt. Naranja",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1242",
+    "name": "LX Acr. 18lt. Verde Amazona",
+    "salePrice": 135000.0,
+    "costPrice": 94500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1225",
+    "name": "LX Acr. 3.6Lt. Arena (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1229",
+    "name": "LX Acr. 3.6Lt. Blanco (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1226",
+    "name": "LX Acr. 3.6Lt. Gris Hielo (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1227",
+    "name": "LX Acr. 3.6Lt. Ladrillo (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1228",
+    "name": "LX Acr. 3.6Lt. Mostaza (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1235",
+    "name": "LX Acr. 3.6lt. Celeste (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1236",
+    "name": "LX Acr. 3.6lt. Damasco (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1237",
+    "name": "LX Acr. 3.6lt. Naranja (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1238",
+    "name": "LX Acr. 3.6lt. Verde Amazona (AM)",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1219",
+    "name": "LX Pintor 18Lt. Arena (AM)",
+    "salePrice": 455000.0,
+    "costPrice": 318500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1224",
+    "name": "LX Pintor 18Lt. Blanco (AM)",
+    "salePrice": 490500.0,
+    "costPrice": 343350.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1221",
+    "name": "LX Pintor 1Lt. Blanco (AM)",
+    "salePrice": 30500.0,
+    "costPrice": 21350.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1220",
+    "name": "LX Pintor 3.6Lt. Algodón (AM)",
+    "salePrice": 101000.0,
+    "costPrice": 70700.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1223",
+    "name": "LX Pintor 3.6Lt. Blanco (AM)",
+    "salePrice": 107500.0,
+    "costPrice": 75250.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1216",
+    "name": "La Gotita 2ml.",
+    "salePrice": 8000.0,
+    "costPrice": 5600.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1222",
+    "name": "Ladrillejo Tobatí 1ra. A.",
+    "salePrice": 760.0,
+    "costPrice": 532.0,
+    "initialStock": 692.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1277",
+    "name": "Ladrillo Charito Prensado Vete. (1)",
+    "salePrice": 1400.0,
+    "costPrice": 980.0,
+    "initialStock": 7630.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1200",
+    "name": "Ladrillo Común",
+    "salePrice": 850.0,
+    "costPrice": 595.0,
+    "initialStock": 13010.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1296",
+    "name": "Ladrillo Común 2.0",
+    "salePrice": 700.0,
+    "costPrice": 490.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1205",
+    "name": "Ladrillo Convoco Recto Irene Abierto",
+    "salePrice": 3500.0,
+    "costPrice": 2450.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1249",
+    "name": "Ladrillo Convoco Recto Irene Cerrado",
+    "salePrice": 4000.0,
+    "costPrice": 2800.0,
+    "initialStock": 125.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1204",
+    "name": "Ladrillo Hueco B.C. 11x16x23Cm.",
+    "salePrice": 1700.0,
+    "costPrice": 1190.0,
+    "initialStock": 426.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1270",
+    "name": "Ladrillo Hueco Tobatí 2da.",
+    "salePrice": 1390.0,
+    "costPrice": 973.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1265",
+    "name": "Ladrillo Hueco Tobatí Marco. 11x16x22.5",
+    "salePrice": 1350.0,
+    "costPrice": 945.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1247",
+    "name": "Ladrillo P. 21A. MAZA.",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1206",
+    "name": "Ladrillo Pp.",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1218",
+    "name": "Ladrillo Prensado 3 Agujero Rojo",
+    "salePrice": 1200.0,
+    "costPrice": 840.0,
+    "initialStock": 5207.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1202",
+    "name": "Ladrillo Prensado 3 Agujeros Vete.",
+    "salePrice": 1200.0,
+    "costPrice": 840.0,
+    "initialStock": 3001.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1203",
+    "name": "Ladrillo Refrac. Klinker 10x20x3cm.",
+    "salePrice": 2800.0,
+    "costPrice": 1960.0,
+    "initialStock": 787.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1269",
+    "name": "Lámpara Solar 2 G Land",
+    "salePrice": 79500.0,
+    "costPrice": 55650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1261",
+    "name": "Lámpara Tipo Vintage Solar",
+    "salePrice": 74500.0,
+    "costPrice": 52150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1280",
+    "name": "Lámpara Vela Vintage 20126",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1279",
+    "name": "Lámpara Vintage Colgante 20095",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1217",
+    "name": "Lápiz Carpintero Chino",
+    "salePrice": 1000.0,
+    "costPrice": 700.0,
+    "initialStock": 36.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1245",
+    "name": "Lija Al Agua Norton 120 (ATL)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 17.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1213",
+    "name": "Lija Pared Rojo Norton 100",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1214",
+    "name": "Lija Pared Rojo Norton 120",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": 15.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1215",
+    "name": "Lija Pared Rojo Norton 220",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": 30.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1211",
+    "name": "Lija Pared Rojo Norton 60",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": 23.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1212",
+    "name": "Lija Pared Rojo Norton 80",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": -1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1244",
+    "name": "Lija al Agua Norton 100 (ATL)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1246",
+    "name": "Lija al Agua Norton 220 (ATL)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 29.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1243",
+    "name": "Lija al Agua Norton 60 (ATL)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 41.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1289",
+    "name": "Linterna LED Recargable 20074",
+    "salePrice": 24500.0,
+    "costPrice": 17150.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1295",
+    "name": "Linterna/Foco LED Solar -20127",
+    "salePrice": 44500.0,
+    "costPrice": 31150.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1210",
+    "name": "Llana Dentada Metálica",
+    "salePrice": 14000.0,
+    "costPrice": 9800.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1207",
+    "name": "Llana Lisa Metal",
+    "salePrice": 19000.0,
+    "costPrice": 13300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1248",
+    "name": "Llana Plástica C/ Espuma 20cm.",
+    "salePrice": 12500.0,
+    "costPrice": 8750.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1209",
+    "name": "Llana Plástica C/Espuma 25cm.",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1208",
+    "name": "Llana Plástica Ranurada",
+    "salePrice": 10000.0,
+    "costPrice": 7000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1255",
+    "name": "Llave 10A. Ecolight 3kA-1C10",
+    "salePrice": 12500.0,
+    "costPrice": 8750.0,
+    "initialStock": 7.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1250",
+    "name": "Llave 10A. Elektron HB9N-1C1",
+    "salePrice": 22000.0,
+    "costPrice": 15400.0,
+    "initialStock": 12.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1256",
+    "name": "Llave 16A. Ecolight 3kA-1C16",
+    "salePrice": 12000.0,
+    "costPrice": 8400.0,
+    "initialStock": 7.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1251",
+    "name": "Llave 16A. Elektron HB9N-1C1",
+    "salePrice": 21000.0,
+    "costPrice": 14700.0,
+    "initialStock": 12.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1257",
+    "name": "Llave 20A. Ecolight 3kA-1C20",
+    "salePrice": 12000.0,
+    "costPrice": 8400.0,
+    "initialStock": 7.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1252",
+    "name": "Llave 20A. Elektron HB9N-1C2",
+    "salePrice": 21000.0,
+    "costPrice": 14700.0,
+    "initialStock": 12.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1258",
+    "name": "Llave 25A. Ecolight 3kA-1C25",
+    "salePrice": 12000.0,
+    "costPrice": 8400.0,
+    "initialStock": 7.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1253",
+    "name": "Llave 25A. Elektron HB9N-1C2",
+    "salePrice": 21000.0,
+    "costPrice": 14700.0,
+    "initialStock": 12.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1259",
+    "name": "Llave 32A. Ecolight 3kA-1C32",
+    "salePrice": 12000.0,
+    "costPrice": 8400.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1254",
+    "name": "Llave 32A. Elektron HB9N-1C3",
+    "salePrice": 21500.0,
+    "costPrice": 15050.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1286",
+    "name": "Llavero 5 en 1 (Leo Lee)",
+    "salePrice": 17500.0,
+    "costPrice": 12250.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1201",
+    "name": "L11",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1290",
+    "name": "Luz LED Ciervo Colgante Solar",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1285",
+    "name": "Luz Led Spot Frío 56 COB SH-1705D",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1271",
+    "name": "Luz Salida Emergencia Verde",
+    "salePrice": 29500.0,
+    "costPrice": 20650.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1266",
+    "name": "Luz Solar 6 Led Semi Premium",
+    "salePrice": 62500.0,
+    "costPrice": 43750.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1273",
+    "name": "Luz Solar 6 led Noral",
+    "salePrice": 17500.0,
+    "costPrice": 12250.0,
+    "initialStock": 37.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1272",
+    "name": "Luz Solar Navideña 10mt",
+    "salePrice": 34500.0,
+    "costPrice": 24150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1263",
+    "name": "Luz Solar Pared Cálido 2 Leds.",
+    "salePrice": 17500.0,
+    "costPrice": 12250.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1268",
+    "name": "Luz Solar Pared Cálido 8 Led.",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 13.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1278",
+    "name": "Luz Solar Super 8 Led",
+    "salePrice": 74500.0,
+    "costPrice": 52150.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1306",
+    "name": "Malla Electro Soldada 2x3-4mm-15x15",
+    "salePrice": 125000.0,
+    "costPrice": 87500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1347",
+    "name": "Malla Electrosoldada 5mm-20x20-2x3mt",
+    "salePrice": 99000.0,
+    "costPrice": 69300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1303",
+    "name": "Manguera Cristal 1/4x1.0 (Por Metro)",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": 11.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1304",
+    "name": "Manguera Cristal 5/16x0.8 (Por Metro)",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": 30.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1346",
+    "name": "Martillete 30kg.",
+    "salePrice": 2000000.0,
+    "costPrice": 1400000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1305",
+    "name": "Masa DunDun 3kg.",
+    "salePrice": 45000.0,
+    "costPrice": 31500.0,
+    "initialStock": 7.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1340",
+    "name": "Masilla Plástica 1kg. (ATL)",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1326",
+    "name": "Mecha Tram Acero 14mm. (ATL)",
+    "salePrice": 60000.0,
+    "costPrice": 42000.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1307",
+    "name": "Mecha Tram. Acero 1.5mm-L-40mm. (ATL)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1323",
+    "name": "Mecha Tram. Acero 10mm-L-133mm. (ATL)",
+    "salePrice": 18000.0,
+    "costPrice": 12600.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1324",
+    "name": "Mecha Tram. Acero 11mm-L-142mm. (ATL)",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1325",
+    "name": "Mecha Tram. Acero 12mm-L-151mm. (ATL)",
+    "salePrice": 30000.0,
+    "costPrice": 21000.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1309",
+    "name": "Mecha Tram. Acero 2.5mm-L-57mm. (ATL)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1308",
+    "name": "Mecha Tram. Acero 2mm-L-49mm. (ATL)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1311",
+    "name": "Mecha Tram. Acero 3.5mm-L-70mm. (ATL)",
+    "salePrice": 4000.0,
+    "costPrice": 2800.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1310",
+    "name": "Mecha Tram. Acero 3mm-L-61mm. (ATL)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 11.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1313",
+    "name": "Mecha Tram. Acero 4.5mm-L-80mm. (ATL)",
+    "salePrice": 6000.0,
+    "costPrice": 4200.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1312",
+    "name": "Mecha Tram. Acero 4mm-L-75mm. (ATL)",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 16.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1315",
+    "name": "Mecha Tram. Acero 5.5mm-L-93mm. (ATL)",
+    "salePrice": 7000.0,
+    "costPrice": 4900.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1314",
+    "name": "Mecha Tram. Acero 5mm-L-86mm. (ATL)",
+    "salePrice": 6500.0,
+    "costPrice": 4550.0,
+    "initialStock": 20.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1317",
+    "name": "Mecha Tram. Acero 6.5mm-L-101mm. (ATL)",
+    "salePrice": 9000.0,
+    "costPrice": 6300.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1316",
+    "name": "Mecha Tram. Acero 6mm-L-93mm. (ATL)",
+    "salePrice": 8000.0,
+    "costPrice": 5600.0,
+    "initialStock": 20.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1319",
+    "name": "Mecha Tram. Acero 7.5mm-L-109mm. (ATL)",
+    "salePrice": 12000.0,
+    "costPrice": 8400.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1318",
+    "name": "Mecha Tram. Acero 7mm-L-109mm. (ATL)",
+    "salePrice": 10000.0,
+    "costPrice": 7000.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1321",
+    "name": "Mecha Tram. Acero 8.5mm-L-117mm. (ATL)",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1320",
+    "name": "Mecha Tram. Acero 8mm-L-117mm. (ATL)",
+    "salePrice": 12000.0,
+    "costPrice": 8400.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1322",
+    "name": "Mecha Tram. Acero 9mm-L-125mm. (ATL)",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1331",
+    "name": "Mecha Tram. Concreto 10mm-L-150mm. (ATL)",
+    "salePrice": 10000.0,
+    "costPrice": 7000.0,
+    "initialStock": 20.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1332",
+    "name": "Mecha Tram. Concreto 12mm-L-150mm. (ATL)",
+    "salePrice": 12000.0,
+    "costPrice": 8400.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1327",
+    "name": "Mecha Tram. Concreto 4mm-L-75mm. (ATL)",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1328",
+    "name": "Mecha Tram. Concreto 5mm-L-85mm. (ATL)",
+    "salePrice": 4000.0,
+    "costPrice": 2800.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1329",
+    "name": "Mecha Tram. Concreto 6mm-L-100mm. (ATL)",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 19.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1330",
+    "name": "Mecha Tram. Concreto 8mm-L-120mm. (ATL)",
+    "salePrice": 6000.0,
+    "costPrice": 4200.0,
+    "initialStock": 19.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1333",
+    "name": "Mecha Tram. Madera 3P. 5mm-L-85mm. (ATL)",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 9.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1334",
+    "name": "Mecha Tram. Madera 3P. 6mm-L-90mm. (ATL)",
+    "salePrice": 4000.0,
+    "costPrice": 2800.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1335",
+    "name": "Mecha Tram. Madera 3P. 8mm-L-110mm. (ATL)",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1336",
+    "name": "Mecha Tram. Madera 3P. 10mm-L-130mm. (ATL)",
+    "salePrice": 7000.0,
+    "costPrice": 4900.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1337",
+    "name": "Mecha Tram. Madera Plana 1/2x6",
+    "salePrice": 12000.0,
+    "costPrice": 8400.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1338",
+    "name": "Mecha Tram. Madera Plana 3/4x6",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1341",
+    "name": "Membrana Asf. C/ALU. Nro.3 25kg. (ATL)",
+    "salePrice": 205000.0,
+    "costPrice": 143500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1348",
+    "name": "Metal Desplegable 0.60x2mt",
+    "salePrice": 16000.0,
+    "costPrice": 11200.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1344",
+    "name": "Mini Alumbrado Solar 2 COB",
+    "salePrice": 27500.0,
+    "costPrice": 19250.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1343",
+    "name": "Mini Aplique Solar Frío Caja 2pcs",
+    "salePrice": 12250.0,
+    "costPrice": 8575.0,
+    "initialStock": 59.0,
+    "unitOfMeasure": "CAJA",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1288",
+    "name": "Mini Llavero LED - Destornillador",
+    "salePrice": 27500.0,
+    "costPrice": 19250.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1342",
+    "name": "Mochila Solar",
+    "salePrice": 147500.0,
+    "costPrice": 103250.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1302",
+    "name": "Mirokal Sika 18Lt.",
+    "salePrice": 205500.0,
+    "costPrice": 143850.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1300",
+    "name": "Mirokal Sika 1Lt.",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 41.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1339",
+    "name": "Mirokal Sika 20lt.",
+    "salePrice": 215000.0,
+    "costPrice": 150500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M1301",
+    "name": "Mirokal Sika 5Lt.",
+    "salePrice": 59000.0,
+    "costPrice": 41300.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "N1401",
+    "name": "Negrolin Tinta Asfáltica 18Lt.",
+    "salePrice": 295000.0,
+    "costPrice": 206500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "N1402",
+    "name": "Negrolin Tinta Asfáltica 1lt.",
+    "salePrice": 20000.0,
+    "costPrice": 14000.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "N1400",
+    "name": "Negrolin Tinta Asfáltica 3.6Lt.",
+    "salePrice": 64000.0,
+    "costPrice": 44800.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "O1503",
+    "name": "Óxido Amarillo 1kg. (POLI)",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "O1502",
+    "name": "Óxido Negro Intenso 1kg. (POLI)",
+    "salePrice": 60000.0,
+    "costPrice": 42000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "O1501",
+    "name": "Óxido Rojo 1kg. (POLI)",
+    "salePrice": 30000.0,
+    "costPrice": 21000.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1759",
+    "name": "Pala mango madera tramontina",
+    "salePrice": 180000.0,
+    "costPrice": 126000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1744",
+    "name": "Panel Led 18w Empotrable Redondo",
+    "salePrice": 12500.0,
+    "costPrice": 8750.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1745",
+    "name": "Panel Led 24w SobrePuesto Cuadrado",
+    "salePrice": 32500.0,
+    "costPrice": 22750.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1743",
+    "name": "Panel Led 6w Empotrable",
+    "salePrice": 8250.0,
+    "costPrice": 5775.0,
+    "initialStock": 48.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1756",
+    "name": "Panel Mitra 300W.",
+    "salePrice": 600000.0,
+    "costPrice": 420000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1752",
+    "name": "Panel Solar 15w + LED",
+    "salePrice": 89500.0,
+    "costPrice": 62650.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1757",
+    "name": "Panel Solar 450W. Mitra",
+    "salePrice": 805000.0,
+    "costPrice": 563500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1754",
+    "name": "Panel Solar 550w Half Cell - GM",
+    "salePrice": 895000.0,
+    "costPrice": 626500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1753",
+    "name": "Panel Solar Canadian 550w",
+    "salePrice": 950000.0,
+    "costPrice": 665000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1755",
+    "name": "Panel Solar Namkoo 560W.",
+    "salePrice": 725000.0,
+    "costPrice": 507500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1742",
+    "name": "Parrilla 95x45cm",
+    "salePrice": 250000.0,
+    "costPrice": 175000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1746",
+    "name": "Pastina Klaukol 1kg. Arena",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 12.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1749",
+    "name": "Pastina Klaukol 1kg. Chocolate",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1747",
+    "name": "Pastina Klaukol 1kg. Gris azulado",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1748",
+    "name": "Pastina Klaukol 1kg. Marfil",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1750",
+    "name": "Pastina Klaukol 1kg. Negro",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1721",
+    "name": "Pastina Klaukol Gris Plomo Caja 1kg.",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1711",
+    "name": "Pastina Yaguarete F. Beige (Cer)",
+    "salePrice": 7500.0,
+    "costPrice": 5250.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1710",
+    "name": "Pastina Yaguarete F. Blanco (Cer)",
+    "salePrice": 7500.0,
+    "costPrice": 5250.0,
+    "initialStock": 11.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1713",
+    "name": "Pastina Yaguarete F. Gris Claro (Cer)",
+    "salePrice": 7500.0,
+    "costPrice": 5250.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1714",
+    "name": "Pastina Yaguarete F. Gris Claro (Porc)",
+    "salePrice": 14500.0,
+    "costPrice": 10150.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1712",
+    "name": "Pastina Yaguarete F. Marrón (Cer)",
+    "salePrice": 7500.0,
+    "costPrice": 5250.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1715",
+    "name": "Pegamento P/ Calzado Ecole 9Gr.",
+    "salePrice": 24500.0,
+    "costPrice": 17150.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1758",
+    "name": "Pelota Flotante LED Solar",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1700",
+    "name": "Piedra Bruta Por Mt3",
+    "salePrice": 137500.0,
+    "costPrice": 96250.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1723",
+    "name": "Piedra Bruta por Carga",
+    "salePrice": 50000.0,
+    "costPrice": 35000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1701",
+    "name": "Piedra Rompe-Cabeza Por Mt2",
+    "salePrice": 27000.0,
+    "costPrice": 18900.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1722",
+    "name": "Piedra Wasmosy Por Mt2",
+    "salePrice": 55000.0,
+    "costPrice": 38500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1704",
+    "name": "Pileta",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1705",
+    "name": "Pileta",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1703",
+    "name": "Pileta 1 Bacha",
+    "salePrice": 119000.0,
+    "costPrice": 83300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1702",
+    "name": "Pileta 2 Bachas",
+    "salePrice": 149000.0,
+    "costPrice": 104300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1736",
+    "name": "Pincel Azul 1 1/2 pulgadas Tigre",
+    "salePrice": 5500.0,
+    "costPrice": 3850.0,
+    "initialStock": 7.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1735",
+    "name": "Pincel Azul 1 pulgada Tigre",
+    "salePrice": 4500.0,
+    "costPrice": 3150.0,
+    "initialStock": 12.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1738",
+    "name": "Pincel Azul 2 1/2 pulgadas Tigre",
+    "salePrice": 10500.0,
+    "costPrice": 7350.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1737",
+    "name": "Pincel Azul 2 pulgadas Tigre",
+    "salePrice": 8000.0,
+    "costPrice": 5600.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1739",
+    "name": "Pincel Azul 3 pulgadas Tigre",
+    "salePrice": 15500.0,
+    "costPrice": 10850.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1734",
+    "name": "Pincel Chato Azul 3/4 pulgadas Tigre",
+    "salePrice": 3500.0,
+    "costPrice": 2450.0,
+    "initialStock": 9.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1740",
+    "name": "Pincel Chato Azul 4 pulgadas Tigre",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1733",
+    "name": "Pincel P/Madera 1/2 pulgadas Tigre",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 11.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1707",
+    "name": "Pincel Roma 303 2 pulgadas Nat. Blanco",
+    "salePrice": 7000.0,
+    "costPrice": 4900.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1708",
+    "name": "Pincel Roma 303 2-1/2 pulgadas Nat. Blanco",
+    "salePrice": 9000.0,
+    "costPrice": 6300.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1709",
+    "name": "Pincel Roma 303 3 pulgadas Nat. Blanco",
+    "salePrice": 12000.0,
+    "costPrice": 8400.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1725",
+    "name": "Pincel Roma 303 4 pulgadas Nat. Blanco",
+    "salePrice": 16500.0,
+    "costPrice": 11550.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1741",
+    "name": "Pinza Corte 8 pulgadas",
+    "salePrice": 20500.0,
+    "costPrice": 14350.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1729",
+    "name": "Piola Multicolor 10mm.",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 149.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1730",
+    "name": "Piola Multicolor 12mm.",
+    "salePrice": 6000.0,
+    "costPrice": 4200.0,
+    "initialStock": 125.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1726",
+    "name": "Piola Multicolor 4mm.",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": 328.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1727",
+    "name": "Piola Multicolor 6mm.",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 100.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1728",
+    "name": "Piola Multicolor 8mm.",
+    "salePrice": 4000.0,
+    "costPrice": 2800.0,
+    "initialStock": 246.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1706",
+    "name": "Piso Layota Nac. 28x28Cm. 1ra. B.",
+    "salePrice": 29000.0,
+    "costPrice": 20300.0,
+    "initialStock": 54.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1751",
+    "name": "Piso Layota Nac. Anti D. 1ra A.",
+    "salePrice": 29000.0,
+    "costPrice": 20300.0,
+    "initialStock": 47.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1760",
+    "name": "Pliegue Metal 0.60x1.20mt.",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1724",
+    "name": "Plomada Chino 500gr (ATL)",
+    "salePrice": 23000.0,
+    "costPrice": 16100.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1732",
+    "name": "Porta Reja Cuadrada Plata 100mm. Tigre",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1731",
+    "name": "Poste Alumbrado Solar 45cm. 1pc.",
+    "salePrice": 39000.0,
+    "costPrice": 27300.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1720",
+    "name": "Poxilina (10min) 70gr.",
+    "salePrice": 26000.0,
+    "costPrice": 18200.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1716",
+    "name": "Poxipol Metálico (10min) 14ml.",
+    "salePrice": 24000.0,
+    "costPrice": 16800.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1717",
+    "name": "Poxipol Transp. (10min) 14ml.",
+    "salePrice": 24000.0,
+    "costPrice": 16800.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1718",
+    "name": "Precinto Nylon Blan. 3.6x140mm.",
+    "salePrice": 70.0,
+    "costPrice": 49.0,
+    "initialStock": 81.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "P1719",
+    "name": "Precinto Nylon Blan. 4.8x280mm.",
+    "salePrice": 150.0,
+    "costPrice": 105.0,
+    "initialStock": 73.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "A102",
+    "name": "Puntal 3mt.",
+    "salePrice": 20000.0,
+    "costPrice": 14000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1904",
+    "name": "Ramal Simple Des. 100mm. (TIGRE)",
+    "salePrice": 26000.0,
+    "costPrice": 18200.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1903",
+    "name": "Ramal Simple Des. 100x50mm. (TIGRE)",
+    "salePrice": 17000.0,
+    "costPrice": 11900.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1927",
+    "name": "Reflector 25w Solar G Land",
+    "salePrice": 74500.0,
+    "costPrice": 52150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1928",
+    "name": "Reflector 50W Solar G Land",
+    "salePrice": 114500.0,
+    "costPrice": 80150.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1930",
+    "name": "Reflector G Land 300w",
+    "salePrice": 299500.0,
+    "costPrice": 209650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1929",
+    "name": "Reflector G Land 30w",
+    "salePrice": 99500.0,
+    "costPrice": 69650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1282",
+    "name": "Reflector Solar 100W 20179",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1931",
+    "name": "Reflector Solar 100W. Mitra",
+    "salePrice": 225000.0,
+    "costPrice": 157500.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1932",
+    "name": "Reflector Solar 10W. - 98SMD 554431",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1924",
+    "name": "Reflector Solar 10w",
+    "salePrice": 34500.0,
+    "costPrice": 24150.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1925",
+    "name": "Reflector Solar 10w JX-F72",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1923",
+    "name": "Reflector Solar 200W. Mitra",
+    "salePrice": 290000.0,
+    "costPrice": 203000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1922",
+    "name": "Reflector Solar 500w. G-Land.",
+    "salePrice": 335000.0,
+    "costPrice": 234500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1938",
+    "name": "Reflector Solar 50W. - 20208",
+    "salePrice": 119500.0,
+    "costPrice": 83650.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1939",
+    "name": "Reflector Solar 50W. 20195",
+    "salePrice": 139500.0,
+    "costPrice": 97650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1284",
+    "name": "Reflector portátil Gra. 20194",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1283",
+    "name": "Reflector portátil Peq. 20181",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1926",
+    "name": "Rejilla 0.15x2.70 con marco",
+    "salePrice": 330000.0,
+    "costPrice": 231000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1915",
+    "name": "Rejilla Abre/Cierra dn 150 titanio 150",
+    "salePrice": 35000.0,
+    "costPrice": 24500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1920",
+    "name": "Rejilla Con Marco 20x60cm",
+    "salePrice": 74000.0,
+    "costPrice": 51800.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1921",
+    "name": "Rejilla Con Marco 6mm 15x15cm.",
+    "salePrice": 45000.0,
+    "costPrice": 31500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1910",
+    "name": "Rejilla Con Marco 6mm 20x20cm.",
+    "salePrice": 53000.0,
+    "costPrice": 37100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1907",
+    "name": "Rejilla Con Marco 6mm 25x25cm",
+    "salePrice": 59000.0,
+    "costPrice": 41300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1908",
+    "name": "Rejilla Con Marco 6mm 30x30cm",
+    "salePrice": 64000.0,
+    "costPrice": 44800.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1901",
+    "name": "Rejilla Con Marco 6mm 35x35cm.",
+    "salePrice": 69000.0,
+    "costPrice": 48300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1900",
+    "name": "Rejilla Con Marco 6mm 40x40cm.",
+    "salePrice": 74000.0,
+    "costPrice": 51800.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1912",
+    "name": "Rejilla Con Marco 6mm 45x45cm.",
+    "salePrice": 80000.0,
+    "costPrice": 56000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1909",
+    "name": "Rejilla Con Marco 6mm 50x50cm",
+    "salePrice": 103000.0,
+    "costPrice": 72100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1919",
+    "name": "Rejilla Con Marco 6mm 55x55cm.",
+    "salePrice": 107000.0,
+    "costPrice": 74900.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1911",
+    "name": "Rejilla Con Marco 6mm 60x60cm.",
+    "salePrice": 120000.0,
+    "costPrice": 84000.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1914",
+    "name": "Rejilla Cuadrada Blanca 150mm. Tigre",
+    "salePrice": 8000.0,
+    "costPrice": 5600.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1913",
+    "name": "Rejilla Cuadrada Inox. 100mm. Tigre",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1937",
+    "name": "Remera Apolo Blanco - G",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1936",
+    "name": "Remera Apolo Blanco - M",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1935",
+    "name": "Remera Apolo Negro - G",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1934",
+    "name": "Remera Apolo Negro - M",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1933",
+    "name": "Remera Apolo Negro - P",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1916",
+    "name": "Resina Acrílica Imper. 18lt.",
+    "salePrice": 695000.0,
+    "costPrice": 486500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1918",
+    "name": "Rodillo AntiGoteo Eco. 23cm.",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1905",
+    "name": "Rodillo Forrado 18 C/M (ATL)",
+    "salePrice": 23000.0,
+    "costPrice": 16100.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1906",
+    "name": "Rodillo Forrado 23 C/M (ATL)",
+    "salePrice": 28000.0,
+    "costPrice": 19600.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1917",
+    "name": "Rodillo PielNat Pared 23cm.",
+    "salePrice": 49500.0,
+    "costPrice": 34650.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "R1902",
+    "name": "Rodillo Roma Espuma Pol. 430",
+    "salePrice": 9500.0,
+    "costPrice": 6650.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2024",
+    "name": "Sapito 79kg. Alquiler",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2012",
+    "name": "Sellador Acr. Pig. Resicolor 18lt.",
+    "salePrice": 155000.0,
+    "costPrice": 108500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2011",
+    "name": "Sellador Acr. Pig. Resicolor 3.6lt.",
+    "salePrice": 43000.0,
+    "costPrice": 30100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2009",
+    "name": "Sellador Amaflex Acrílico 18lt (AM)",
+    "salePrice": 149000.0,
+    "costPrice": 104300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2007",
+    "name": "Sellador Amaflex Acrílico 1lt. (AM)",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 4.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2008",
+    "name": "Sellador Amaflex Acrílico 3.6lt (AM)",
+    "salePrice": 39000.0,
+    "costPrice": 27300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2013",
+    "name": "Sellador P/ Madera 1Lt. (POLI)",
+    "salePrice": 30000.0,
+    "costPrice": 21000.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2002",
+    "name": "Servicio de Contenedor (B)",
+    "salePrice": 350000.0,
+    "costPrice": 245000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2001",
+    "name": "Servicio de Contenedor (E)",
+    "salePrice": 677000.0,
+    "costPrice": 473900.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2003",
+    "name": "Servicio de Contenedor Día Extra",
+    "salePrice": 30000.0,
+    "costPrice": 21000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2004",
+    "name": "Servicio de Contenedor Flete",
+    "salePrice": 180000.0,
+    "costPrice": 126000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2010",
+    "name": "Servicio de Flete Junior",
+    "salePrice": 50000.0,
+    "costPrice": 35000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2023",
+    "name": "Sikacryl Fib. Cerámico 20lt.",
+    "salePrice": 330000.0,
+    "costPrice": 231000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2022",
+    "name": "Sikacryl Fib. Cerámico 5lt.",
+    "salePrice": 140000.0,
+    "costPrice": 98000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2005",
+    "name": "Silicona Brascola Blanca",
+    "salePrice": 19000.0,
+    "costPrice": 13300.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2006",
+    "name": "Silicona Brascola Negra",
+    "salePrice": 19000.0,
+    "costPrice": 13300.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2018",
+    "name": "Sinteplast Membrana Liq. 20lt. Blanco",
+    "salePrice": 430000.0,
+    "costPrice": 301000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2017",
+    "name": "Sinteplast Membrana Liq. 20lt. Cerámico",
+    "salePrice": 430000.0,
+    "costPrice": 301000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2019",
+    "name": "Soldador MMA - 200",
+    "salePrice": 535000.0,
+    "costPrice": 374500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2020",
+    "name": "Soldador MMA - 400",
+    "salePrice": 590000.0,
+    "costPrice": 413000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2015",
+    "name": "Soporte Canaleta 12cm.",
+    "salePrice": 7500.0,
+    "costPrice": 5250.0,
+    "initialStock": 12.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2016",
+    "name": "Soporte Canaleta 14cm.",
+    "salePrice": 8500.0,
+    "costPrice": 5950.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2014",
+    "name": "Soporte Metálico 50x35cm (ATL)",
+    "salePrice": 25000.0,
+    "costPrice": 17500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2021",
+    "name": "Soporte para Rodillo 23cm. Tigre",
+    "salePrice": 7500.0,
+    "costPrice": 5250.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "L1281",
+    "name": "Spot Frío 2 LED 20135",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "S2000",
+    "name": "Statofix 100Gr. Sika",
+    "salePrice": 7500.0,
+    "costPrice": 5250.0,
+    "initialStock": 140.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2152",
+    "name": "Tanque BEPO FUSO 550Lt.",
+    "salePrice": 800000.0,
+    "costPrice": 560000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2158",
+    "name": "Tapa Cámara Séptica 120x60x6cm.",
+    "salePrice": 310000.0,
+    "costPrice": 217000.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2157",
+    "name": "Tapa Cámara Séptica 130x50x6cm",
+    "salePrice": 310000.0,
+    "costPrice": 217000.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2109",
+    "name": "Tapa Registro 30x30Cm.",
+    "salePrice": 45000.0,
+    "costPrice": 31500.0,
+    "initialStock": 9.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2108",
+    "name": "Tapa Registro 40x40Cm.",
+    "salePrice": 55000.0,
+    "costPrice": 38500.0,
+    "initialStock": 11.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2112",
+    "name": "Tapa Registro 50x50Cm.",
+    "salePrice": 65000.0,
+    "costPrice": 45500.0,
+    "initialStock": 12.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2113",
+    "name": "Tapa Registro 60x60Cm.",
+    "salePrice": 95000.0,
+    "costPrice": 66500.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2156",
+    "name": "Tapa Registro 70x70cm",
+    "salePrice": 165000.0,
+    "costPrice": 115500.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2159",
+    "name": "Tapa Registro 80x80cm.",
+    "salePrice": 195000.0,
+    "costPrice": 136500.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2150",
+    "name": "Tapa Registro Metal 15x15",
+    "salePrice": 42000.0,
+    "costPrice": 29400.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2140",
+    "name": "Tapa Registro Metal 20x20",
+    "salePrice": 48000.0,
+    "costPrice": 33600.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2146",
+    "name": "Tapa Registro Metal 25x25",
+    "salePrice": 52000.0,
+    "costPrice": 36400.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2141",
+    "name": "Tapa Registro Metal 30x30",
+    "salePrice": 64000.0,
+    "costPrice": 44800.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2147",
+    "name": "Tapa Registro Metal 35x35",
+    "salePrice": 69000.0,
+    "costPrice": 48300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2148",
+    "name": "Tapa Registro Metal 40x40",
+    "salePrice": 74000.0,
+    "costPrice": 51800.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2142",
+    "name": "Tapa Registro Metal 45x45",
+    "salePrice": 90000.0,
+    "costPrice": 63000.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2143",
+    "name": "Tapa Registro Metal 50x50",
+    "salePrice": 103000.0,
+    "costPrice": 72100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2149",
+    "name": "Tapa Registro Metal 55x55",
+    "salePrice": 108000.0,
+    "costPrice": 75600.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2144",
+    "name": "Tapa Registro Metal 60x60",
+    "salePrice": 120000.0,
+    "costPrice": 84000.0,
+    "initialStock": 1.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2134",
+    "name": "Tapón Hembra Des. 100mm. (TIGRE)",
+    "salePrice": 13000.0,
+    "costPrice": 9100.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2133",
+    "name": "Tapón Hembra Rosc. 1/2 (TIGRE)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 11.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2137",
+    "name": "Tapón Hembra Rosc. 3/4 (TIGRE)",
+    "salePrice": 4000.0,
+    "costPrice": 2800.0,
+    "initialStock": 9.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2132",
+    "name": "Tapón Macho Rosc. 1/2 (TIGRE)",
+    "salePrice": 2000.0,
+    "costPrice": 1400.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2136",
+    "name": "Tapón Macho Rosc. 3/4 (TIGRE)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 9.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2129",
+    "name": "Te Des. 100mm. (TIGRE)",
+    "salePrice": 22000.0,
+    "costPrice": 15400.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2131",
+    "name": "Te Des. 40mm. (TIGRE)",
+    "salePrice": 4000.0,
+    "costPrice": 2800.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2130",
+    "name": "Te Des. 50mm. (TIGRE)",
+    "salePrice": 6500.0,
+    "costPrice": 4550.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2128",
+    "name": "Te Rosc. 90x1/2 (TIGRE)",
+    "salePrice": 2900.0,
+    "costPrice": 2030.0,
+    "initialStock": 6.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2135",
+    "name": "Te Rosc. 90x3/4 (TIGRE)",
+    "salePrice": 5300.0,
+    "costPrice": 3710.0,
+    "initialStock": 9.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2105",
+    "name": "Teja Irene 1ra. 42x19Cm.",
+    "salePrice": 3800.0,
+    "costPrice": 2660.0,
+    "initialStock": 132.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2153",
+    "name": "Teja Roca Prensado 1ra. c-p2",
+    "salePrice": 3800.0,
+    "costPrice": 2660.0,
+    "initialStock": 75.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2106",
+    "name": "Teja Tobatí",
+    "salePrice": 3800.0,
+    "costPrice": 2660.0,
+    "initialStock": 70.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2124",
+    "name": "Teja Tobatí (Mati)",
+    "salePrice": 1050.0,
+    "costPrice": 735.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2111",
+    "name": "Tejuelita 1ra. B. C.Ita",
+    "salePrice": 900.0,
+    "costPrice": 630.0,
+    "initialStock": 39.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2154",
+    "name": "Tejuelón Itagua",
+    "salePrice": 2900.0,
+    "costPrice": 2030.0,
+    "initialStock": 220.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2138",
+    "name": "Tejuelón Mazarrón",
+    "salePrice": 1800.0,
+    "costPrice": 1260.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2110",
+    "name": "Tejuelón Tobatí",
+    "salePrice": 2200.0,
+    "costPrice": 1540.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2100",
+    "name": "Tejuelón Yoayu",
+    "salePrice": 2500.0,
+    "costPrice": 1750.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2119",
+    "name": "Tela Vinil Geotextil UP070 1x1mt",
+    "salePrice": 6000.0,
+    "costPrice": 4200.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2126",
+    "name": "Terciada 4mm",
+    "salePrice": 58000.0,
+    "costPrice": 40600.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2114",
+    "name": "Thinner Ultra Universal 1Lt. (AM)",
+    "salePrice": 16000.0,
+    "costPrice": 11200.0,
+    "initialStock": 15.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2155",
+    "name": "Tira de Luz LED Solar RGB. 00024",
+    "salePrice": 99500.0,
+    "costPrice": 69650.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2145",
+    "name": "Tiza 1kg.",
+    "salePrice": 5500.0,
+    "costPrice": 3850.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2107",
+    "name": "Tornillo Autoroscante 1.5 Pulgadas",
+    "salePrice": 550.0,
+    "costPrice": 385.0,
+    "initialStock": 134.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2123",
+    "name": "Tornillo Autoroscante 2.0 Pulgadas",
+    "salePrice": 680.0,
+    "costPrice": 476.0,
+    "initialStock": 61.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2120",
+    "name": "Triturada 4ta Especial Carga (5tn)",
+    "salePrice": 625000.0,
+    "costPrice": 437500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2121",
+    "name": "Triturada 4ta Especial Carga (6tn)",
+    "salePrice": 750000.0,
+    "costPrice": 525000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2116",
+    "name": "Triturada 4ta Especial Carga (7tn)",
+    "salePrice": 1000000.0,
+    "costPrice": 700000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2115",
+    "name": "Triturada 4ta Especial Carga (9tn)",
+    "salePrice": 1200000.0,
+    "costPrice": 840000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2118",
+    "name": "Triturada 4ta. Especial Carga (2tn)",
+    "salePrice": 310000.0,
+    "costPrice": 217000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2127",
+    "name": "Triturada 4ta. Especial Carga (3tn)",
+    "salePrice": 465000.0,
+    "costPrice": 325500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2139",
+    "name": "Triturada 4ta. Especial Carga (4tn)",
+    "salePrice": 560000.0,
+    "costPrice": 392000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2102",
+    "name": "Triturada 4ta. Especial Por Bolsa",
+    "salePrice": 10000.0,
+    "costPrice": 7000.0,
+    "initialStock": 265.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2101",
+    "name": "Triturada 4ta. Especial Por Kg.",
+    "salePrice": 180.0,
+    "costPrice": 126.0,
+    "initialStock": 7000.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2125",
+    "name": "Triturada 5ta Especial Carga (5tn)",
+    "salePrice": 790000.0,
+    "costPrice": 553000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2117",
+    "name": "Triturada 5ta Especial Carga (9tn)",
+    "salePrice": 1500000.0,
+    "costPrice": 1050000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2122",
+    "name": "Triturada 5ta. Especial Carga (2tn)",
+    "salePrice": 320000.0,
+    "costPrice": 224000.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2104",
+    "name": "Triturada 5ta. Especial Por Bolsa",
+    "salePrice": 15000.0,
+    "costPrice": 10500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "UNIDAD",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2103",
+    "name": "Triturada 5ta. Especial Por KG.",
+    "salePrice": 155.0,
+    "costPrice": 108.5,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "T2151",
+    "name": "Tubo Led 1.2mt",
+    "salePrice": 19500.0,
+    "costPrice": 13650.0,
+    "initialStock": 2.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "U2204",
+    "name": "Unión Doble Rosc. 1/2 (TIGRE)",
+    "salePrice": 7000.0,
+    "costPrice": 4900.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "U2206",
+    "name": "Unión Doble Rosc. 3/4 (TIGRE)",
+    "salePrice": 8000.0,
+    "costPrice": 5600.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "U2201",
+    "name": "Unión Sensilla Des. 100mm. (TIGRE)",
+    "salePrice": 8000.0,
+    "costPrice": 5600.0,
+    "initialStock": 3.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "U2203",
+    "name": "Unión Sensilla Des. 40mm. (TIGRE)",
+    "salePrice": 4000.0,
+    "costPrice": 2800.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "U2202",
+    "name": "Unión Sensilla Des. 50mm. (TIGRE)",
+    "salePrice": 5000.0,
+    "costPrice": 3500.0,
+    "initialStock": 10.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "U2200",
+    "name": "Unión Sensilla Rosc. 1/2 (TIGRE)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 15.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "U2205",
+    "name": "Unión Sensilla Rosc. 3/4 (TIGRE)",
+    "salePrice": 3000.0,
+    "costPrice": 2100.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "KILOGRAMO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2306",
+    "name": "Varilla Conformada 12Mt. 16mm",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2305",
+    "name": "Varilla Conformada 12Mt. ECO 10mm.",
+    "salePrice": 65000.0,
+    "costPrice": 45500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2300",
+    "name": "Varilla Conformada 12Mt. ECO 4.2mm.",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2302",
+    "name": "Varilla Conformada 12Mt. ECO 6mm.",
+    "salePrice": 29000.0,
+    "costPrice": 20300.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2303",
+    "name": "Varilla Conformada 12Mt. ECO 8mm.",
+    "salePrice": 45000.0,
+    "costPrice": 31500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2304",
+    "name": "Varilla Conformada 12Mt. PRE 10mm.",
+    "salePrice": 85000.0,
+    "costPrice": 59500.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2301",
+    "name": "Varilla Conformada 12Mt. PRE 4.2mm.",
+    "salePrice": 16000.0,
+    "costPrice": 11200.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "M2316",
+    "name": "Varilla Conformada 12Mt. PRE 6mm.",
+    "salePrice": 38000.0,
+    "costPrice": 26600.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2317",
+    "name": "Varilla Conformada 12Mt. PRE 8mm.",
+    "salePrice": 58000.0,
+    "costPrice": 40600.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2318",
+    "name": "Varilla Conformada 12mt. 12MM PRE.",
+    "salePrice": 0.0,
+    "costPrice": 0.0,
+    "initialStock": 0.0,
+    "unitOfMeasure": "METRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2312",
+    "name": "Vedacit Impermeabilizante 18Lt.",
+    "salePrice": 169000.0,
+    "costPrice": 118300.0,
+    "initialStock": 5.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  },
+  {
+    "sku": "V2314",
+    "name": "Vedacit Impermeabilizante 1lt. (ATL)",
+    "salePrice": 16000.0,
+    "costPrice": 11200.0,
+    "initialStock": 8.0,
+    "unitOfMeasure": "LITRO",
+    "vatRate": "IVA_10",
+    "minStockAlert": 5.0
+  }
+]

@@ -51,6 +51,12 @@ export class BillingService {
           paymentCondition: input.paymentCondition,
           paymentMethod: input.paymentMethod,
           creditTermDays: input.creditTermDays || 0,
+          projectId: input.projectId || null,
+          driverId: input.driverId || null,
+          helperIds: input.helperIds || [],
+          vehiclePlate: input.vehiclePlate?.trim() || null,
+          deliveryStatus: input.deliveryStatus || 'DELIVERED',
+          deliveryNotes: input.deliveryNotes?.trim() || null,
           subtotal: taxSummary.grandTotal,
           grandTotal: taxSummary.grandTotal,
           totalExempt: taxSummary.exempt,
@@ -130,7 +136,7 @@ export class BillingService {
 
       return tx.sale.findUnique({
         where: { id: sale.id },
-        include: { items: { include: { product: true } }, invoice: true },
+        include: { items: { include: { product: true } }, invoice: true, project: true, driver: true },
       });
     });
   }

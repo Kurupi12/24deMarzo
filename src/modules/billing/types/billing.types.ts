@@ -18,6 +18,12 @@ export interface CreateSaleInput {
   paymentCondition: PaymentCondition;
   paymentMethod: PaymentMethod;
   creditTermDays?: number;
+  projectId?: string | null;
+  driverId?: string | null;
+  helperIds?: string[];
+  vehiclePlate?: string | null;
+  deliveryStatus?: string;
+  deliveryNotes?: string | null;
   items: CreateSaleItemInput[];
   issueInvoiceImmediately?: boolean;
 }

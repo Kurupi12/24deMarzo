@@ -37,6 +37,7 @@ export function SalesHistoryTable({ sales, loading, onViewInvoice }: SalesHistor
             <tr>
               <th className="py-2.5 px-3">Comprobante</th>
               <th className="py-2.5 px-3">Cliente / RUC</th>
+              <th className="py-2.5 px-3">Obra / Despacho</th>
               <th className="py-2.5 px-3">Fecha y Hora</th>
               <th className="py-2.5 px-3">Pago</th>
               <th className="py-2.5 px-3 text-right">IVA 10%</th>
@@ -59,6 +60,18 @@ export function SalesHistoryTable({ sales, loading, onViewInvoice }: SalesHistor
                   <td className="py-2.5 px-3 font-sans">
                     <p className="font-medium text-foreground truncate max-w-xs">{s.customerName}</p>
                     <p className="text-[10px] text-muted-foreground font-mono">{s.customerRuc}</p>
+                  </td>
+                  <td className="py-2.5 px-3 text-[11px] font-sans">
+                    {s.project ? (
+                      <span className="inline-block px-1.5 py-0.5 rounded bg-primary/10 border border-primary/20 text-primary font-semibold text-[10px] truncate max-w-[140px]" title={s.project.address}>
+                        {s.project.name}
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground text-[10px]">Mostrador</span>
+                    )}
+                    <span className="block text-[10px] text-muted-foreground font-mono mt-0.5">
+                      {s.driver ? `Chofer: ${s.driver.firstName}` : 'Sin chofer'}
+                    </span>
                   </td>
                   <td className="py-2.5 px-3 text-[11px]">{dateStr}</td>
                   <td className="py-2.5 px-3 text-[11px] font-sans">

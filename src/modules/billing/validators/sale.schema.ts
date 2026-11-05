@@ -24,6 +24,12 @@ export const CreateSaleSchema = z.object({
   ]),
   creditTermDays: z.number().int().min(0).optional().default(0),
   cashShiftId: z.string().uuid().optional().nullable(),
+  projectId: z.string().uuid().optional().nullable(),
+  driverId: z.string().uuid().optional().nullable(),
+  helperIds: z.array(z.string()).optional().default([]),
+  vehiclePlate: z.string().optional().nullable(),
+  deliveryStatus: z.string().optional().default('DELIVERED'),
+  deliveryNotes: z.string().optional().nullable(),
   items: z.array(SaleItemSchema).min(1, 'Debe incluir al menos un producto'),
   issueInvoiceImmediately: z.boolean().default(true),
 });

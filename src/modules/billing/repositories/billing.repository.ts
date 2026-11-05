@@ -31,6 +31,8 @@ export class BillingRepository {
         include: {
           items: { include: { product: true } },
           invoice: true,
+          project: true,
+          driver: { select: { id: true, firstName: true, lastName: true, code: true } },
           user: { select: { id: true, name: true, email: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -46,6 +48,8 @@ export class BillingRepository {
       include: {
         items: { include: { product: true } },
         invoice: true,
+        project: true,
+        driver: { select: { id: true, firstName: true, lastName: true, code: true } },
         user: { select: { id: true, name: true } },
       },
     });

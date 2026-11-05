@@ -55,6 +55,36 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
           </div>
         </div>
 
+        {/* Datos de Obra y Logística de Despacho */}
+        {(sale.project || sale.driver || sale.vehiclePlate) && (
+          <div className="p-3 rounded bg-[#0d121c] border border-card-border text-xs space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[10px] uppercase font-mono text-primary font-bold">Obra / Destino & Despacho</span>
+              <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-card border border-card-border text-foreground">
+                Estado: {sale.deliveryStatus || 'ENTREGADO'}
+              </span>
+            </div>
+            {sale.project && (
+              <p className="text-foreground">
+                <strong>Obra:</strong> {sale.project.name} &bull; <span className="text-muted-foreground">{sale.project.address}</span>
+              </p>
+            )}
+            <div className="flex flex-wrap gap-x-4 text-[11px] text-muted-foreground font-mono">
+              {sale.driver && (
+                <span>Chofer: <strong className="text-foreground">{sale.driver.firstName} {sale.driver.lastName}</strong></span>
+              )}
+              {sale.vehiclePlate && (
+                <span>Vehículo: <strong className="text-foreground">{sale.vehiclePlate}</strong></span>
+              )}
+            </div>
+            {sale.deliveryNotes && (
+              <p className="text-[11px] text-muted-foreground italic">
+                Obs: &quot;{sale.deliveryNotes}&quot;
+              </p>
+            )}
+          </div>
+        )}
+
         {/* Tabla de ítems */}
         <div className="border border-card-border rounded overflow-hidden text-xs">
           <table className="w-full text-left">

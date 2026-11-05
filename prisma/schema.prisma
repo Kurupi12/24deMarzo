@@ -40,6 +40,7 @@ model User {
   
   // Relaciones operativas
   sales         Sale[]
+  purchases     Purchase[]
   stockMoves    StockMovement[]
   verifiedAttendances AttendanceRecord[] @relation("AttendanceVerifier")
   approvedAdvances    AdvancePayment[]   @relation("AdvanceApprover")
@@ -103,6 +104,7 @@ model Product {
   stockItems      StockItem[]
   movements       StockMovement[]
   saleItems       SaleItem[]
+  purchaseItems   PurchaseItem[]
 
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
@@ -278,6 +280,16 @@ model Sale {
 
   status           SaleStatus       @default(COMPLETED)
 
+  // Despacho y Logística de Entrega (Trazabilidad de Chofer y Ayudantes)
+  projectId        String?
+  project          CustomerProject? @relation(fields: [projectId], references: [id])
+  driverId         String?
+  driver           Employee?        @relation("SaleDriver", fields: [driverId], references: [id])
+  helperIds        String[]         @default([])
+  vehiclePlate     String?
+  deliveryStatus   String           @default("DELIVERED")
+  deliveryNotes    String?
+
   // Relaciones
   user             User             @relation(fields: [userId], references: [id])
   cashShift        CashShift?       @relation(fields: [cashShiftId], references: [id])
@@ -288,8 +300,28 @@ model Sale {
   updatedAt        DateTime         @updatedAt
 
   @@index([customerRuc])
+  @@index([projectId])
+  @@index([driverId])
   @@index([createdAt])
   @@map("sales")
+}
+
+model CustomerProject {
+  id           String   @id @default(uuid())
+  customerRuc  String   // RUC o CI del cliente al que pertenece la obra
+  name         String   // Ej: "Edificio Altamira - Piso 4", "Obra Villa Morra"
+  address      String   // Dirección de descarga / entrega
+  contactName  String?  // Capataz / Encargado de obra / Arquitecto
+  contactPhone String?  // Teléfono del contacto en obra
+  isActive     Boolean  @default(true)
+  
+  sales        Sale[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([customerRuc])
+  @@map("customer_projects")
 }
 
 model SaleItem {
@@ -419,6 +451,7 @@ model Employee {
   advancePayments AdvancePayment[]
   leaveRequests   LeaveRequest[]
   attendances     AttendanceRecord[]
+  drivenSales     Sale[]             @relation("SaleDriver")
 
   createdAt       DateTime           @default(now())
   updatedAt       DateTime           @updatedAt
@@ -524,5 +557,51 @@ model AttendanceRecord {
   @@index([employeeId, recordedAt])
   @@index([recordedAt])
   @@map("attendance_records")
+}
+
+// ------------------------------------------------------------------------------
+// DOMINIO: COMPRAS A PROVEEDORES Y ENTRADAS A KARDEX
+// ------------------------------------------------------------------------------
+
+model Purchase {
+  id               String           @id @default(uuid())
+  purchaseNumber   String           @unique // Formato: COM-0001
+  invoiceNumber    String           // Factura física del proveedor (ej: 001-002-0045612)
+  supplierRuc      String           // RUC o CI del proveedor con DV
+  supplierName     String           // Razón Social / Nombre del proveedor
+  purchaseDate     DateTime         @default(now())
+  paymentCondition PaymentCondition @default(CONTADO)
+  subtotal         Decimal          @db.Decimal(14, 2)
+  vatAmount        Decimal          @default(0) @db.Decimal(14, 2)
+  grandTotal       Decimal          @db.Decimal(14, 2)
+  notes            String?
+  status           String           @default("COMPLETED")
+
+  userId           String
+  user             User             @relation(fields: [userId], references: [id])
+
+  items            PurchaseItem[]
+
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+
+  @@index([supplierRuc])
+  @@index([purchaseDate])
+  @@map("purchases")
+}
+
+model PurchaseItem {
+  id         String   @id @default(uuid())
+  purchaseId String
+  productId  String
+  quantity   Decimal  @db.Decimal(12, 2)
+  unitCost   Decimal  @db.Decimal(14, 2)
+  subtotal   Decimal  @db.Decimal(14, 2)
+  vatRate    VatRate  @default(IVA_10)
+
+  purchase   Purchase @relation(fields: [purchaseId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id])
+
+  @@map("purchase_items")
 }
 

@@ -7,6 +7,8 @@ import {
   LayoutDashboard,
   Boxes,
   ReceiptText,
+  Truck,
+  FileBarChart,
   Users,
   Settings,
   ChevronRight,
@@ -16,7 +18,9 @@ import { DepositoLogo } from './deposito-logo';
 const navigationItems = [
   { name: 'Dashboard Central', href: '/', icon: LayoutDashboard },
   { name: 'Catálogo & Inventario', href: '/inventory', icon: Boxes },
+  { name: 'Compras a Proveedores', href: '/purchases', icon: Truck },
   { name: 'Ventas & Facturación SIFEN', href: '/billing', icon: ReceiptText },
+  { name: 'Reportes & Obras', href: '/reports', icon: FileBarChart },
   { name: 'Recursos Humanos & Nómina', href: '/hr', icon: Users },
   { name: 'Configuración & Accesos', href: '/settings', icon: Settings },
 ];

@@ -97,6 +97,29 @@ Cualquier requerimiento no contemplado originalmente debe ser clasificado e inco
 
 ---
 
+### [x] Etapa 5: Multi-Obra por Cliente, Logística de Despacho, Compras y Reportes (COMPLETADA)
+- [x] **Multi-Obra por Cliente (`CustomerProjects`)**:
+  - Modelo `CustomerProject` en Neon PostgreSQL (`customer_projects`).
+  - Creación dinámica de obras desde el POS con nombre, dirección exacta de descarga, capataz y teléfono.
+  - Asignación de obra a las facturas y ventas con trazabilidad completa.
+- [x] **Logística y Trazabilidad de Despachos (`DeliveryDispatch`)**:
+  - Trazabilidad en ventas: Chofer asignado (`driverId` -> `Employee`), Cuadrilla de Ayudantes (`helperIds`), Chapa del Vehículo (`vehiclePlate`), Estado de Entrega (`deliveryStatus`) y Notas de descarga.
+  - Visualización del chofer y obra en la tabla de facturación y en el comprobante fiscal DTE.
+- [x] **Módulo de Compras a Proveedores (`/purchases`)**:
+  - Registro de facturas físicas de proveedores (N° Comprobante, RUC, Razón Social, Ítems y Costos).
+  - Asiento automático en Kardex (`IN_PURCHASE`), actualización de stock físico y de costo unitario de producto.
+- [x] **Centro Avanzado de Reportes & Exportación (`/reports`)**:
+  - Reporte 1: Ventas agrupadas por Cliente y por Obra con subtotales y detalle de facturas.
+  - Reporte 2: Trazabilidad de despachos por chofer y cuadrilla de ayudantes.
+  - Reporte 3: Kardex y Valorización de Inventario (Costo vs Venta y Margen de Utilidad Proyectado).
+  - Reporte 4: Lista Oficial de Precios y Disponibilidad.
+  - Exportación instantánea a Excel (`.csv` con BOM UTF-8) y formato imprimible optimizado.
+- [x] **Despliegue Continuo en Vercel**:
+  - Repositorio GitHub sincronizado (`https://github.com/Kurupi12/24deMarzo`).
+  - Build verificado y desplegado en producción en `https://24de-marzo.vercel.app`.
+
+---
+
 ## 📋 Registro de Nuevas Funcionalidades Incorporadas (Change Log)
 | Fecha | Rama / Módulo | Funcionalidad Añadida | Justificación |
 |---|---|---|---|

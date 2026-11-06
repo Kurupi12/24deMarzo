@@ -1,9 +1,10 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Search,
   Plus,
+  Minus,
   Trash2,
   ReceiptText,
   ShieldCheck,
@@ -63,6 +64,20 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
   const [secondaryHelperIds, setSecondaryHelperIds] = useState<string[]>([]);
 
   const [loading, setLoading] = useState(false);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+  const [lastAddedId, setLastAddedId] = useState<string | null>(null);
+
+  // Auto-enfocar y seleccionar la cantidad al agregar un producto
+  useEffect(() => {
+    if (lastAddedId) {
+      const el = document.getElementById(`qty-input-${lastAddedId}`) as HTMLInputElement;
+      if (el) {
+        el.focus();
+        el.select();
+      }
+      setLastAddedId(null);
+    }
+  }, [lastAddedId]);
 
   // Cargar Empleados (Choferes y Ayudantes)
   useEffect(() => {
@@ -142,6 +157,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
     }
     setProductSearch('');
     setSearchResults([]);
+    setLastAddedId(product.id);
   };
 
   const removeFromCart = (productId: string) => {
@@ -277,11 +293,12 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
         <div className="relative">
           <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <input
+            ref={searchInputRef}
             type="text"
             value={productSearch}
             onChange={(e) => setProductSearch(e.target.value)}
             placeholder="Buscar por SKU o descripción (ej: Cemento, Varilla, Cal, Ladrillo, Arena)..."
-            className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+            className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
           />
           {searchResults.length > 0 && (
             <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-border rounded-lg shadow-xl z-20 max-h-56 overflow-y-auto divide-y divide-card-border">
@@ -344,36 +361,86 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
                         </button>
                       </div>
 
-                      <div className="flex items-center justify-between pt-1 border-t border-card-border/60">
-                        {/* Selector de Cantidad */}
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-2 border-t border-card-border/60">
+                        {/* Selector Ergonómico de Cantidad con NumPad Rápido */}
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-mono text-muted-foreground">Cant:</span>
-                          <input
-                            type="number"
-                            min="1"
-                            value={item.quantity}
-                            onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 1)}
-                            className="w-14 bg-card border border-card-border rounded px-1.5 py-0.5 text-center font-mono text-foreground text-xs"
-                          />
+                          <span className="text-[10px] font-mono text-muted-foreground font-semibold">Cant:</span>
+                          <div className="inline-flex items-center rounded border border-card-border bg-card">
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.productId, Math.max(1, item.quantity - 1))}
+                              title="Restar 1"
+                              className="px-1.5 py-1 text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+                            >
+                              <Minus className="w-3 h-3" />
+                            </button>
+                            <input
+                              id={`qty-input-${item.productId}`}
+                              type="number"
+                              min="1"
+                              value={item.quantity}
+                              onFocus={(e) => e.target.select()}
+                              onClick={(e) => (e.target as HTMLInputElement).select()}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') {
+                                  e.preventDefault();
+                                  searchInputRef.current?.focus();
+                                }
+                              }}
+                              onChange={(e) => updateQuantity(item.productId, parseInt(e.target.value) || 1)}
+                              className="w-14 bg-transparent text-center font-mono text-foreground font-bold text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:outline-none focus:bg-primary/10"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                              title="Sumar 1"
+                              className="px-1.5 py-1 text-muted-foreground hover:text-foreground hover:bg-muted/40 transition-colors"
+                            >
+                              <Plus className="w-3 h-3" />
+                            </button>
+                          </div>
+
+                          {/* Botones de Volumen Rápido para Materiales de Construcción */}
+                          <div className="hidden sm:flex items-center gap-1 ml-1">
+                            {[10, 50, 100].map((step) => (
+                              <button
+                                key={step}
+                                type="button"
+                                onClick={() => updateQuantity(item.productId, item.quantity + step)}
+                                title={`Sumar ${step} unidades`}
+                                className="px-1.5 py-0.5 rounded text-[9px] font-mono font-bold bg-card hover:bg-primary/20 border border-card-border hover:border-primary/40 text-muted-foreground hover:text-primary transition-colors"
+                              >
+                                +{step}
+                              </button>
+                            ))}
+                          </div>
                         </div>
 
                         {/* Modificador de Precio Unitario (Precio Negociado) */}
                         <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-mono text-muted-foreground">P. Unit:</span>
+                          <span className="text-[10px] font-mono text-muted-foreground font-semibold">P. Unit:</span>
                           <input
                             type="number"
                             min="0"
                             step="100"
                             value={item.unitPrice}
+                            onFocus={(e) => e.target.select()}
+                            onClick={(e) => (e.target as HTMLInputElement).select()}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                searchInputRef.current?.focus();
+                              }
+                            }}
                             onChange={(e) => updateUnitPrice(item.productId, parseInt(e.target.value) || 0)}
-                            className={`w-28 bg-card border rounded px-1.5 py-0.5 text-right font-mono font-bold text-xs focus:outline-none ${
+                            className={`w-28 bg-card border rounded px-2 py-0.5 text-right font-mono font-bold text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:outline-none focus:bg-primary/10 ${
                               isBelowCost ? 'border-warning text-warning' : isModified ? 'border-primary text-primary' : 'border-card-border text-foreground'
                             }`}
                           />
                         </div>
 
                         {/* Subtotal de Fila */}
-                        <span className="w-24 text-right font-mono font-bold text-foreground">
+                        <span className="w-24 text-right font-mono font-bold text-foreground text-xs">
                           {formatCurrencyPYG(item.quantity * item.unitPrice)}
                         </span>
                       </div>

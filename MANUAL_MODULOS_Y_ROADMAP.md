@@ -13,12 +13,13 @@ Este documento consolida el estado funcional de cada uno de los 8 módulos del s
   * Nómina salarial semanal activa.
   * Conteo de artículos en stock crítico según Kardex.
 * **Gráfico de Rendimiento Comercial de Ancho Completo:** Curva de densidad de ventas a pantalla completa (`preserveAspectRatio="none"`) con selector de vista (Día, Mes, Año) y comparación visual contra el mes anterior.
-* **Medidor Radial de Metas:** Gauge de gran formato con textura rayada, porcentaje destacado (75.8%) y desglose de canales comerciales (Ventas Mostrador Contado, Crédito SIFEN y Transferencias SIPAP/POS).
+* **Tarjeta de Productos de Mayor Rotación del Mes (Top Bestsellers):** Ranking gráfico de materiales críticos (*Cemento Yguazú/Vallemí, Varillas conformadas 10mm, Ladrillo hueco 6 bocas, Arena lavada y Triturada*) con barras de volumen proporcional, unidades despachadas y facturación generada en Guaraníes.
+* **Desglose de Ingresos por Canales:** Ventas Mostrador Contado, Crédito SIFEN y Cobranzas Electrónicas SIPAP.
 * **Desglose de Gastos & Margen:** Visualización de costos operativos versus utilidad neta mensual.
 * **Monitor de Visión Artificial:** Telemetría en vivo conectada al webhook de cámaras con IA para control de accesos biométricos.
 
 ### Roadmap de Mejoras
-* [ ] **Top 5 Artículos Más Vendidos:** Tarjeta con los productos de mayor rotación del mes (ej: Cemento Yguazú, Varillas 10mm, Ladrillo hueco).
+* [x] **Top 5 Artículos Más Vendidos:** Tarjeta con los productos de mayor rotación del mes (ej: Cemento Yguazú, Varillas 10mm, Ladrillo hueco) - *Implementado*.
 * [ ] **Barra de Accesos Rápidos:** Botones de un clic para *"Nueva Venta POS"*, *"Ingresar Factura de Compra"* o *"Abrir Caja"*.
 * [ ] **Filtro de Rango Calendario Libre:** Selector de fechas personalizada para el gráfico analítico.
 

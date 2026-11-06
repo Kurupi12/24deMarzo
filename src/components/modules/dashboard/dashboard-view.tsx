@@ -148,10 +148,10 @@ export function DashboardView() {
 
       {/* Bloque Secundario: Desglose de Ingresos & Distribución de Gastos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Desglose Operativo con Medidor Radial (Health Score / Meta) */}
+        {/* Desglose Operativo con Gráfico de Mayor Rotación de Productos */}
         <PortfolioBreakdownCard
           channels={data?.analytics?.channels}
-          targetPercent={data?.analytics?.periodSummary?.targetAchievementPercent || 75.8}
+          topProducts={data?.analytics?.topProducts}
         />
 
         {/* Distribución de Gastos del Mes & Rotación */}

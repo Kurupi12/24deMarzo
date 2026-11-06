@@ -127,11 +127,22 @@ export async function POST(req: NextRequest) {
         throw new Error('No se encontró un depósito activo para ingresar mercadería.');
       }
 
+      // Upsert o vincular proveedor en el maestro
+      const supplierRecord = await tx.supplier.upsert({
+        where: { ruc: supplierRuc.trim() },
+        update: { name: supplierName.trim() },
+        create: {
+          ruc: supplierRuc.trim(),
+          name: supplierName.trim(),
+        },
+      });
+
       // 1. Crear comprobante de compra
       const purchase = await tx.purchase.create({
         data: {
           purchaseNumber,
           invoiceNumber: invoiceNumber.trim(),
+          supplierId: supplierRecord.id,
           supplierRuc: supplierRuc.trim(),
           supplierName: supplierName.trim(),
           paymentCondition: paymentCondition as any,

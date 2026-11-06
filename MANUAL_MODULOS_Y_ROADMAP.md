@@ -46,6 +46,8 @@ Este documento consolida el estado funcional de cada uno de los 8 módulos del s
 ## 3. Compras a Proveedores (`/purchases`)
 
 ### Funcionalidades Actuales
+* **Registro & Directorio Maestro de Proveedores:** Pestaña dedicada para gestionar proveedores oficiales con RUC con DV, Razón Social, nombre comercial/marca, rubro (*Cementera, Hierros, Cerámicas, Áridos, Ferretería, General*), contacto, teléfono/WhatsApp, email, ciudad y días habituales de crédito.
+* **Autocompletado Rápido en Facturas de Compra:** Chips de proveedores frecuentes (*INC Vallemí, Yguazú Cementos, Vemarcorp, Cerámica Santa María, Cantera San Rafael*) y autocompletado en un clic de RUC, Razón Social y condición comercial.
 * **Ingreso Oficial de Facturas de Proveedor:** Registro de comprobante físico (ej: *001-002-0045612*), RUC con DV, Razón Social y condición de pago.
 * **Afectación Automática a Kardex & Almacén:** Asiento inmediato como `IN_PURCHASE` e incremento del stock físico en el depósito principal.
 * **Valuación Contable por Costo Promedio Ponderado (PPP):**

@@ -628,13 +628,41 @@ model AttendanceRecord {
 }
 
 // ------------------------------------------------------------------------------
-// DOMINIO: COMPRAS A PROVEEDORES Y ENTRADAS A KARDEX
+// DOMINIO: REGISTRO DE PROVEEDORES & COMPRAS A ENTRADAS DE KARDEX
 // ------------------------------------------------------------------------------
+
+model Supplier {
+  id           String   @id @default(uuid())
+  ruc          String   @unique // RUC o CI del proveedor con DV (ej: 80000001-3)
+  name         String   // Razón Social oficial
+  tradeName    String?  // Nombre de fantasía / Marca (ej: INC, Yguazú, Aceros Vemarcorp)
+  category     String   @default("GENERAL") // CEMENTERA, HIERROS, CERAMICAS, ARIDOS, HERRAMIENTAS, GENERAL
+  contactName  String?  // Nombre del asesor / vendedor / encargado comercial
+  phone        String?  // Teléfono o WhatsApp de pedidos
+  email        String?  // Correo de facturación / pedidos
+  address      String?  // Dirección de planta o sucursal
+  city         String?  // Ciudad (ej: Asunción, Villeta, Villa Hayes)
+  creditDays   Int      @default(0) // Días habituales de crédito (0 = Contado)
+  notes        String?  // Observaciones, lista de descuentos o condiciones
+  isActive     Boolean  @default(true)
+
+  purchases    Purchase[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([name])
+  @@index([ruc])
+  @@index([category])
+  @@map("suppliers")
+}
 
 model Purchase {
   id               String           @id @default(uuid())
   purchaseNumber   String           @unique // Formato: COM-0001
   invoiceNumber    String           // Factura física del proveedor (ej: 001-002-0045612)
+  supplierId       String?
+  supplier         Supplier?        @relation(fields: [supplierId], references: [id])
   supplierRuc      String           // RUC o CI del proveedor con DV
   supplierName     String           // Razón Social / Nombre del proveedor
   purchaseDate     DateTime         @default(now())
@@ -654,6 +682,7 @@ model Purchase {
   updatedAt        DateTime         @updatedAt
 
   @@index([supplierRuc])
+  @@index([supplierId])
   @@index([purchaseDate])
   @@map("purchases")
 }

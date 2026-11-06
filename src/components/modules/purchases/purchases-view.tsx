@@ -15,14 +15,35 @@ import {
   Eye,
   X,
   FileSpreadsheet,
+  Users,
+  Phone,
+  Mail,
+  MapPin,
+  Pencil,
+  Tag,
+  CreditCard,
+  ChevronDown,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 
+const SUPPLIER_CATEGORIES = [
+  { value: 'ALL', label: 'Todos los Rubros' },
+  { value: 'CEMENTERA', label: 'Cementos & Ligantes' },
+  { value: 'HIERROS', label: 'Hierros & Aceros' },
+  { value: 'CERAMICAS', label: 'Cerámicas & Ladrillos' },
+  { value: 'ARIDOS', label: 'Cantera, Arena & Áridos' },
+  { value: 'HERRAMIENTAS', label: 'Ferretería & Maquinarias' },
+  { value: 'GENERAL', label: 'Materiales Generales' },
+];
+
 export function PurchasesView() {
+  const [activeTab, setActiveTab] = useState<'purchases' | 'suppliers'>('purchases');
+
+  // --- Estados de Compras ---
   const [purchases, setPurchases] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loadingPurchases, setLoadingPurchases] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [selectedPurchase, setSelectedPurchase] = useState<any | null>(null);
@@ -34,14 +55,38 @@ export function PurchasesView() {
   const [paymentCondition, setPaymentCondition] = useState('CONTADO');
   const [notes, setNotes] = useState('');
   const [items, setItems] = useState<any[]>([]);
+  const [showSupplierDropdown, setShowSupplierDropdown] = useState(false);
 
   // Buscador de productos para compra
   const [productSearch, setProductSearch] = useState('');
   const [productResults, setProductResults] = useState<any[]>([]);
   const [savingPurchase, setSavingPurchase] = useState(false);
 
+  // --- Estados de Proveedores ---
+  const [suppliers, setSuppliers] = useState<any[]>([]);
+  const [loadingSuppliers, setLoadingSuppliers] = useState(false);
+  const [supplierQuery, setSupplierQuery] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('ALL');
+  const [showSupplierModal, setShowSupplierModal] = useState(false);
+  const [editingSupplier, setEditingSupplier] = useState<any | null>(null);
+  const [savingSupplier, setSavingSupplier] = useState(false);
+
+  // Formulario de Proveedor
+  const [formRuc, setFormRuc] = useState('');
+  const [formName, setFormName] = useState('');
+  const [formTradeName, setFormTradeName] = useState('');
+  const [formCategory, setFormCategory] = useState('GENERAL');
+  const [formContactName, setFormContactName] = useState('');
+  const [formPhone, setFormPhone] = useState('');
+  const [formEmail, setFormEmail] = useState('');
+  const [formAddress, setFormAddress] = useState('');
+  const [formCity, setFormCity] = useState('');
+  const [formCreditDays, setFormCreditDays] = useState('0');
+  const [formNotes, setFormNotes] = useState('');
+
+  // Cargar compras
   const fetchPurchases = async () => {
-    setLoading(true);
+    setLoadingPurchases(true);
     try {
       const res = await fetch(`/api/v1/inventory/purchases?search=${encodeURIComponent(searchQuery)}`);
       const json = await res.json();
@@ -49,7 +94,23 @@ export function PurchasesView() {
         setPurchases(json.data || []);
       }
     } finally {
-      setLoading(false);
+      setLoadingPurchases(false);
+    }
+  };
+
+  // Cargar proveedores
+  const fetchSuppliers = async () => {
+    setLoadingSuppliers(true);
+    try {
+      const res = await fetch(
+        `/api/v1/inventory/suppliers?query=${encodeURIComponent(supplierQuery)}&category=${encodeURIComponent(selectedCategory)}`
+      );
+      const json = await res.json();
+      if (json.success) {
+        setSuppliers(json.data || []);
+      }
+    } finally {
+      setLoadingSuppliers(false);
     }
   };
 
@@ -57,7 +118,11 @@ export function PurchasesView() {
     fetchPurchases();
   }, [searchQuery]);
 
-  // Buscar productos mientras tipea
+  useEffect(() => {
+    fetchSuppliers();
+  }, [supplierQuery, selectedCategory]);
+
+  // Buscar productos mientras tipea en la compra
   useEffect(() => {
     if (productSearch.trim().length >= 2) {
       fetch(`/api/v1/inventory/products?search=${encodeURIComponent(productSearch.trim())}&limit=5`)
@@ -110,8 +175,20 @@ export function PurchasesView() {
   };
 
   const grandTotal = items.reduce((acc, i) => acc + i.quantity * i.unitCost, 0);
-  const totalVat = Math.round(grandTotal / 11);
 
+  // Seleccionar proveedor en la factura
+  const selectSupplierForPurchase = (sup: any) => {
+    setSupplierRuc(sup.ruc);
+    setSupplierName(sup.name);
+    if (sup.creditDays && sup.creditDays > 0) {
+      setPaymentCondition('CREDITO_30');
+    } else {
+      setPaymentCondition('CONTADO');
+    }
+    setShowSupplierDropdown(false);
+  };
+
+  // Guardar factura de compra
   const handleSavePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) {
@@ -132,134 +209,406 @@ export function PurchasesView() {
           items,
         }),
       });
-      const data = await res.json();
-      if (data.success) {
+      const json = await res.json();
+      if (json.success) {
         setShowCreateModal(false);
         setInvoiceNumber('');
         setSupplierName('');
         setSupplierRuc('');
         setItems([]);
         setNotes('');
-        fetchPurchases();
+        await fetchPurchases();
+        await fetchSuppliers();
+        alert('Factura de compra asentada exitosamente. Stock y costo promedio ponderado actualizados.');
       } else {
-        alert(data.error?.message || 'Error al procesar la compra');
+        alert(json.error?.message || 'Error al asentar factura de compra');
       }
     } finally {
       setSavingPurchase(false);
     }
   };
 
+  // Abrir modal de proveedor
+  const openSupplierModal = (sup?: any) => {
+    if (sup) {
+      setEditingSupplier(sup);
+      setFormRuc(sup.ruc || '');
+      setFormName(sup.name || '');
+      setFormTradeName(sup.tradeName || '');
+      setFormCategory(sup.category || 'GENERAL');
+      setFormContactName(sup.contactName || '');
+      setFormPhone(sup.phone || '');
+      setFormEmail(sup.email || '');
+      setFormAddress(sup.address || '');
+      setFormCity(sup.city || '');
+      setFormCreditDays(String(sup.creditDays || 0));
+      setFormNotes(sup.notes || '');
+    } else {
+      setEditingSupplier(null);
+      setFormRuc('');
+      setFormName('');
+      setFormTradeName('');
+      setFormCategory('GENERAL');
+      setFormContactName('');
+      setFormPhone('');
+      setFormEmail('');
+      setFormAddress('');
+      setFormCity('Asunción');
+      setFormCreditDays('0');
+      setFormNotes('');
+    }
+    setShowSupplierModal(true);
+  };
+
+  // Guardar Proveedor
+  const handleSaveSupplier = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingSupplier(true);
+    try {
+      const res = await fetch('/api/v1/inventory/suppliers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          id: editingSupplier?.id,
+          ruc: formRuc.trim(),
+          name: formName.trim(),
+          tradeName: formTradeName.trim() || undefined,
+          category: formCategory,
+          contactName: formContactName.trim() || undefined,
+          phone: formPhone.trim() || undefined,
+          email: formEmail.trim() || undefined,
+          address: formAddress.trim() || undefined,
+          city: formCity.trim() || undefined,
+          creditDays: Number(formCreditDays) || 0,
+          notes: formNotes.trim() || undefined,
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setShowSupplierModal(false);
+        await fetchSuppliers();
+      } else {
+        alert(json.error?.message || 'Error al guardar proveedor');
+      }
+    } finally {
+      setSavingSupplier(false);
+    }
+  };
+
+  // Desactivar / dar de baja proveedor
+  const handleDeleteSupplier = async (id: string, name: string) => {
+    if (!confirm(`¿Dar de baja al proveedor "${name}"? No se eliminarán sus facturas pasadas.`)) return;
+    try {
+      const res = await fetch(`/api/v1/inventory/suppliers?id=${id}`, { method: 'DELETE' });
+      const json = await res.json();
+      if (json.success) {
+        await fetchSuppliers();
+      }
+    } catch {
+      alert('Error al desactivar proveedor');
+    }
+  };
+
   return (
     <div className="space-y-6">
-      {/* Cabecera del Módulo */}
+      {/* Cabecera del Módulo con Tabs */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-card border border-card-border p-5 rounded-xl shadow-lg">
         <div>
           <div className="flex items-center gap-2">
             <Truck className="w-5 h-5 text-primary" />
             <h1 className="text-xl font-bold tracking-tight text-foreground font-sans">
-              Gestión de Compras a Proveedores & Entradas al Depósito
+              Gestión de Compras & Proveedores
             </h1>
           </div>
           <p className="text-xs text-muted-foreground mt-1">
-            Registro oficial de facturas de proveedores con actualización automática de inventario físico y Kardex en tiempo real.
+            Control integral de entradas a depósito, catálogo oficial de proveedores y valuación automática de costos en Kardex.
           </p>
         </div>
 
+        {/* Botones de Acción según el Tab */}
+        <div className="flex items-center gap-2">
+          {activeTab === 'purchases' ? (
+            <button
+              type="button"
+              onClick={() => setShowCreateModal(true)}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-md transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Registrar Factura de Compra</span>
+            </button>
+          ) : (
+            <button
+              type="button"
+              onClick={() => openSupplierModal()}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-md transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Nuevo Proveedor</span>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Selector de Pestañas (Tabs) */}
+      <div className="flex items-center gap-2 border-b border-card-border pb-1">
         <button
           type="button"
-          onClick={() => setShowCreateModal(true)}
-          className="inline-flex items-center gap-2 px-4 py-2.5 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-md transition-colors"
+          onClick={() => setActiveTab('purchases')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-mono text-xs font-semibold border-b-2 transition-all ${
+            activeTab === 'purchases'
+              ? 'border-primary text-primary bg-card/60'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
         >
-          <Plus className="w-4 h-4" />
-          <span>Registrar Factura de Compra</span>
+          <FileSpreadsheet className="w-4 h-4" />
+          <span>Facturas de Entrada & Kardex ({purchases.length})</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('suppliers')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-t-lg font-mono text-xs font-semibold border-b-2 transition-all ${
+            activeTab === 'suppliers'
+              ? 'border-primary text-primary bg-card/60'
+              : 'border-transparent text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>Registro de Proveedores ({suppliers.length})</span>
         </button>
       </div>
 
-      {/* Barra de Filtros y Búsqueda */}
-      <div className="bg-card border border-card-border rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
-        <div className="relative flex-1 w-full">
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar compra por N° factura de proveedor, razón social o RUC..."
-            className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-4 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
-          />
-        </div>
-        <div className="text-xs font-mono text-muted-foreground whitespace-nowrap">
-          Facturas registradas: <strong className="text-foreground">{purchases.length}</strong>
-        </div>
-      </div>
+      {/* ========================================================================= */}
+      {/* VISTA 1: FACTURAS DE COMPRA */}
+      {/* ========================================================================= */}
+      {activeTab === 'purchases' && (
+        <div className="space-y-4">
+          {/* Barra de Filtros y Búsqueda */}
+          <div className="bg-card border border-card-border rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="relative flex-1 w-full">
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Buscar compra por N° factura de proveedor, razón social o RUC..."
+                className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-4 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
+              />
+            </div>
+            <div className="text-xs font-mono text-muted-foreground whitespace-nowrap">
+              Facturas registradas: <strong className="text-foreground">{purchases.length}</strong>
+            </div>
+          </div>
 
-      {/* Tabla de Facturas de Compra */}
-      <div className="bg-card border border-card-border rounded-xl overflow-hidden shadow-lg">
-        {loading ? (
-          <div className="p-12 text-center text-xs text-muted-foreground font-mono">
-            Consultando compras y entradas a depósito en Neon Postgres...
-          </div>
-        ) : purchases.length === 0 ? (
-          <div className="p-16 text-center text-xs text-muted-foreground">
-            <Truck className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
-            <p className="text-foreground font-medium">No hay compras registradas aún.</p>
-            <p className="text-[11px] text-muted-foreground mt-1">Haga clic en &quot;Registrar Factura de Compra&quot; para ingresar mercadería al stock.</p>
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-[#0d121c] border-b border-card-border text-[11px] font-mono uppercase text-muted-foreground">
-                <tr>
-                  <th className="py-3 px-4">Comprobante Interno</th>
-                  <th className="py-3 px-4">Factura Proveedor</th>
-                  <th className="py-3 px-4">Proveedor / RUC</th>
-                  <th className="py-3 px-4">Fecha de Entrada</th>
-                  <th className="py-3 px-4">Condición</th>
-                  <th className="py-3 px-4 text-right">Ítems</th>
-                  <th className="py-3 px-4 text-right">Monto Total</th>
-                  <th className="py-3 px-4 text-center">Acciones</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-card-border font-mono text-muted-foreground">
-                {purchases.map((p) => {
-                  const dateStr = format(new Date(p.purchaseDate), "dd/MM/yyyy HH:mm", { locale: es });
-                  return (
-                    <tr key={p.id} className="hover:bg-muted/20 transition-colors">
-                      <td className="py-3 px-4 font-bold text-foreground">{p.purchaseNumber}</td>
-                      <td className="py-3 px-4 text-accent font-bold">{p.invoiceNumber}</td>
-                      <td className="py-3 px-4 font-sans">
-                        <p className="font-semibold text-foreground truncate max-w-xs">{p.supplierName}</p>
-                        <p className="text-[10px] text-muted-foreground font-mono">{p.supplierRuc}</p>
-                      </td>
-                      <td className="py-3 px-4 text-[11px]">{dateStr}</td>
-                      <td className="py-3 px-4 font-sans">
-                        <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-card border border-card-border text-foreground">
-                          {p.paymentCondition}
-                        </span>
-                      </td>
-                      <td className="py-3 px-4 text-right font-mono">{p.items.length} SKUs</td>
-                      <td className="py-3 px-4 text-right font-bold text-emerald-400 font-mono">
-                        {formatCurrencyPYG(Number(p.grandTotal))}
-                      </td>
-                      <td className="py-3 px-4 text-center">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedPurchase(p)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0d121c] border border-card-border hover:border-primary text-muted-foreground hover:text-primary transition-colors text-[11px]"
-                        >
-                          <Eye className="w-3 h-3" />
-                          <span>Ver Detalle</span>
-                        </button>
-                      </td>
+          {/* Tabla de Facturas de Compra */}
+          <div className="bg-card border border-card-border rounded-xl overflow-hidden shadow-lg">
+            {loadingPurchases ? (
+              <div className="p-12 text-center text-xs text-muted-foreground font-mono">
+                Consultando compras y entradas a depósito en Neon Postgres...
+              </div>
+            ) : purchases.length === 0 ? (
+              <div className="p-16 text-center text-xs text-muted-foreground">
+                <Truck className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-foreground font-medium">No hay compras registradas aún.</p>
+                <p className="text-[11px] text-muted-foreground mt-1">Haga clic en &quot;Registrar Factura de Compra&quot; para ingresar mercadería al stock.</p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#0d121c] border-b border-card-border text-[11px] font-mono uppercase text-muted-foreground">
+                    <tr>
+                      <th className="py-3 px-4">Comprobante Interno</th>
+                      <th className="py-3 px-4">Factura Proveedor</th>
+                      <th className="py-3 px-4">Proveedor / RUC</th>
+                      <th className="py-3 px-4">Fecha de Entrada</th>
+                      <th className="py-3 px-4">Condición</th>
+                      <th className="py-3 px-4 text-right">Ítems</th>
+                      <th className="py-3 px-4 text-right">Monto Total</th>
+                      <th className="py-3 px-4 text-center">Acciones</th>
                     </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                  </thead>
+                  <tbody className="divide-y divide-card-border font-mono text-muted-foreground">
+                    {purchases.map((p) => {
+                      const dateStr = format(new Date(p.purchaseDate), "dd/MM/yyyy HH:mm", { locale: es });
+                      return (
+                        <tr key={p.id} className="hover:bg-muted/20 transition-colors">
+                          <td className="py-3 px-4 font-bold text-foreground">{p.purchaseNumber}</td>
+                          <td className="py-3 px-4 text-accent font-bold">{p.invoiceNumber}</td>
+                          <td className="py-3 px-4 font-sans">
+                            <p className="font-semibold text-foreground truncate max-w-xs">{p.supplierName}</p>
+                            <p className="text-[10px] text-muted-foreground font-mono">{p.supplierRuc}</p>
+                          </td>
+                          <td className="py-3 px-4 text-[11px]">{dateStr}</td>
+                          <td className="py-3 px-4 font-sans">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-card border border-card-border text-foreground">
+                              {p.paymentCondition}
+                            </span>
+                          </td>
+                          <td className="py-3 px-4 text-right font-mono">{p.items.length} SKUs</td>
+                          <td className="py-3 px-4 text-right font-bold text-emerald-400 font-mono">
+                            {formatCurrencyPYG(Number(p.grandTotal))}
+                          </td>
+                          <td className="py-3 px-4 text-center">
+                            <button
+                              type="button"
+                              onClick={() => setSelectedPurchase(p)}
+                              className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0d121c] border border-card-border hover:border-primary text-muted-foreground hover:text-primary transition-colors text-[11px]"
+                            >
+                              <Eye className="w-3 h-3" />
+                              <span>Ver Detalle</span>
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
-      {/* Modal: Registrar Nueva Factura de Compra */}
+      {/* ========================================================================= */}
+      {/* VISTA 2: REGISTRO DE PROVEEDORES */}
+      {/* ========================================================================= */}
+      {activeTab === 'suppliers' && (
+        <div className="space-y-4">
+          {/* Barra de Búsqueda y Filtros de Proveedores */}
+          <div className="bg-card border border-card-border rounded-xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="relative flex-1 w-full">
+              <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={supplierQuery}
+                onChange={(e) => setSupplierQuery(e.target.value)}
+                placeholder="Buscar por RUC, Razón Social, nombre comercial o contacto..."
+                className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-4 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 w-full md:w-auto">
+              <select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                className="bg-[#0d121c] border border-card-border rounded-lg px-3 py-2 text-xs text-foreground focus:outline-none focus:border-primary font-mono"
+              >
+                {SUPPLIER_CATEGORIES.map((c) => (
+                  <option key={c.value} value={c.value}>
+                    {c.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          {/* Tabla de Directorio de Proveedores */}
+          <div className="bg-card border border-card-border rounded-xl overflow-hidden shadow-lg">
+            {loadingSuppliers ? (
+              <div className="p-12 text-center text-xs text-muted-foreground font-mono">
+                Consultando directorio maestro de proveedores en Neon Postgres...
+              </div>
+            ) : suppliers.length === 0 ? (
+              <div className="p-16 text-center text-xs text-muted-foreground">
+                <Building2 className="w-12 h-12 text-muted-foreground/30 mx-auto mb-3" />
+                <p className="text-foreground font-medium">No se encontraron proveedores registrados.</p>
+                <p className="text-[11px] text-muted-foreground mt-1">
+                  Haga clic en &quot;Nuevo Proveedor&quot; para registrar un proveedor oficial al sistema.
+                </p>
+              </div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-[#0d121c] border-b border-card-border text-[11px] font-mono uppercase text-muted-foreground">
+                    <tr>
+                      <th className="py-3 px-4">Razón Social & Marca</th>
+                      <th className="py-3 px-4">RUC Oficial</th>
+                      <th className="py-3 px-4">Rubro Principal</th>
+                      <th className="py-3 px-4">Contacto / Teléfono</th>
+                      <th className="py-3 px-4">Ubicación</th>
+                      <th className="py-3 px-4 text-center">Crédito</th>
+                      <th className="py-3 px-4 text-center">Entradas</th>
+                      <th className="py-3 px-4 text-center">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-card-border font-sans">
+                    {suppliers.map((s) => (
+                      <tr key={s.id} className="hover:bg-muted/20 transition-colors">
+                        <td className="py-3 px-4">
+                          <p className="font-bold text-foreground text-xs">{s.name}</p>
+                          {s.tradeName && (
+                            <span className="text-[10px] text-primary font-mono font-semibold">
+                              Marca: {s.tradeName}
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 font-mono font-bold text-accent">
+                          {s.ruc}
+                        </td>
+                        <td className="py-3 px-4">
+                          <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-card border border-card-border text-foreground">
+                            {s.category}
+                          </span>
+                        </td>
+                        <td className="py-3 px-4 text-xs font-mono">
+                          <p className="text-foreground">{s.contactName || 'Sin contacto fijo'}</p>
+                          {s.phone && (
+                            <p className="text-[10px] text-muted-foreground flex items-center gap-1">
+                              <Phone className="w-2.5 h-2.5 text-emerald-400" /> {s.phone}
+                            </p>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-[11px] text-muted-foreground font-mono">
+                          <p className="text-foreground">{s.city || 'Asunción'}</p>
+                          <p className="text-[10px] truncate max-w-xs">{s.address || '—'}</p>
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono">
+                          {s.creditDays > 0 ? (
+                            <span className="px-2 py-0.5 rounded text-[10px] bg-primary/10 border border-primary/30 text-primary font-bold">
+                              {s.creditDays} días
+                            </span>
+                          ) : (
+                            <span className="px-2 py-0.5 rounded text-[10px] bg-muted/40 border border-card-border text-muted-foreground">
+                              Contado
+                            </span>
+                          )}
+                        </td>
+                        <td className="py-3 px-4 text-center font-mono font-semibold text-foreground">
+                          {s._count?.purchases || 0}
+                        </td>
+                        <td className="py-3 px-4 text-center">
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => openSupplierModal(s)}
+                              title="Editar Proveedor"
+                              className="p-1.5 rounded bg-[#0d121c] border border-card-border hover:border-primary text-muted-foreground hover:text-primary transition-colors"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteSupplier(s.id, s.name)}
+                              title="Dar de Baja"
+                              className="p-1.5 rounded bg-[#0d121c] border border-card-border hover:border-danger text-muted-foreground hover:text-danger transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 1: REGISTRAR NUEVA FACTURA DE COMPRA */}
+      {/* ========================================================================= */}
       {showCreateModal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
           <div className="bg-card border border-card-border rounded-xl shadow-2xl max-w-3xl w-full overflow-hidden max-h-[92vh] flex flex-col">
@@ -278,6 +627,36 @@ export function PurchasesView() {
             </div>
 
             <form onSubmit={handleSavePurchase} className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
+              {/* Chips de Selección Rápida de Proveedor */}
+              <div className="space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-mono text-muted-foreground">Proveedores Habituales (1 Clic):</span>
+                  <button
+                    type="button"
+                    onClick={() => openSupplierModal()}
+                    className="text-[10px] font-mono text-primary hover:underline"
+                  >
+                    + Nuevo Proveedor en Catálogo
+                  </button>
+                </div>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {suppliers.slice(0, 6).map((sup) => (
+                    <button
+                      key={sup.id}
+                      type="button"
+                      onClick={() => selectSupplierForPurchase(sup)}
+                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors ${
+                        supplierRuc === sup.ruc
+                          ? 'bg-primary/20 border-primary text-primary font-bold'
+                          : 'bg-[#0d121c] hover:bg-card border-card-border text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      {sup.tradeName || sup.name.split(' ')[0]} ({sup.ruc.split('-')[0]})
+                    </button>
+                  ))}
+                </div>
+              </div>
+
               {/* Datos de Cabecera */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3 p-3 rounded-lg bg-[#0d121c] border border-card-border">
                 <div>
@@ -288,6 +667,8 @@ export function PurchasesView() {
                     placeholder="Ej: 001-002-0045612"
                     value={invoiceNumber}
                     onChange={(e) => setInvoiceNumber(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
                     className="w-full bg-card border border-card-border rounded-md px-2.5 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
@@ -296,10 +677,12 @@ export function PurchasesView() {
                   <input
                     type="text"
                     required
-                    placeholder="Ej: 80012345-6"
+                    placeholder="Ej: 80000001-3"
                     value={supplierRuc}
                     onChange={(e) => setSupplierRuc(e.target.value)}
-                    className="w-full bg-card border border-card-border rounded-md px-2.5 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary text-xs"
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                    className="w-full bg-card border border-card-border rounded-md px-2.5 py-1.5 font-mono font-bold text-foreground focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
                 <div>
@@ -310,6 +693,8 @@ export function PurchasesView() {
                     placeholder="Ej: Industria Nacional del Cemento"
                     value={supplierName}
                     onChange={(e) => setSupplierName(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
                     className="w-full bg-card border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
@@ -327,7 +712,7 @@ export function PurchasesView() {
                     value={productSearch}
                     onChange={(e) => setProductSearch(e.target.value)}
                     placeholder="Buscar por código de barras o nombre de artículo..."
-                    className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                    className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
                   />
                   {productResults.length > 0 && (
                     <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-border rounded-lg shadow-2xl z-30 max-h-48 overflow-y-auto divide-y divide-card-border">
@@ -351,22 +736,22 @@ export function PurchasesView() {
                 </div>
               </div>
 
-              {/* Tabla de Artículos en la Factura de Compra */}
-              <div className="border border-card-border rounded-lg overflow-hidden bg-[#0d121c]">
+              {/* Tabla de Artículos a Ingresar */}
+              <div className="border border-card-border rounded-lg overflow-hidden">
                 <table className="w-full text-left text-xs">
-                  <thead className="border-b border-card-border text-[10px] font-mono uppercase text-muted-foreground bg-card">
+                  <thead className="bg-[#0d121c] text-muted-foreground font-mono text-[10px] uppercase">
                     <tr>
                       <th className="py-2 px-3">Artículo</th>
-                      <th className="py-2 px-3 text-center w-20">Cantidad</th>
-                      <th className="py-2 px-3 text-right w-36">Costo Unit. (Gs)</th>
-                      <th className="py-2 px-3 text-right w-32">Subtotal</th>
-                      <th className="py-2 px-3 text-center w-12"></th>
+                      <th className="py-2 px-3 text-center w-24">Cantidad</th>
+                      <th className="py-2 px-3 text-right w-36">Costo Unit. (₲)</th>
+                      <th className="py-2 px-3 text-right">Subtotal</th>
+                      <th className="py-2 px-3 text-center w-10"></th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-card-border font-mono">
                     {items.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="py-6 text-center text-muted-foreground text-xs font-sans">
+                        <td colSpan={5} className="py-6 text-center text-muted-foreground text-xs">
                           No se han seleccionado productos aún. Busque y seleccione arriba.
                         </td>
                       </tr>
@@ -432,31 +817,41 @@ export function PurchasesView() {
                 </div>
                 <div className="p-3 rounded-lg bg-[#0d121c] border border-card-border font-mono space-y-1">
                   <div className="flex justify-between text-muted-foreground text-[11px]">
-                    <span>IVA 10% (Crédito Fiscal):</span>
-                    <span>{formatCurrencyPYG(totalVat)}</span>
+                    <span>Condición de Pago:</span>
+                    <select
+                      value={paymentCondition}
+                      onChange={(e) => setPaymentCondition(e.target.value)}
+                      className="bg-card border border-card-border rounded px-2 py-0.5 text-foreground text-xs"
+                    >
+                      <option value="CONTADO">Contado</option>
+                      <option value="CREDITO_15">Crédito 15 días</option>
+                      <option value="CREDITO_30">Crédito 30 días</option>
+                      <option value="CREDITO_45">Crédito 45 días</option>
+                      <option value="CREDITO_60">Crédito 60 días</option>
+                    </select>
                   </div>
-                  <div className="flex justify-between text-sm font-bold text-foreground pt-1 border-t border-card-border">
+                  <div className="flex justify-between text-xs pt-1 border-t border-card-border text-foreground font-bold">
                     <span>Total Factura Compra:</span>
-                    <span className="text-emerald-400">{formatCurrencyPYG(grandTotal)}</span>
+                    <span className="text-emerald-400 text-sm">{formatCurrencyPYG(grandTotal)}</span>
                   </div>
                 </div>
               </div>
 
-              <div className="flex justify-end gap-2 pt-3 border-t border-card-border">
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-card-border">
                 <button
                   type="button"
                   onClick={() => setShowCreateModal(false)}
-                  className="px-4 py-2 rounded-md border border-card-border text-muted-foreground hover:bg-muted/20"
+                  className="px-4 py-2 rounded-lg border border-card-border text-muted-foreground hover:text-foreground text-xs"
                 >
                   Cancelar
                 </button>
                 <button
                   type="submit"
                   disabled={savingPurchase || items.length === 0}
-                  className="px-5 py-2 rounded-md bg-primary hover:bg-primary-hover text-white font-semibold flex items-center gap-2 shadow-md disabled:opacity-50"
+                  className="px-5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold flex items-center gap-2 shadow-md disabled:opacity-50"
                 >
                   <CheckCircle2 className="w-4 h-4" />
-                  <span>{savingPurchase ? 'Ingresando a Stock...' : 'Confirmar e Ingresar al Kardex'}</span>
+                  <span>{savingPurchase ? 'Guardando Entrada...' : 'Asentar Factura en Kardex'}</span>
                 </button>
               </div>
             </form>
@@ -464,17 +859,202 @@ export function PurchasesView() {
         </div>
       )}
 
-      {/* Modal: Ver Detalle de Factura de Compra */}
+      {/* ========================================================================= */}
+      {/* MODAL 2: CREAR O EDITAR PROVEEDOR */}
+      {/* ========================================================================= */}
+      {showSupplierModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+          <div className="bg-card border border-card-border rounded-xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col">
+            <div className="px-5 py-4 border-b border-card-border flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-primary" />
+                <h3 className="text-sm font-bold text-foreground">
+                  {editingSupplier ? 'Editar Proveedor de Materiales' : 'Registrar Nuevo Proveedor'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowSupplierModal(false)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveSupplier} className="p-5 space-y-3.5 text-xs">
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-5">
+                  <label className="block text-[11px] font-mono text-muted-foreground mb-1">RUC Oficial con DV *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej: 80000001-3"
+                    value={formRuc}
+                    onChange={(e) => setFormRuc(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono font-bold text-foreground focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+                <div className="col-span-7">
+                  <label className="block text-[11px] font-mono text-muted-foreground mb-1">Razón Social Oficial *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Ej: Industria Nacional del Cemento"
+                    value={formName}
+                    onChange={(e) => setFormName(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-mono text-muted-foreground mb-1">Nombre Comercial / Marca</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: INC Vallemí / Cemento Yguazú"
+                    value={formTradeName}
+                    onChange={(e) => setFormTradeName(e.target.value)}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-mono text-muted-foreground mb-1">Rubro Principal *</label>
+                  <select
+                    value={formCategory}
+                    onChange={(e) => setFormCategory(e.target.value)}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs font-mono"
+                  >
+                    <option value="CEMENTERA">Cementos & Ligantes</option>
+                    <option value="HIERROS">Hierros & Aceros</option>
+                    <option value="CERAMICAS">Cerámicas & Ladrillos</option>
+                    <option value="ARIDOS">Cantera, Arena & Áridos</option>
+                    <option value="HERRAMIENTAS">Ferretería & Maquinarias</option>
+                    <option value="GENERAL">Materiales Generales</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-mono text-muted-foreground mb-1">Contacto / Asesor</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Lic. Roberto Benítez"
+                    value={formContactName}
+                    onChange={(e) => setFormContactName(e.target.value)}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-mono text-muted-foreground mb-1">Teléfono / WhatsApp</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: 021-442233 / 0981-123456"
+                    value={formPhone}
+                    onChange={(e) => setFormPhone(e.target.value)}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs font-mono"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-8">
+                  <label className="block text-[11px] font-mono text-muted-foreground mb-1">Email de Facturación / Pedidos</label>
+                  <input
+                    type="email"
+                    placeholder="Ej: pedidos@proveedor.com.py"
+                    value={formEmail}
+                    onChange={(e) => setFormEmail(e.target.value)}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs font-mono"
+                  />
+                </div>
+                <div className="col-span-4">
+                  <label className="block text-[11px] font-mono text-muted-foreground mb-1">Días Crédito</label>
+                  <input
+                    type="number"
+                    min="0"
+                    step="1"
+                    placeholder="0"
+                    value={formCreditDays}
+                    onChange={(e) => setFormCreditDays(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="block text-[11px] font-mono text-muted-foreground mb-1">Dirección de Planta / Sucursal</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Ruta Villeta - Alberdi Km 14"
+                    value={formAddress}
+                    onChange={(e) => setFormAddress(e.target.value)}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[11px] font-mono text-muted-foreground mb-1">Ciudad</label>
+                  <input
+                    type="text"
+                    placeholder="Ej: Villeta, Villa Hayes, Asunción"
+                    value={formCity}
+                    onChange={(e) => setFormCity(e.target.value)}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-[11px] font-mono text-muted-foreground mb-1">Notas Comerciales / Condiciones</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Descuento 5% por pago a 15 días, flete incluido"
+                  value={formNotes}
+                  onChange={(e) => setFormNotes(e.target.value)}
+                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground text-xs"
+                />
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-3 border-t border-card-border">
+                <button
+                  type="button"
+                  onClick={() => setShowSupplierModal(false)}
+                  className="px-4 py-2 rounded-lg border border-card-border text-muted-foreground hover:text-foreground text-xs"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={savingSupplier}
+                  className="px-5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white text-xs font-semibold flex items-center gap-2 shadow-md disabled:opacity-50"
+                >
+                  <CheckCircle2 className="w-4 h-4" />
+                  <span>{savingSupplier ? 'Guardando...' : editingSupplier ? 'Actualizar Proveedor' : 'Guardar Proveedor'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL 3: VER DETALLE DE COMPRA */}
+      {/* ========================================================================= */}
       {selectedPurchase && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-card border border-card-border rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden p-6 space-y-4">
+          <div className="bg-card border border-card-border rounded-xl shadow-2xl max-w-2xl w-full overflow-hidden p-5 space-y-4">
             <div className="flex items-center justify-between border-b border-card-border pb-3">
-              <div className="flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-primary" />
-                <div>
-                  <h3 className="text-sm font-bold text-foreground">Comprobante de Entrada #{selectedPurchase.purchaseNumber}</h3>
-                  <p className="text-[11px] font-mono text-muted-foreground">Factura: {selectedPurchase.invoiceNumber}</p>
-                </div>
+              <div>
+                <h3 className="text-sm font-bold text-foreground">Comprobante Interno: {selectedPurchase.purchaseNumber}</h3>
+                <p className="text-[11px] text-muted-foreground font-mono">Factura Proveedor: {selectedPurchase.invoiceNumber}</p>
               </div>
               <button
                 type="button"
@@ -492,45 +1072,51 @@ export function PurchasesView() {
                 <p className="text-muted-foreground font-mono">RUC: {selectedPurchase.supplierRuc}</p>
               </div>
               <div>
-                <p className="text-[10px] uppercase font-mono text-muted-foreground">Fecha & Condición</p>
-                <p className="font-mono text-foreground">{format(new Date(selectedPurchase.purchaseDate), "dd/MM/yyyy HH:mm", { locale: es })}</p>
-                <p className="text-muted-foreground font-mono">{selectedPurchase.paymentCondition}</p>
+                <p className="text-[10px] uppercase font-mono text-muted-foreground">Condición & Liquidación</p>
+                <p className="font-bold text-foreground">{selectedPurchase.paymentCondition}</p>
+                <p className="text-emerald-400 font-bold font-mono">
+                  Total: {formatCurrencyPYG(Number(selectedPurchase.grandTotal))}
+                </p>
               </div>
             </div>
 
-            <div className="border border-card-border rounded-lg overflow-hidden text-xs max-h-60 overflow-y-auto">
-              <table className="w-full text-left">
-                <thead className="bg-[#0d121c] text-[10px] font-mono uppercase text-muted-foreground">
+            <div className="border border-card-border rounded-lg overflow-hidden max-h-56 overflow-y-auto">
+              <table className="w-full text-left text-xs font-mono">
+                <thead className="bg-[#0d121c] text-muted-foreground text-[10px] uppercase">
                   <tr>
-                    <th className="py-2 px-3">Cant.</th>
                     <th className="py-2 px-3">Artículo</th>
+                    <th className="py-2 px-3 text-center">Cantidad</th>
                     <th className="py-2 px-3 text-right">Costo Unit.</th>
                     <th className="py-2 px-3 text-right">Subtotal</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-card-border font-mono">
+                <tbody className="divide-y divide-card-border text-foreground">
                   {selectedPurchase.items?.map((it: any) => (
                     <tr key={it.id}>
-                      <td className="py-2 px-3">{it.quantity}</td>
-                      <td className="py-2 px-3 font-sans">{it.product?.name || 'Artículo'}</td>
+                      <td className="py-2 px-3 font-sans">
+                        <span className="font-semibold block">{it.product?.name || 'Material'}</span>
+                        <span className="text-[10px] text-muted-foreground font-mono">{it.product?.sku}</span>
+                      </td>
+                      <td className="py-2 px-3 text-center font-bold">{Number(it.quantity)}</td>
                       <td className="py-2 px-3 text-right">{formatCurrencyPYG(Number(it.unitCost))}</td>
-                      <td className="py-2 px-3 text-right font-bold text-foreground">{formatCurrencyPYG(Number(it.subtotal))}</td>
+                      <td className="py-2 px-3 text-right font-bold">{formatCurrencyPYG(Number(it.subtotal))}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
 
-            <div className="p-3 rounded-lg bg-[#0d121c] border border-card-border font-mono flex items-center justify-between">
-              <span className="text-xs text-muted-foreground">Monto Total Facturado:</span>
-              <span className="text-base font-bold text-emerald-400">{formatCurrencyPYG(Number(selectedPurchase.grandTotal))}</span>
-            </div>
+            {selectedPurchase.notes && (
+              <p className="text-xs text-muted-foreground bg-[#0d121c] p-2.5 rounded border border-card-border">
+                <strong className="text-foreground">Notas de entrada:</strong> {selectedPurchase.notes}
+              </p>
+            )}
 
-            <div className="flex justify-end pt-2">
+            <div className="flex justify-end pt-2 border-t border-card-border">
               <button
                 type="button"
                 onClick={() => setSelectedPurchase(null)}
-                className="px-4 py-1.5 rounded-md bg-card border border-card-border hover:bg-muted/20 text-xs text-foreground"
+                className="px-4 py-1.5 rounded-lg bg-[#0d121c] border border-card-border text-xs text-muted-foreground hover:text-foreground"
               >
                 Cerrar
               </button>
@@ -541,4 +1127,3 @@ export function PurchasesView() {
     </div>
   );
 }
-

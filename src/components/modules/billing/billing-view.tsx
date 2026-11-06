@@ -125,7 +125,14 @@ export function BillingView() {
 
       {/* Contenido */}
       {activeTab === 'pos' ? (
-        <PosTerminal onSaleCompleted={fetchSales} />
+        <PosTerminal
+          onSaleCompleted={(sale) => {
+            fetchSales();
+            if (sale) {
+              setSelectedSaleForDetail(sale);
+            }
+          }}
+        />
       ) : activeTab === 'history' ? (
         <SalesHistoryTable
           sales={sales}

@@ -1,24 +1,16 @@
 'use client';
 
 import React from 'react';
-import { Search, Bell, Activity, Database } from 'lucide-react';
+import { Bell, Activity, Database } from 'lucide-react';
 
 export function Header() {
   return (
     <header className="h-16 border-b border-card-border bg-card/60 backdrop-blur-md sticky top-0 z-30 flex items-center justify-between px-8">
-      {/* Buscador global */}
-      <div className="flex items-center gap-4 w-96">
-        <div className="relative w-full">
-          <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            placeholder="Buscar producto, CDC, legajo o cliente... (Ctrl+K)"
-            className="w-full bg-[#0d121c] border border-card-border rounded-md pl-9 pr-12 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary transition-colors"
-          />
-          <kbd className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[9px] font-mono text-muted-foreground bg-muted rounded border border-card-border">
-            Ctrl+K
-          </kbd>
-        </div>
+      {/* Indicador de Terminal y Sede */}
+      <div className="flex items-center gap-2 text-xs font-mono text-muted-foreground">
+        <span className="text-foreground font-semibold">Depósito 4 de Marzo</span>
+        <span className="text-card-border">/</span>
+        <span className="text-[11px] text-muted-foreground">Planta Central &bull; SIFEN Kuatia 1.5</span>
       </div>
 
       <div className="flex items-center gap-4">

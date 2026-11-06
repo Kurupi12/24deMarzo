@@ -3,6 +3,7 @@ import { BillingService } from '@/modules/billing/services/billing.service';
 import { CreateSaleSchema } from '@/modules/billing/validators/sale.schema';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
 import { AppError } from '@/shared/errors/app-error';
+import { prisma } from '@/lib/prisma';
 
 export const dynamic = 'force-dynamic';
 
@@ -37,11 +38,42 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const validatedDto = CreateSaleSchema.parse(body);
 
-    // En un flujo autenticado real, el userId se extrae de la sesión JWT/Cookie
-    const userId = req.headers.get('x-user-id') || 'system-admin';
+    // Obtener o asegurar un usuario de auditoría válido en Neon Postgres
+    let user = await prisma.user.findFirst({ select: { id: true, name: true } });
+    if (!user) {
+      user = await prisma.user.create({
+        data: {
+          email: 'admin@deposito4demarzo.com.py',
+          name: 'Administrador 4 de Marzo',
+          passwordHash: 'dummy',
+          role: 'SUPER_ADMIN',
+        },
+      });
+    }
+
+    const requestedUserId = req.headers.get('x-user-id');
+    let userId = user.id;
+    if (requestedUserId) {
+      const exists = await prisma.user.findUnique({ where: { id: requestedUserId }, select: { id: true } });
+      if (exists) userId = exists.id;
+    }
+
+    // Vincular automáticamente al turno de caja actualmente abierto si no fue especificado
+    let cashShiftId = validatedDto.cashShiftId || null;
+    if (!cashShiftId) {
+      const openShift = await prisma.cashShift.findFirst({
+        where: { isOpen: true },
+        orderBy: { openedAt: 'desc' },
+        select: { id: true },
+      });
+      if (openShift) {
+        cashShiftId = openShift.id;
+      }
+    }
 
     const sale = await billingService.processSale({
       ...validatedDto,
+      cashShiftId,
       userId,
     });
 

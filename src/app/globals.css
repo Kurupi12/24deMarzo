@@ -46,3 +46,59 @@ input[type="number"] {
   -moz-appearance: textfield !important;
 }
 
+/* ==========================================================================
+   ESTILOS DE IMPRESIÓN (TICKET TÉRMICO 80mm & RECIBO DE MOSTRADOR)
+   ========================================================================== */
+@media print {
+  /* Ocultar elementos de navegación, modales de fondo y UI interactiva */
+  body * {
+    visibility: hidden;
+  }
+
+  /* Hacer visible exclusivamente el contenedor del comprobante */
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible;
+  }
+
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 80mm;
+    margin: 0 auto;
+    padding: 8px 12px;
+    background: #ffffff !important;
+    color: #000000 !important;
+    font-family: 'Courier New', Courier, monospace, system-ui;
+    font-size: 11px;
+    line-height: 1.25;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
+  #printable-receipt p,
+  #printable-receipt span,
+  #printable-receipt div,
+  #printable-receipt td,
+  #printable-receipt th,
+  #printable-receipt h1,
+  #printable-receipt h2,
+  #printable-receipt h3,
+  #printable-receipt strong {
+    color: #000000 !important;
+    border-color: #000000 !important;
+  }
+
+  .no-print {
+    display: none !important;
+  }
+
+  @page {
+    margin: 4mm;
+    size: auto;
+  }
+}
+
+

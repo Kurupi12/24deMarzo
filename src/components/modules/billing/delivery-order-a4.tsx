@@ -129,6 +129,19 @@ export function DeliveryOrderA4({ sale }: DeliveryOrderA4Props) {
             <span className="font-mono font-bold">{sale.vehiclePlate || 'S/D'}</span>
           </div>
 
+          {sale.paymentReference && (
+            <div className="col-span-12 pt-0.5 text-[8px] bg-neutral-100 border border-neutral-300 px-1.5 py-0.5 font-mono flex items-center justify-between mt-0.5">
+              <span>
+                <strong className="text-black">Forma de Pago: </strong>
+                {sale.paymentMethod?.replace(/_/g, ' ')}
+              </span>
+              <span>
+                <strong className="text-black">N° Comprobante / Ref. Transferencia: </strong>
+                <strong className="text-black underline font-bold">{sale.paymentReference}</strong>
+              </span>
+            </div>
+          )}
+
           {invoice?.invoiceNumber && (
             <div className="col-span-12 pt-0.5 text-[8px] text-neutral-600 flex justify-between border-t border-neutral-300 mt-0.5">
               <span>Factura Electrónica SIFEN N°: <strong className="text-black font-mono">{invoice.invoiceNumber}</strong></span>

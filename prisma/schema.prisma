@@ -311,6 +311,7 @@ model Sale {
 
   paymentCondition PaymentCondition @default(CONTADO)
   paymentMethod    PaymentMethod    @default(EFECTIVO)
+  paymentReference String?          // N° de Comprobante / Referencia de Transferencia o Cheque
   creditTermDays   Int?             @default(0)
 
   // Totales y Desglose Tributario SIFEN

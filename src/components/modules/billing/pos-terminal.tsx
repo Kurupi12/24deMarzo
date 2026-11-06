@@ -39,6 +39,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
   const [customerAddress, setCustomerAddress] = useState('');
   const [paymentCondition, setPaymentCondition] = useState('CONTADO');
   const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
+  const [paymentReference, setPaymentReference] = useState('');
 
   // Directorio y Autocompletado SIFEN de Clientes
   const [customersList, setCustomersList] = useState<any[]>([]);
@@ -296,6 +297,16 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
       });
       return;
     }
+
+    if (paymentMethod === 'TRANSFERENCIA_BANCARIA' && !paymentReference.trim()) {
+      customAlert({
+        title: 'Comprobante de Transferencia Requerido',
+        message: 'Cuando el pago es por transferencia bancaria (SIPAP), es obligatorio cargar el número de comprobante para tener un registro.',
+        variant: 'warning',
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       const res = await fetch('/api/v1/billing/sales', {
@@ -307,6 +318,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
           customerAddress: customerAddress || undefined,
           paymentCondition,
           paymentMethod,
+          paymentReference: paymentReference.trim() || null,
           projectId: selectedProjectId || null,
           driverId: driverId || null,
           helperIds: selectedHelperIds,
@@ -329,6 +341,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
       const data = await res.json();
       if (data.success) {
         setCart([]);
+        setPaymentReference('');
         setSelectedProjectId('');
         setDeliveryNotes('');
         setEnableSecondaryDelivery(false);
@@ -711,6 +724,55 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                 </select>
               </div>
             </div>
+
+            {/* Campo Condicional: Comprobante de Transferencia SIPAP */}
+            {paymentMethod === 'TRANSFERENCIA_BANCARIA' && (
+              <div className="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/30 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-mono font-semibold text-blue-400 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>N° de Comprobante de Transferencia SIPAP *</span>
+                  </label>
+                  <span className="text-[9px] font-mono bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30">
+                    Obligatorio
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={paymentReference}
+                  onChange={(e) => setPaymentReference(e.target.value)}
+                  placeholder="Ej: 10485920 / Banco Continental / Ueno"
+                  className="w-full bg-[#0d121c] border border-blue-500/40 rounded-md px-2.5 py-1.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-400 font-mono text-xs"
+                />
+                <p className="text-[10px] text-muted-foreground font-sans">
+                  Quedará registrado para auditoría y se imprimirá en la Orden de Entrega y Factura.
+                </p>
+              </div>
+            )}
+
+            {/* Campo Condicional: N° de Cheque */}
+            {paymentMethod === 'CHEQUE' && (
+              <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 space-y-1.5">
+                <div className="flex items-center justify-between">
+                  <label className="text-[11px] font-mono font-semibold text-amber-400 flex items-center gap-1.5">
+                    <FileText className="w-3.5 h-3.5" />
+                    <span>N° de Cheque / Banco Emisor *</span>
+                  </label>
+                  <span className="text-[9px] font-mono bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30">
+                    Obligatorio
+                  </span>
+                </div>
+                <input
+                  type="text"
+                  required
+                  value={paymentReference}
+                  onChange={(e) => setPaymentReference(e.target.value)}
+                  placeholder="Ej: CHQ-901824 - Banco Itaú"
+                  className="w-full bg-[#0d121c] border border-amber-500/40 rounded-md px-2.5 py-1.5 text-foreground font-mono text-xs"
+                />
+              </div>
+            )}
 
             {/* Logística y Despacho con Soporte de Dos Choferes y Camiones */}
             <div className="border border-card-border rounded-md bg-[#0b0f19] overflow-hidden">

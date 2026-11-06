@@ -17,6 +17,7 @@ export interface CreateSaleInput {
   customerAddress?: string | null;
   paymentCondition: PaymentCondition;
   paymentMethod: PaymentMethod;
+  paymentReference?: string | null;
   creditTermDays?: number;
   projectId?: string | null;
   driverId?: string | null;

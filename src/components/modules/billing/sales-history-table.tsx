@@ -77,6 +77,11 @@ export function SalesHistoryTable({ sales, loading, onViewInvoice }: SalesHistor
                   <td className="py-2.5 px-3 text-[11px] font-sans">
                     <span className="block text-foreground">{s.paymentCondition}</span>
                     <span className="text-[10px] text-muted-foreground">{s.paymentMethod.replace(/_/g, ' ')}</span>
+                    {s.paymentReference && (
+                      <span className="block text-[9.5px] font-mono text-blue-400 font-semibold truncate max-w-[120px]" title="Comprobante de Transferencia">
+                        Ref: {s.paymentReference}
+                      </span>
+                    )}
                   </td>
                   <td className="py-2.5 px-3 text-right text-primary font-medium">
                     {formatCurrencyPYG(Number(s.vat10Amount))}

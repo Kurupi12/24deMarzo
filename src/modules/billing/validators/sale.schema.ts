@@ -23,6 +23,7 @@ export const CreateSaleSchema = z.object({
     'BILLETERA_ELECTRONICA',
   ]),
   creditTermDays: z.number().int().min(0).optional().default(0),
+  paymentReference: z.string().optional().nullable(),
   cashShiftId: z.string().uuid().optional().nullable(),
   projectId: z.string().uuid().optional().nullable(),
   driverId: z.string().uuid().optional().nullable(),

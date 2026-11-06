@@ -50,6 +50,7 @@ export class BillingService {
           customerAddress: input.customerAddress?.trim() || null,
           paymentCondition: input.paymentCondition,
           paymentMethod: input.paymentMethod,
+          paymentReference: input.paymentReference?.trim() || null,
           creditTermDays: input.creditTermDays || 0,
           projectId: input.projectId || null,
           driverId: input.driverId || null,

@@ -273,3 +273,4 @@ export function DeliveryOrderA4({ sale }: DeliveryOrderA4Props) {
     </div>
   );
 }
+

@@ -75,3 +75,4 @@ export function numberToWordsPYG(amount: number): string {
 
   return result.trim();
 }
+

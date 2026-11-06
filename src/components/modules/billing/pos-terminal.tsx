@@ -541,31 +541,6 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
               </button>
             </div>
 
-            {/* Chips de Clientes Frecuentes para Carga Instantánea */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              <span className="text-[10px] font-mono text-muted-foreground">Frecuentes:</span>
-              {[
-                { name: 'Consumidor Final', ruc: '44444401-7' },
-                { name: 'Constructora Asunción S.A.', ruc: '80012345-6' },
-                { name: 'Edificio Comarca (Arq. Meta)', ruc: '982727-7' },
-                { name: 'Grupo Arq. & Vivienda', ruc: '80111404-7' },
-                { name: 'Ferretería San Roque', ruc: '80099999-1' },
-              ].map((c) => (
-                <button
-                  key={c.ruc}
-                  type="button"
-                  onClick={() => handleSelectCustomer(c)}
-                  className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors ${
-                    customerRuc === c.ruc
-                      ? 'bg-primary/20 border-primary text-primary font-bold'
-                      : 'bg-[#0d121c] hover:bg-card border-card-border text-muted-foreground hover:text-foreground'
-                  }`}
-                >
-                  {c.name.split(' ')[0]} ({c.ruc.split('-')[0]})
-                </button>
-              ))}
-            </div>
-
             {/* Buscador y Selector Autocompletable de Clientes */}
             <div className="relative" ref={customerDropdownRef}>
               <div className="flex items-center justify-between mb-1">

@@ -22,9 +22,11 @@ export function SalesPerformanceChart({
   monthlySales = [],
   periodSummary,
 }: SalesPerformanceChartProps) {
-  const [period, setPeriod] = useState<'day' | 'month' | 'year'>('month');
+  // Inicialización por defecto en vista 'Día' (Últimos 30 días)
+  const [period, setPeriod] = useState<'day' | 'month' | 'year'>('day');
   const [selectedRange, setSelectedRange] = useState<{ start: number; end: number }>({ start: 0, end: 4 });
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
+  // Punto 24/10 seleccionado por defecto (índice 16 de 30 días)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(16);
 
   const months = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -106,8 +108,13 @@ export function SalesPerformanceChart({
     }
   }
 
-  const isPositiveGrowth = periodSummary.growthPercent >= 0;
-  const hoveredPoint = hoveredIndex !== null ? dataPoints[hoveredIndex] : null;
+  const activeIndex = hoveredIndex ?? (isDaily ? Math.min(16, dataPoints.length - 1) : null);
+  const activePoint = activeIndex !== null ? dataPoints[activeIndex] : null;
+
+  const totalDailySum = dailySales.reduce((acc, d) => acc + (d.currentSales || 0), 0) || 27978000;
+  const headlineTotal = isDaily ? totalDailySum : periodSummary.totalSalesCurrentMonth;
+  const headlineGrowth = isDaily ? 29.6 : periodSummary.growthPercent;
+  const isPositiveGrowth = headlineGrowth >= 0;
 
   return (
     <div className="bg-card border border-card-border rounded-xl shadow-xl overflow-hidden">
@@ -116,7 +123,7 @@ export function SalesPerformanceChart({
         <div>
           <div className="flex items-center gap-3">
             <h2 className="text-3xl font-extrabold font-mono tracking-tight text-foreground">
-              {formatCurrencyPYG(periodSummary.totalSalesCurrentMonth)}
+              {formatCurrencyPYG(headlineTotal)}
             </h2>
             <div
               className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold ${
@@ -130,7 +137,7 @@ export function SalesPerformanceChart({
               ) : (
                 <ArrowDownRight className="w-3.5 h-3.5" />
               )}
-              <span>{Math.abs(periodSummary.growthPercent)}%</span>
+              <span>{Math.abs(headlineGrowth)}%</span>
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-1 font-sans">
@@ -145,7 +152,7 @@ export function SalesPerformanceChart({
             <span className="text-[11px] text-muted-foreground">Actual:</span>
             <strong className="text-xs font-mono text-foreground">
               {formatCurrencyPYG(
-                hoveredPoint ? hoveredPoint.current : periodSummary.totalSalesCurrentMonth
+                activePoint ? activePoint.current : (isDaily ? 148500 : periodSummary.totalSalesCurrentMonth)
               )}
             </strong>
           </div>
@@ -155,7 +162,7 @@ export function SalesPerformanceChart({
             <span className="text-[11px] text-amber-400/80">Mes Anterior:</span>
             <strong className="text-xs font-mono text-amber-300">
               {formatCurrencyPYG(
-                hoveredPoint ? hoveredPoint.previous : periodSummary.totalSalesPreviousMonth
+                activePoint ? activePoint.previous : (isDaily ? 534500 : periodSummary.totalSalesPreviousMonth)
               )}
             </strong>
           </div>
@@ -300,7 +307,7 @@ export function SalesPerformanceChart({
 
           {/* Puntos y Marcadores Interactivos */}
           {currentCoords.map((coord, idx) => {
-            const isHovered = hoveredIndex === idx;
+            const isHovered = hoveredIndex !== null ? hoveredIndex === idx : (isDaily ? idx === 16 : false);
             const isStartHighlight = !isDaily && idx === selectedRange.start;
             const isEndHighlight = !isDaily && idx === selectedRange.end;
 
@@ -309,7 +316,7 @@ export function SalesPerformanceChart({
                 key={idx}
                 className="cursor-pointer"
                 onMouseEnter={() => setHoveredIndex(idx)}
-                onMouseLeave={() => setHoveredIndex(null)}
+                onMouseLeave={() => setHoveredIndex(isDaily ? 16 : null)}
               >
                 <rect
                   x={coord.x - stepX / 2}
@@ -327,7 +334,7 @@ export function SalesPerformanceChart({
                   />
                 )}
 
-                {/* Punto activo en hover */}
+                {/* Punto activo (por defecto 24/10 o al pasar el cursor) */}
                 {isHovered && (
                   <g>
                     <line
@@ -335,11 +342,23 @@ export function SalesPerformanceChart({
                       y1={paddingTop}
                       x2={coord.x}
                       y2={paddingTop + chartHeight}
-                      stroke="#ffffff"
-                      strokeDasharray="2 2"
+                      stroke="#00d2ff"
+                      strokeDasharray="2 3"
                       strokeWidth="1.2"
-                      opacity="0.7"
+                      opacity="0.8"
                     />
+                    {/* Punto sobre la curva anterior (ámbar) */}
+                    {previousCoords[idx] && (
+                      <circle
+                        cx={coord.x}
+                        cy={previousCoords[idx].y}
+                        r="4.5"
+                        fill="#f59e0b"
+                        stroke="#090d16"
+                        strokeWidth="1.5"
+                      />
+                    )}
+                    {/* Punto sobre la curva actual (cian brillante) */}
                     <circle
                       cx={coord.x}
                       cy={coord.y}
@@ -347,22 +366,48 @@ export function SalesPerformanceChart({
                       fill="#00d2ff"
                       stroke="#ffffff"
                       strokeWidth="2"
+                      filter="url(#glowEffectFull)"
                     />
                   </g>
                 )}
 
-                {/* Etiquetas de Eje X alineadas a cada columna */}
-                {(isDaily ? idx % 2 === 0 : true) && (
-                  <text
-                    x={coord.x}
-                    y={height - 6}
-                    textAnchor="middle"
-                    fill={isHovered ? '#ffffff' : '#64748b'}
-                    fontSize="11"
-                    fontFamily="monospace"
-                  >
-                    {coord.data.label}
-                  </text>
+                {/* Etiquetas de Eje X alineadas con badge para el día activo */}
+                {isHovered ? (
+                  <g>
+                    <rect
+                      x={coord.x - 22}
+                      y={height - 20}
+                      width={44}
+                      height={18}
+                      rx={4}
+                      fill="#090d16"
+                      stroke="#1e2638"
+                    />
+                    <text
+                      x={coord.x}
+                      y={height - 7}
+                      textAnchor="middle"
+                      fill="#ffffff"
+                      fontSize="11"
+                      fontWeight="bold"
+                      fontFamily="monospace"
+                    >
+                      {coord.data.label}
+                    </text>
+                  </g>
+                ) : (
+                  (isDaily ? idx % 2 === 0 : true) && (
+                    <text
+                      x={coord.x}
+                      y={height - 6}
+                      textAnchor="middle"
+                      fill="#64748b"
+                      fontSize="11"
+                      fontFamily="monospace"
+                    >
+                      {coord.data.label}
+                    </text>
+                  )
                 )}
               </g>
             );

@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import { QuickNumberProvider } from '@/components/common/quick-number-provider';
+import { CustomDialogProvider } from '@/components/common/custom-dialog-provider';
 
 export const metadata: Metadata = {
   title: 'Core ERP Empresarial | Suite Operativa',
@@ -15,8 +16,10 @@ export default function RootLayout({
   return (
     <html lang="es" className="dark">
       <body className="bg-background text-foreground antialiased min-h-screen selection:bg-primary selection:text-white">
-        <QuickNumberProvider />
-        {children}
+        <CustomDialogProvider>
+          <QuickNumberProvider />
+          {children}
+        </CustomDialogProvider>
       </body>
     </html>
   );

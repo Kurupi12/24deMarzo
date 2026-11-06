@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, UserPlus, Users } from 'lucide-react';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 interface CreateEmployeeModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface CreateEmployeeModalProps {
 }
 
 export function CreateEmployeeModal({ isOpen, onClose, onEmployeeCreated }: CreateEmployeeModalProps) {
+  const { alert: customAlert } = useCustomDialog();
   const [form, setForm] = useState({
     firstName: '',
     lastName: '',
@@ -45,7 +47,11 @@ export function CreateEmployeeModal({ isOpen, onClose, onEmployeeCreated }: Crea
         onEmployeeCreated();
         onClose();
       } else {
-        alert(data.error?.message || 'Error al crear empleado');
+        customAlert({
+          title: 'Error de Personal',
+          message: data.error?.message || 'Error al crear empleado',
+          variant: 'danger',
+        });
       }
     } finally {
       setLoading(false);

@@ -13,8 +13,10 @@ import {
   FileText,
   AlertCircle,
 } from 'lucide-react';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 export function VehiclesManager() {
+  const { confirm: customConfirm, alert: customAlert } = useCustomDialog();
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
@@ -99,7 +101,11 @@ export function VehiclesManager() {
         setShowModal(false);
         fetchVehicles();
       } else {
-        alert(data.error?.message || 'Error al guardar el vehículo');
+        customAlert({
+          title: 'Error de Vehículo',
+          message: data.error?.message || 'Error al guardar el vehículo',
+          variant: 'danger',
+        });
       }
     } finally {
       setSaving(false);
@@ -107,7 +113,13 @@ export function VehiclesManager() {
   };
 
   const handleDelete = async (id: string, plate: string) => {
-    if (!confirm(`¿Desea dar de baja el vehículo con chapa ${plate}?`)) return;
+    const ok = await customConfirm({
+      title: 'Dar de Baja Vehículo',
+      message: `¿Desea dar de baja el vehículo con chapa ${plate}?`,
+      confirmText: 'Dar de Baja',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/v1/logistics/vehicles?id=${id}`, {
         method: 'DELETE',
@@ -116,10 +128,18 @@ export function VehiclesManager() {
       if (data.success) {
         fetchVehicles();
       } else {
-        alert(data.error?.message || 'Error al eliminar');
+        customAlert({
+          title: 'Error',
+          message: data.error?.message || 'Error al eliminar vehículo',
+          variant: 'danger',
+        });
       }
     } catch (e: any) {
-      alert(e.message);
+      customAlert({
+        title: 'Error de Red',
+        message: e.message,
+        variant: 'danger',
+      });
     }
   };
 

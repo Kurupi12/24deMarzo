@@ -36,8 +36,10 @@ import {
   BILL_DENOMINATIONS,
   COIN_DENOMINATIONS,
 } from './banknote-counter';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 export function CashShiftPanel() {
+  const { alert: customAlert } = useCustomDialog();
   const [shiftData, setShiftData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -50,12 +52,23 @@ export function CashShiftPanel() {
   const [openingBreakdown, setOpeningBreakdown] = useState<CashDenominations>(INITIAL_DENOMINATIONS);
   const [openingNotes, setOpeningNotes] = useState('');
 
+  // Modal de Discrepancia al Abrir Caja
+  const [mismatchOpeningData, setMismatchOpeningData] = useState<{
+    declared: number;
+    expected: number;
+    diff: number;
+    notes: string;
+  } | null>(null);
+
   // Estados de Cierre
   const [showCloseModal, setShowCloseModal] = useState(false);
   const [closingMethod, setClosingMethod] = useState<'calculator' | 'direct'>('calculator');
   const [closingBalance, setClosingBalance] = useState('');
   const [closingBreakdown, setClosingBreakdown] = useState<CashDenominations>(INITIAL_DENOMINATIONS);
   const [closingNotes, setClosingNotes] = useState('');
+
+  // Modal de Confirmación Estilizado de Cierre
+  const [pendingCloseAmount, setPendingCloseAmount] = useState<number | null>(null);
 
   // Modales Informativos y de Auditoría Post-Cierre
   const [showClosingSuccessModal, setShowClosingSuccessModal] = useState<any>(null);
@@ -103,18 +116,8 @@ export function CashShiftPanel() {
   const openingBreakdownTotal = calculateBreakdownTotals(openingBreakdown).grandTotal;
   const closingBreakdownTotal = calculateBreakdownTotals(closingBreakdown).grandTotal;
 
-  // Apertura de caja (Comprobación a ciegas estricta)
-  const handleOpenShift = async (e: React.FormEvent) => {
-    e.preventDefault();
-    const finalAmount = openingMethod === 'calculator'
-      ? openingBreakdownTotal
-      : Number(openingBalance) || 0;
-
-    if (finalAmount <= 0 && openingMethod === 'direct' && openingBalance === '') {
-      alert('Debe ingresar el monto de efectivo que encuentra físicamente en el cajón');
-      return;
-    }
-
+  // Apertura de caja: Ejecución de apertura real
+  const executeOpenShift = async (amount: number, notesStr: string) => {
     setLoading(true);
     try {
       const res = await fetch('/api/v1/billing/shifts', {
@@ -122,27 +125,65 @@ export function CashShiftPanel() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           action: 'OPEN',
-          openingBalance: finalAmount,
-          openingNotes: openingNotes.trim() || undefined,
+          openingBalance: amount,
+          openingNotes: notesStr.trim() || undefined,
           breakdown: openingMethod === 'calculator' ? openingBreakdown : undefined,
         }),
       });
       const data = await res.json();
       if (data.success) {
+        setMismatchOpeningData(null);
         setOpeningBalance('');
         setOpeningNotes('');
         setOpeningBreakdown({ ...INITIAL_DENOMINATIONS });
         fetchShift();
       } else {
-        alert(data.error?.message || 'Error al abrir caja');
+        await customAlert({
+          title: 'Error de Apertura',
+          message: data.error?.message || 'Error al abrir caja',
+          variant: 'danger',
+        });
       }
     } finally {
       setLoading(false);
     }
   };
 
-  // Cierre inmutable de caja (Arqueo físico a ciegas)
-  const handleCloseShift = async (e: React.FormEvent) => {
+  // Apertura de caja: Verificación previa de ceguera y discrepancias
+  const handleOpenShift = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const finalAmount = openingMethod === 'calculator'
+      ? openingBreakdownTotal
+      : Number(openingBalance) || 0;
+
+    if (finalAmount <= 0 && openingMethod === 'direct' && openingBalance === '') {
+      await customAlert({
+        title: 'Monto Requerido',
+        message: 'Debe ingresar el monto de efectivo que encuentra físicamente en el cajón para iniciar el turno.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    const expectedPreviousClose = shiftData?.lastClosedShift ? Number(shiftData.lastClosedShift.closingBalance) : null;
+
+    // Si hay un saldo anterior registrado y NO coincide exactamente con el conteo físico:
+    if (expectedPreviousClose !== null && finalAmount !== expectedPreviousClose) {
+      setMismatchOpeningData({
+        declared: finalAmount,
+        expected: expectedPreviousClose,
+        diff: finalAmount - expectedPreviousClose,
+        notes: openingNotes,
+      });
+      return;
+    }
+
+    // Si coincide perfectamente o es la primera apertura:
+    await executeOpenShift(finalAmount, openingNotes);
+  };
+
+  // Cierre de caja: Solicitar confirmación con Modal Estilizado (sin window.confirm)
+  const handleCloseShift = (e: React.FormEvent) => {
     e.preventDefault();
     if (!currentShift) return;
 
@@ -151,13 +192,20 @@ export function CashShiftPanel() {
       : Number(closingBalance) || 0;
 
     if (finalAmount < 0) {
-      alert('El monto físico no puede ser negativo');
+      customAlert({
+        title: 'Monto Inválido',
+        message: 'El monto físico en efectivo no puede ser negativo.',
+        variant: 'warning',
+      });
       return;
     }
 
-    if (!confirm('¿Confirma el arqueo físico y cierre definitivo de la caja? Una vez cerrada, los datos quedan congelados e inmutables para auditoría.')) {
-      return;
-    }
+    setPendingCloseAmount(finalAmount);
+  };
+
+  // Cierre de caja: Ejecución definitiva tras confirmación en modal
+  const executeCloseShift = async () => {
+    if (pendingCloseAmount === null || !currentShift) return;
 
     setLoading(true);
     try {
@@ -167,13 +215,14 @@ export function CashShiftPanel() {
         body: JSON.stringify({
           action: 'CLOSE',
           shiftId: currentShift.id,
-          closingBalance: finalAmount,
+          closingBalance: pendingCloseAmount,
           notes: closingNotes.trim() || undefined,
           breakdown: closingMethod === 'calculator' ? closingBreakdown : undefined,
         }),
       });
       const data = await res.json();
       if (data.success) {
+        setPendingCloseAmount(null);
         setShowCloseModal(false);
         setClosingBalance('');
         setClosingNotes('');
@@ -181,7 +230,11 @@ export function CashShiftPanel() {
         setShowClosingSuccessModal(data.data);
         fetchShift();
       } else {
-        alert(data.error?.message || 'Error al cerrar caja');
+        await customAlert({
+          title: 'Error de Cierre',
+          message: data.error?.message || 'Error al cerrar caja',
+          variant: 'danger',
+        });
       }
     } finally {
       setLoading(false);
@@ -191,7 +244,11 @@ export function CashShiftPanel() {
   // Guardar Movimiento (Sencillo, Gasto o Extracción a Sobre)
   const handleCreateMovement = async (type: string) => {
     if (!movementAmount || Number(movementAmount) <= 0 || !movementDescription.trim()) {
-      alert('Monto mayor a cero y motivo/justificación son obligatorios');
+      await customAlert({
+        title: 'Datos Incompletos',
+        message: 'El monto debe ser mayor a cero y el motivo o justificación es obligatorio.',
+        variant: 'warning',
+      });
       return;
     }
     setSavingMovement(true);
@@ -223,7 +280,11 @@ export function CashShiftPanel() {
         setReceiptNo('');
         fetchShift();
       } else {
-        alert(data.error?.message || 'Error al registrar movimiento');
+        await customAlert({
+          title: 'Error de Movimiento',
+          message: data.error?.message || 'Error al registrar movimiento',
+          variant: 'danger',
+        });
       }
     } finally {
       setSavingMovement(false);
@@ -781,6 +842,177 @@ export function CashShiftPanel() {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: DISCREPANCIA EN APERTURA DE CAJA (RESOLUCIÓN DE CONTEO) */}
+      {mismatchOpeningData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-150">
+          <div className="bg-card border-2 border-warning/50 rounded-xl shadow-2xl max-w-lg w-full overflow-hidden p-6 space-y-4 font-mono text-xs">
+            <div className="flex items-start justify-between border-b border-card-border pb-3">
+              <div className="flex items-center gap-2.5">
+                <AlertTriangle className="w-5 h-5 text-warning shrink-0" />
+                <div>
+                  <h3 className="text-sm font-bold text-foreground font-sans">
+                    Discrepancia en Conteo Inicial de Caja
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground font-mono">
+                    El monto físico declarado no coincide con el saldo de cierre anterior.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setMismatchOpeningData(null)}
+                className="text-muted-foreground hover:text-foreground p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Tarjeta de Comparación */}
+            <div className="p-3.5 rounded-lg bg-[#0d121c] border border-card-border space-y-2">
+              <div className="flex justify-between items-center text-muted-foreground">
+                <span>Efectivo Contado por Usted:</span>
+                <span className="text-foreground font-bold text-sm">
+                  {formatCurrencyPYG(mismatchOpeningData.declared)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-muted-foreground">
+                <span>Saldo del Cierre Anterior:</span>
+                <span className="text-foreground font-bold text-sm">
+                  {formatCurrencyPYG(mismatchOpeningData.expected)}
+                </span>
+              </div>
+
+              <div className="pt-2 border-t border-card-border flex justify-between items-center text-sm font-bold">
+                <span>Diferencia Inicial:</span>
+                {mismatchOpeningData.diff < 0 ? (
+                  <span className="text-danger flex items-center gap-1">
+                    <AlertTriangle className="w-4 h-4" />
+                    Faltante: -{formatCurrencyPYG(Math.abs(mismatchOpeningData.diff))}
+                  </span>
+                ) : (
+                  <span className="text-accent flex items-center gap-1">
+                    <Plus className="w-4 h-4" />
+                    Sobrante: +{formatCurrencyPYG(mismatchOpeningData.diff)}
+                  </span>
+                )}
+              </div>
+            </div>
+
+            <p className="text-[11px] text-muted-foreground leading-relaxed font-sans">
+              Para habilitar la caja y comenzar a facturar con esta diferencia, ingrese la <strong>justificación obligatoria</strong> que quedará asentada en la auditoría del turno. Si sospecha de un error en el conteo, puede volver a recontar los billetes.
+            </p>
+
+            <div>
+              <label className="block text-[11px] font-mono text-warning font-semibold mb-1">
+                Motivo / Justificación obligatoria para Auditoría *
+              </label>
+              <input
+                type="text"
+                autoFocus
+                value={mismatchOpeningData.notes}
+                onChange={(e) =>
+                  setMismatchOpeningData({ ...mismatchOpeningData, notes: e.target.value })
+                }
+                placeholder="Ej: Faltante de 50.000 Gs. verificado con gerencia por entrega de sencillo previo..."
+                className="w-full bg-[#0d121c] border border-warning/50 rounded-md px-3 py-2 text-foreground text-xs focus:outline-none focus:border-warning"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row items-center justify-end gap-2 pt-2 border-t border-card-border">
+              <button
+                type="button"
+                onClick={() => setMismatchOpeningData(null)}
+                className="w-full sm:w-auto px-4 py-2 rounded-lg border border-card-border bg-[#0d121c] text-muted-foreground hover:text-foreground text-xs font-semibold"
+              >
+                Recontar Billetes
+              </button>
+              <button
+                type="button"
+                disabled={loading || !mismatchOpeningData.notes.trim()}
+                onClick={() => {
+                  if (!mismatchOpeningData.notes.trim()) {
+                    customAlert({
+                      title: 'Justificación Requerida',
+                      message: 'Debe ingresar el motivo de la diferencia para poder habilitar la caja en el sistema.',
+                      variant: 'warning',
+                    });
+                    return;
+                  }
+                  executeOpenShift(
+                    mismatchOpeningData.declared,
+                    `Discrepancia justificada: ${mismatchOpeningData.notes.trim()}`
+                  );
+                }}
+                className="w-full sm:w-auto px-4 py-2 rounded-lg bg-warning hover:bg-warning/80 text-black font-bold text-xs shadow-md transition-colors disabled:opacity-50"
+              >
+                Confirmar y Habilitar Caja
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: CONFIRMACIÓN PERSONALIZADA DE CIERRE DE CAJA (SIN POPUP NATIVO) */}
+      {pendingCloseAmount !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-150">
+          <div className="bg-card border-2 border-danger/50 rounded-xl shadow-2xl max-w-md w-full overflow-hidden p-6 space-y-4 font-mono text-xs">
+            <div className="flex items-center gap-2.5 border-b border-card-border pb-3">
+              <Lock className="w-5 h-5 text-danger shrink-0" />
+              <div>
+                <h3 className="text-sm font-bold text-foreground font-sans">
+                  ¿Confirmar Arqueo Físico y Cierre Definitivo?
+                </h3>
+                <p className="text-[11px] text-muted-foreground font-mono">
+                  Esta acción congelará el turno de forma inmutable.
+                </p>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-lg bg-[#0d121c] border border-card-border space-y-2">
+              <div className="flex justify-between items-center text-muted-foreground">
+                <span>Total Físico en Cajón:</span>
+                <span className="text-emerald-400 font-bold text-base">
+                  {formatCurrencyPYG(pendingCloseAmount)}
+                </span>
+              </div>
+              <div className="flex justify-between items-center text-[11px] text-muted-foreground">
+                <span>Método de Arqueo:</span>
+                <span className="text-foreground">
+                  {closingMethod === 'calculator' ? 'Calculadora de Billetaje' : 'Monto Directo Global'}
+                </span>
+              </div>
+              {closingNotes && (
+                <div className="pt-2 border-t border-card-border text-[11px] text-muted-foreground">
+                  <span>Nota: &ldquo;{closingNotes}&rdquo;</span>
+                </div>
+              )}
+            </div>
+
+            <p className="text-[11px] text-muted-foreground leading-relaxed font-sans">
+              Una vez confirmada, la caja quedará congelada e inmutable para auditoría. El sistema contrastará su declaración contra las ventas cobradas durante el día para emitir el acta final.
+            </p>
+
+            <div className="flex items-center justify-end gap-2 pt-2 border-t border-card-border">
+              <button
+                type="button"
+                onClick={() => setPendingCloseAmount(null)}
+                className="px-4 py-2 rounded-lg border border-card-border bg-[#0d121c] text-muted-foreground hover:text-foreground text-xs font-semibold"
+              >
+                Volver a Revisar
+              </button>
+              <button
+                type="button"
+                disabled={loading}
+                onClick={executeCloseShift}
+                className="px-4 py-2 rounded-lg bg-danger hover:bg-danger/80 text-white font-bold text-xs shadow-md transition-colors"
+              >
+                {loading ? 'Cerrando...' : 'Confirmar Cierre Inmutable'}
+              </button>
+            </div>
           </div>
         </div>
       )}

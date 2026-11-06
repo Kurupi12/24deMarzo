@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { X, Plus, PackagePlus } from 'lucide-react';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 interface CreateProductModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface CreateProductModalProps {
 }
 
 export function CreateProductModal({ isOpen, onClose, onProductCreated }: CreateProductModalProps) {
+  const { alert: customAlert } = useCustomDialog();
   const [form, setForm] = useState({
     sku: '',
     barcode: '',
@@ -47,7 +49,11 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
         onProductCreated();
         onClose();
       } else {
-        alert(data.error?.message || 'Error al crear producto');
+        customAlert({
+          title: 'Error de Catálogo',
+          message: data.error?.message || 'Error al crear producto',
+          variant: 'danger',
+        });
       }
     } finally {
       setLoading(false);

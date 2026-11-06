@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, Layers, PlusCircle, MinusCircle, History } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 interface KardexModalProps {
   product: { id: string; name: string; sku: string; costPrice: string | number } | null;
@@ -22,6 +23,7 @@ const MOVEMENT_LABELS: Record<string, { label: string; isPositive: boolean }> = 
 };
 
 export function KardexModal({ product, isOpen, onClose, onMovementCreated }: KardexModalProps) {
+  const { alert: customAlert } = useCustomDialog();
   const [movementType, setMovementType] = useState('ADJUSTMENT_POSITIVE');
   const [quantity, setQuantity] = useState('');
   const [notes, setNotes] = useState('');
@@ -63,7 +65,11 @@ export function KardexModal({ product, isOpen, onClose, onMovementCreated }: Kar
         onMovementCreated();
         onClose();
       } else {
-        alert(data.error?.message || 'Error al registrar movimiento');
+        customAlert({
+          title: 'Error de Kardex',
+          message: data.error?.message || 'Error al registrar movimiento',
+          variant: 'danger',
+        });
       }
     } finally {
       setLoading(false);

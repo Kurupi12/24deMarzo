@@ -23,8 +23,10 @@ import {
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { calculateVatBreakdown } from '@/shared/utils/vat-calculator';
 import { validateParaguayRuc } from '@/shared/utils/ruc-validator';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }) {
+  const { alert: customAlert } = useCustomDialog();
   const [productSearch, setProductSearch] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [cart, setCart] = useState<any[]>([]);
@@ -234,7 +236,11 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newProjectName.trim() || !newProjectAddress.trim()) {
-      alert('Nombre y Dirección de la obra son obligatorios');
+      customAlert({
+        title: 'Campos Obligatorios',
+        message: 'El nombre y la dirección de la obra son obligatorios.',
+        variant: 'warning',
+      });
       return;
     }
     setSavingProject(true);
@@ -260,7 +266,11 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
         setNewProjectContact('');
         setNewProjectPhone('');
       } else {
-        alert(data.error?.message || 'Error al guardar la obra');
+        customAlert({
+          title: 'Error al Guardar Obra',
+          message: data.error?.message || 'No se pudo guardar la obra en el sistema.',
+          variant: 'danger',
+        });
       }
     } finally {
       setSavingProject(false);
@@ -276,7 +286,14 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
 
   const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (cart.length === 0) return alert('El carrito está vacío');
+    if (cart.length === 0) {
+      customAlert({
+        title: 'Carrito Vacío',
+        message: 'Debe agregar al menos un producto al carrito para facturar.',
+        variant: 'warning',
+      });
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch('/api/v1/billing/sales', {
@@ -318,7 +335,11 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
         setSecondaryHelperIds([]);
         onSaleCompleted();
       } else {
-        alert(data.error?.message || 'Error al emitir factura');
+        customAlert({
+          title: 'Error de Facturación',
+          message: data.error?.message || 'No se pudo emitir la factura en el sistema.',
+          variant: 'danger',
+        });
       }
     } finally {
       setLoading(false);

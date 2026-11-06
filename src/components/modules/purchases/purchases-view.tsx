@@ -27,6 +27,7 @@ import {
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 const SUPPLIER_CATEGORIES = [
   { value: 'ALL', label: 'Todos los Rubros' },
@@ -39,6 +40,7 @@ const SUPPLIER_CATEGORIES = [
 ];
 
 export function PurchasesView() {
+  const { confirm: customConfirm, alert: customAlert } = useCustomDialog();
   const [activeTab, setActiveTab] = useState<'purchases' | 'suppliers'>('purchases');
 
   // --- Estados de Compras ---
@@ -192,7 +194,11 @@ export function PurchasesView() {
   const handleSavePurchase = async (e: React.FormEvent) => {
     e.preventDefault();
     if (items.length === 0) {
-      alert('Debe agregar al menos un material o producto a la factura de compra.');
+      customAlert({
+        title: 'Detalle Requerido',
+        message: 'Debe agregar al menos un material o producto a la factura de compra.',
+        variant: 'warning',
+      });
       return;
     }
     setSavingPurchase(true);
@@ -219,9 +225,17 @@ export function PurchasesView() {
         setNotes('');
         await fetchPurchases();
         await fetchSuppliers();
-        alert('Factura de compra asentada exitosamente. Stock y costo promedio ponderado actualizados.');
+        customAlert({
+          title: 'Compra Asentada',
+          message: 'Factura de compra asentada exitosamente. Stock y costo promedio ponderado actualizados.',
+          variant: 'success',
+        });
       } else {
-        alert(json.error?.message || 'Error al asentar factura de compra');
+        customAlert({
+          title: 'Error de Compra',
+          message: json.error?.message || 'Error al asentar factura de compra',
+          variant: 'danger',
+        });
       }
     } finally {
       setSavingPurchase(false);
@@ -288,7 +302,11 @@ export function PurchasesView() {
         setShowSupplierModal(false);
         await fetchSuppliers();
       } else {
-        alert(json.error?.message || 'Error al guardar proveedor');
+        customAlert({
+          title: 'Error de Proveedor',
+          message: json.error?.message || 'Error al guardar proveedor',
+          variant: 'danger',
+        });
       }
     } finally {
       setSavingSupplier(false);
@@ -297,7 +315,13 @@ export function PurchasesView() {
 
   // Desactivar / dar de baja proveedor
   const handleDeleteSupplier = async (id: string, name: string) => {
-    if (!confirm(`¿Dar de baja al proveedor "${name}"? No se eliminarán sus facturas pasadas.`)) return;
+    const ok = await customConfirm({
+      title: 'Dar de Baja a Proveedor',
+      message: `¿Desea dar de baja al proveedor "${name}"? No se eliminarán sus facturas pasadas en el sistema.`,
+      confirmText: 'Dar de Baja',
+      variant: 'danger',
+    });
+    if (!ok) return;
     try {
       const res = await fetch(`/api/v1/inventory/suppliers?id=${id}`, { method: 'DELETE' });
       const json = await res.json();
@@ -305,7 +329,11 @@ export function PurchasesView() {
         await fetchSuppliers();
       }
     } catch {
-      alert('Error al desactivar proveedor');
+      customAlert({
+        title: 'Error',
+        message: 'No se pudo desactivar el proveedor.',
+        variant: 'danger',
+      });
     }
   };
 

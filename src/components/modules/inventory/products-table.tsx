@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { Layers, ChevronLeft, ChevronRight, AlertCircle, CheckCircle2, Pencil, Check, X, Trash2 } from 'lucide-react';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 interface ProductItem {
   id: string;
@@ -41,6 +42,7 @@ export function ProductsTable({
   onDeleteProduct,
   onSkuUpdated,
 }: ProductsTableProps) {
+  const { alert: customAlert } = useCustomDialog();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [tempSku, setTempSku] = useState('');
   const [savingSku, setSavingSku] = useState(false);
@@ -69,7 +71,11 @@ export function ProductsTable({
         setEditingId(null);
         if (onSkuUpdated) onSkuUpdated();
       } else {
-        alert(data.error?.message || 'Error al actualizar SKU');
+        customAlert({
+          title: 'Error de SKU',
+          message: data.error?.message || 'Error al actualizar SKU',
+          variant: 'danger',
+        });
       }
     } finally {
       setSavingSku(false);

@@ -258,6 +258,7 @@ model CashShift {
   expectedBalance        Decimal?       @db.Decimal(14, 2) // Efectivo calculado por sistema
   difference             Decimal?       @db.Decimal(14, 2) // closingBalance - expectedBalance
   closingNotes           String?
+  cashCountBreakdown     Json?          // Desglose de billetes y monedas (100k, 50k, 20k, 10k, 5k, 2k, 1k, 500, 100, 50)
 
   // Totales Resumidos del Turno
   totalCashSales         Decimal        @default(0) @db.Decimal(14, 2)

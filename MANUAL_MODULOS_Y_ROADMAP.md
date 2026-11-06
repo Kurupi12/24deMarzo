@@ -88,18 +88,19 @@ Este documento consolida el estado funcional de cada uno de los 8 módulos del s
 
 ### Funcionalidades Actuales
 * **Apertura Única por Día & Cierre Inmutable:** Bloqueo de turnos duplicados; una vez cerrada la caja, los montos quedan congelados e inalterables.
-* **Comprobación Inicial a Ciegas ("Blind Count"):** El cajero ingresa el conteo físico de lo que encuentra en el cajón y el sistema lo compara contra el saldo de cierre del día anterior; si hay discrepancia, exige justificación obligatoria.
+* **Comprobación Inicial a Ciegas ("Blind Count") Estricta:** El cajero declara el efectivo físico inicial sin pistas visuales, sin botón de auto-completado y sin pre-visualizar el saldo del día previo. El sistema realiza el contraste contable a ciegas para evitar tanteos o alteraciones.
+* **Calculadora de Billetaje Oficial PYG (Apertura y Cierre):** Desglose rápido e interactivo de billetes (100.000, 50.000, 20.000, 10.000, 5.000, 2.000) y monedas (1.000, 500, 100, 50) con cálculo automático en vivo, botones de incremento táctil (+1, +5) y selección rápida por teclado.
+* **Arqueo y Cierre a Ciegas Inmutable:** Durante el conteo de cierre, el efectivo esperado en cajón y las diferencias se mantienen 100% ocultos al personal. Una vez confirmado y congelado el turno, el sistema emite el Acta Oficial de Auditoría contrastando lo Declarado vs Esperado (Caja Cuadrada, Faltante o Sobrante).
+* **Modo Ceguera Operativa en Mostrador:** Indicador con candado/ojo que oculta el saldo teórico esperado (`••••••••`) en las tarjetas superiores durante el horario de atención, permitiendo su revelación únicamente bajo perfil de Supervisor.
 * **Caja Menor y Asientos Operativos:**
   * `+ Ingreso de Sencillo`: Carga de cambio para dar vuelto.
   * `- Salida / Gasto`: Retiros autorizados con beneficiario obligatorio (*Adelanto a Carlos Cabañas, bidones de agua, flete menor*).
 * **Extracción de Billetes Grandes a Sobre:** Retiro seguro de fajos de billetes de 100k y 50k a la caja fuerte interna para evitar acumulación de efectivo en el mostrador.
-* **Ergonomía de Escritura Rápida en Modales:** Auto-selección instantánea de números en un clic/tab, supresión total de spinners/flechas del navegador y botones táctiles directos (`500k`, `1M`, `2M`, `3M`, `5M`, `10M`) para arqueos, sobres y retiros sin teclear ceros.
-* **Fórmula de Efectivo en Vivo:**
-  $$\text{Efectivo en Cajón} = \text{Fondo Inicial} + \text{Ventas en Efectivo} + \text{Sencillo} - \text{Gastos} - \text{Sobres}$$
-* **Historial Permanente de Cierres:** Registro de auditoría de los últimos turnos archivados.
+* **Historial Permanente & Auditoría de Billetaje:** Registro inmutable de turnos anteriores con visualización directa del desglose exacto de billetes y monedas contados.
 
 ### Roadmap de Mejoras
-* [ ] **Calculadora de Billetaje:** Desglose de billetes por denominación (100k, 50k, 20k, 10k, 5k, 2k, monedas) para arqueo automático.
+* [x] **Calculadora de Billetaje:** Desglose de billetes por denominación (100k, 50k, 20k, 10k, 5k, 2k, monedas) para arqueo automático.
+* [ ] **Acta de Cierre en PDF:** Comprobante para imprimir y firmar físicamente por cajero y supervisor.
 * [ ] **Acta de Cierre en PDF:** Comprobante para imprimir y firmar físicamente por cajero y supervisor.
 
 ---

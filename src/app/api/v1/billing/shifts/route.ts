@@ -108,7 +108,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action, openingBalance, closingBalance, shiftId, notes, openingNotes } = body;
+    const { action, openingBalance, closingBalance, shiftId, notes, openingNotes, breakdown } = body;
 
     const admin = await prisma.user.findFirst({ select: { id: true, name: true } });
     const userId = req.headers.get('x-user-id') || admin?.id || 'cajera-central';
@@ -152,6 +152,7 @@ export async function POST(req: NextRequest) {
           expectedOpeningBalance: expectedOpening,
           openingDifference,
           openingNotes: openingNotes ? openingNotes.trim() : null,
+          cashCountBreakdown: breakdown || null,
           isOpen: true,
         },
       });
@@ -218,6 +219,7 @@ export async function POST(req: NextRequest) {
           totalExpenses: expensesTotal,
           totalSafeDeposits: safeDepositsTotal,
           closingNotes: notes ? notes.trim() : null,
+          cashCountBreakdown: breakdown || null,
           isOpen: false, // Turno cerrado e inmutable
         },
       });

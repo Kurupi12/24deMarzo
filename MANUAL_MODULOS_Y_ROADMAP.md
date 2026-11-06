@@ -63,6 +63,7 @@ Este documento consolida el estado funcional de cada uno de los 8 módulos del s
 
 ### Funcionalidades Actuales
 * **Punto de Venta Rápido (POS):** Buscador de materiales con autocompletado y carrito de compras en tiempo real.
+* **Directorio & Autocompletado SIFEN de Clientes:** Buscador predictivo por RUC o Razón Social con menú desplegable, chips de clientes frecuentes (*Consumidor Final, Constructora Asunción S.A., Edificio Comarca, Grupo Arq. & Vivienda, Ferretería San Roque*) y sincronización automática de obras y direcciones.
 * **Precios Negociados por Cliente:** Modificación del precio unitario directamente en el carrito, con recálculo automático de IVA y advertencia visual si se vende por debajo del costo.
 * **Validación de RUC Paraguayo:** Validación oficial de dígito verificador mediante algoritmo Módulo 11.
 * **Facturación Electrónica SIFEN:** Generación de DTE oficial con Código Digital de Control (CDC) de 44 dígitos y código QR de la DNIT.

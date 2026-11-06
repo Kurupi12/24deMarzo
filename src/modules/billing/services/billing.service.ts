@@ -83,6 +83,22 @@ export class BillingService {
         include: { items: true },
       });
 
+      // 1.1 Registrar / Actualizar el cliente en el maestro de clientes para autocompletado SIFEN
+      if (input.customerRuc && input.customerName) {
+        await tx.customer.upsert({
+          where: { ruc: input.customerRuc.trim() },
+          update: {
+            name: input.customerName.trim(),
+            address: input.customerAddress?.trim() || undefined,
+          },
+          create: {
+            ruc: input.customerRuc.trim(),
+            name: input.customerName.trim(),
+            address: input.customerAddress?.trim() || undefined,
+          },
+        });
+      }
+
       // 2. Deducir stock y asentar Kardex
       if (warehouse) {
         for (const item of itemCalculations) {

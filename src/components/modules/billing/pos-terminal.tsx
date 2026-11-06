@@ -36,6 +36,12 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
   const [paymentCondition, setPaymentCondition] = useState('CONTADO');
   const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
 
+  // Directorio y Autocompletado SIFEN de Clientes
+  const [customersList, setCustomersList] = useState<any[]>([]);
+  const [customerSearch, setCustomerSearch] = useState('');
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
+
   // Multi-obra por Cliente
   const [customerProjects, setCustomerProjects] = useState<any[]>([]);
   const [selectedProjectId, setSelectedProjectId] = useState<string>('');
@@ -105,6 +111,40 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
       })
       .catch(() => {});
   }, []);
+
+  // Cargar lista de clientes para autocompletado SIFEN
+  useEffect(() => {
+    const query = customerSearch.trim();
+    fetch(`/api/v1/billing/customers?query=${encodeURIComponent(query)}`)
+      .then((res) => res.json())
+      .then((json) => {
+        if (json.success && json.data) {
+          setCustomersList(json.data);
+        }
+      })
+      .catch(() => {});
+  }, [customerSearch]);
+
+  // Cerrar menú flotante de clientes al hacer clic fuera
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (customerDropdownRef.current && !customerDropdownRef.current.contains(e.target as Node)) {
+        setShowCustomerDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSelectCustomer = (customer: { name: string; ruc: string; address?: string }) => {
+    setCustomerName(customer.name);
+    setCustomerRuc(customer.ruc);
+    if (customer.address) {
+      setCustomerAddress(customer.address);
+    }
+    setShowCustomerDropdown(false);
+    setCustomerSearch('');
+  };
 
   // Cargar Obras del Cliente al cambiar RUC
   useEffect(() => {
@@ -458,16 +498,120 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
         <form onSubmit={handleCheckout} className="space-y-3 font-sans text-xs flex-1 flex flex-col justify-between">
           <div className="space-y-3">
             {/* Cabecera SIFEN */}
-            <h3 className="text-xs font-mono uppercase text-muted-foreground font-semibold flex items-center justify-between pb-2 border-b border-card-border">
-              <span className="flex items-center gap-1.5">
+            <div className="flex items-center justify-between pb-2 border-b border-card-border">
+              <span className="text-xs font-mono uppercase text-muted-foreground font-semibold flex items-center gap-1.5">
                 <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Datos del Cliente & SIFEN
               </span>
-              <span className="text-[10px] font-mono text-emerald-400">DNIT En Línea</span>
-            </h3>
+              <button
+                type="button"
+                onClick={() =>
+                  handleSelectCustomer({
+                    name: 'Sin Nombre (Consumidor Final)',
+                    ruc: '44444401-7',
+                    address: 'Mostrador / Planta Central',
+                  })
+                }
+                className="text-[10px] font-mono text-primary hover:underline flex items-center gap-1"
+              >
+                <span>Consumidor Final</span>
+              </button>
+            </div>
 
-            {/* RUC y Nombre */}
+            {/* Chips de Clientes Frecuentes para Carga Instantánea */}
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-mono text-muted-foreground">Frecuentes:</span>
+              {[
+                { name: 'Consumidor Final', ruc: '44444401-7' },
+                { name: 'Constructora Asunción S.A.', ruc: '80012345-6' },
+                { name: 'Edificio Comarca (Arq. Meta)', ruc: '982727-7' },
+                { name: 'Grupo Arq. & Vivienda', ruc: '80111404-7' },
+                { name: 'Ferretería San Roque', ruc: '80099999-1' },
+              ].map((c) => (
+                <button
+                  key={c.ruc}
+                  type="button"
+                  onClick={() => handleSelectCustomer(c)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors ${
+                    customerRuc === c.ruc
+                      ? 'bg-primary/20 border-primary text-primary font-bold'
+                      : 'bg-[#0d121c] hover:bg-card border-card-border text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {c.name.split(' ')[0]} ({c.ruc.split('-')[0]})
+                </button>
+              ))}
+            </div>
+
+            {/* Buscador y Selector Autocompletable de Clientes */}
+            <div className="relative" ref={customerDropdownRef}>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] font-mono text-muted-foreground">
+                  Buscar o Seleccionar Cliente (por Nombre o RUC)
+                </label>
+                {customersList.length > 0 && (
+                  <span className="text-[9px] font-mono text-muted-foreground">
+                    {customersList.length} registrados
+                  </span>
+                )}
+              </div>
+              <div className="relative">
+                <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="text"
+                  placeholder="Escriba nombre de empresa, arquitecto o RUC..."
+                  value={customerSearch}
+                  onChange={(e) => {
+                    setCustomerSearch(e.target.value);
+                    setShowCustomerDropdown(true);
+                  }}
+                  onFocus={() => setShowCustomerDropdown(true)}
+                  className="w-full bg-[#0d121c] border border-card-border rounded-md pl-8 pr-8 py-1.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary text-xs"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCustomerDropdown(!showCustomerDropdown)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+                >
+                  <ChevronDown className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Menú Flotante de Resultados de Clientes */}
+              {showCustomerDropdown && (
+                <div className="absolute top-full left-0 right-0 mt-1 bg-[#0b0f19] border border-card-border rounded-lg shadow-2xl z-40 max-h-56 overflow-y-auto divide-y divide-card-border">
+                  {customersList.length === 0 ? (
+                    <div className="p-3 text-center text-muted-foreground text-[11px]">
+                      No se encontraron clientes registrados con ese criterio. Puede ingresar los datos manualmente en los campos inferiores.
+                    </div>
+                  ) : (
+                    customersList.map((cust) => (
+                      <button
+                        key={cust.id || cust.ruc}
+                        type="button"
+                        onClick={() => handleSelectCustomer(cust)}
+                        className="w-full text-left px-3 py-2 hover:bg-muted/20 transition-colors flex items-center justify-between group"
+                      >
+                        <div className="min-w-0 pr-2">
+                          <p className="font-semibold text-foreground text-xs group-hover:text-primary transition-colors truncate">
+                            {cust.name}
+                          </p>
+                          <p className="text-[10px] text-muted-foreground font-mono truncate">
+                            {cust.address || 'Sin dirección registrada'} {cust.phone ? `• Tel: ${cust.phone}` : ''}
+                          </p>
+                        </div>
+                        <span className="shrink-0 px-2 py-0.5 rounded text-[10px] font-mono bg-card border border-card-border text-primary font-bold">
+                          {cust.ruc}
+                        </span>
+                      </button>
+                    ))
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* RUC y Nombre (Editables) */}
             <div className="grid grid-cols-12 gap-2">
-              <div className="col-span-6">
+              <div className="col-span-5">
                 <div className="flex justify-between items-center mb-1">
                   <label className="text-[11px] font-mono text-muted-foreground">RUC o CI con DV *</label>
                   {rucValidation.isValid ? (
@@ -483,17 +627,21 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: () => void }
                   required
                   value={customerRuc}
                   onChange={(e) => setCustomerRuc(e.target.value)}
-                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary text-xs"
+                  onFocus={(e) => e.target.select()}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono font-bold text-foreground focus:outline-none focus:border-primary text-xs"
                 />
               </div>
-              <div className="col-span-6">
+              <div className="col-span-7">
                 <label className="block text-[11px] font-mono text-muted-foreground mb-1">Razón Social *</label>
                 <input
                   type="text"
                   required
                   value={customerName}
                   onChange={(e) => setCustomerName(e.target.value)}
-                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs truncate"
+                  onFocus={(e) => e.target.select()}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground font-semibold focus:outline-none focus:border-primary text-xs truncate"
                 />
               </div>
             </div>

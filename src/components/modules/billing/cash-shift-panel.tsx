@@ -24,6 +24,7 @@ import {
   Calculator,
   Banknote,
   Coins,
+  Clock,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { format } from 'date-fns';
@@ -43,8 +44,13 @@ export function CashShiftPanel() {
   const [shiftData, setShiftData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
-  // Modo Ceguera Operativa (por defecto oculto para cajeros en mostrador)
-  const [blindMode, setBlindMode] = useState(true);
+  // Seguridad de Ceguera y PIN de Supervisor (1126)
+  const SUPERVISOR_PIN = '1126';
+  const [showPinModal, setShowPinModal] = useState(false);
+  const [enteredPin, setEnteredPin] = useState('');
+  const [pinError, setPinError] = useState('');
+  const [isRevealed, setIsRevealed] = useState(false);
+  const [revealSecondsLeft, setRevealSecondsLeft] = useState(0);
 
   // Estados de Apertura
   const [openingMethod, setOpeningMethod] = useState<'calculator' | 'direct'>('calculator');
@@ -107,6 +113,43 @@ export function CashShiftPanel() {
   useEffect(() => {
     fetchShift();
   }, []);
+
+  // Temporizador de auto-bloqueo a los 30 segundos si se revela con PIN
+  useEffect(() => {
+    if (!isRevealed || revealSecondsLeft <= 0) {
+      if (isRevealed && revealSecondsLeft <= 0) {
+        setIsRevealed(false);
+      }
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setRevealSecondsLeft((prev) => {
+        if (prev <= 1) {
+          setIsRevealed(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isRevealed, revealSecondsLeft]);
+
+  // Verificación del PIN de Supervisor (1126)
+  const handleVerifyPin = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (enteredPin === SUPERVISOR_PIN) {
+      setIsRevealed(true);
+      setRevealSecondsLeft(30);
+      setShowPinModal(false);
+      setEnteredPin('');
+      setPinError('');
+    } else {
+      setPinError('PIN incorrecto. Acceso denegado.');
+      setEnteredPin('');
+    }
+  };
 
   const currentShift = shiftData?.currentShift;
   const metrics = shiftData?.metrics;
@@ -308,23 +351,6 @@ export function CashShiftPanel() {
         </div>
 
         <div className="flex flex-wrap items-center gap-2">
-          {/* Botón de Modo Ceguera Operativa */}
-          {currentShift && (
-            <button
-              type="button"
-              onClick={() => setBlindMode(!blindMode)}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-xs font-mono transition-colors ${
-                blindMode
-                  ? 'bg-amber-500/10 text-amber-400 border-amber-500/30 hover:bg-amber-500/20'
-                  : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/20'
-              }`}
-              title="Alternar visibilidad del saldo teórico esperado en cajón"
-            >
-              {blindMode ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-              <span>{blindMode ? 'Ceguera de Monto: Activa' : 'Ceguera: Revelada (Supervisor)'}</span>
-            </button>
-          )}
-
           <button
             type="button"
             onClick={() => setShowHistoryView(!showHistoryView)}
@@ -512,18 +538,51 @@ export function CashShiftPanel() {
               <span className="text-[9px] font-mono text-muted-foreground block">En caja fuerte</span>
             </div>
 
-            {/* Efectivo en Cajón: Con protección de ceguera */}
-            <div className="p-3 rounded-xl bg-[#0d121c] border-2 border-primary/40 shadow-inner">
-              <span className="text-[10px] font-mono uppercase text-primary font-bold block flex items-center justify-between">
+            {/* Efectivo en Cajón: Ceguera Total con Autorización por PIN 1126 */}
+            <div className="p-3 rounded-xl bg-[#0d121c] border-2 border-primary/40 shadow-inner flex flex-col justify-between">
+              <span className="text-[10px] font-mono uppercase text-primary font-bold flex items-center justify-between">
                 <span>Efectivo en Cajón</span>
-                {blindMode ? <EyeOff className="w-3 h-3 text-amber-400" /> : <Eye className="w-3 h-3 text-emerald-400" />}
+                {!isRevealed ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowPinModal(true);
+                      setEnteredPin('');
+                      setPinError('');
+                    }}
+                    className="p-1 rounded text-muted-foreground/60 hover:text-amber-400 hover:bg-card transition-colors"
+                    title="Auditoría: Desbloquear con PIN de Supervisor"
+                  >
+                    <Lock className="w-3.5 h-3.5" />
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsRevealed(false);
+                      setRevealSecondsLeft(0);
+                    }}
+                    className="text-[10px] text-danger hover:underline flex items-center gap-1 font-mono font-bold"
+                    title="Volver a bloquear inmediatamente"
+                  >
+                    <EyeOff className="w-3 h-3" /> Bloquear
+                  </button>
+                )}
               </span>
+
               <p className="text-base font-bold font-mono text-emerald-400 mt-1">
-                {blindMode ? '••••••••' : formatCurrencyPYG(metrics?.expectedCashInDrawer || 0)}
+                {!isRevealed ? '••••••••' : formatCurrencyPYG(metrics?.expectedCashInDrawer || 0)}
               </p>
-              <span className="text-[9px] font-mono text-muted-foreground block">
-                {blindMode ? 'Protegido (Ceguera)' : 'Saldo Teórico Sistema'}
-              </span>
+
+              <div className="text-[9px] font-mono mt-0.5">
+                {!isRevealed ? (
+                  <span className="text-muted-foreground">Protegido (Ceguera Total)</span>
+                ) : (
+                  <span className="text-amber-400 flex items-center gap-1 font-bold">
+                    <Clock className="w-3 h-3 shrink-0" /> Ocultando en {revealSecondsLeft}s
+                  </span>
+                )}
+              </div>
             </div>
           </div>
 
@@ -986,6 +1045,89 @@ export function CashShiftPanel() {
                 Confirmar y Habilitar Caja
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: INGRESO DE PIN DE SUPERVISOR (1126) PARA AUDITORÍA */}
+      {showPinModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4 animate-in fade-in duration-150">
+          <div className="bg-card border-2 border-primary/50 rounded-xl shadow-2xl max-w-sm w-full overflow-hidden p-6 space-y-4 font-mono text-xs text-foreground">
+            <div className="flex items-center justify-between border-b border-card-border pb-3">
+              <div className="flex items-center gap-2.5">
+                <Lock className="w-5 h-5 text-primary shrink-0" />
+                <div>
+                  <h3 className="text-sm font-bold text-foreground font-sans">
+                    Autorización de Supervisor
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground font-mono">
+                    Control de Auditoría de Efectivo
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowPinModal(false);
+                  setEnteredPin('');
+                  setPinError('');
+                }}
+                className="text-muted-foreground hover:text-foreground p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <p className="text-xs text-muted-foreground font-sans leading-relaxed">
+              Ingrese el PIN de seguridad de gerencia para auditar el saldo teórico en cajón durante 30 segundos.
+            </p>
+
+            <form onSubmit={handleVerifyPin} className="space-y-4">
+              <div>
+                <input
+                  type="password"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={4}
+                  autoFocus
+                  required
+                  placeholder="••••"
+                  value={enteredPin}
+                  onChange={(e) => {
+                    setEnteredPin(e.target.value.replace(/\D/g, ''));
+                    setPinError('');
+                  }}
+                  className="w-full text-center text-3xl tracking-[0.5em] font-bold bg-[#0d121c] border-2 border-card-border focus:border-primary rounded-xl py-3 text-primary focus:outline-none shadow-inner"
+                />
+                {pinError && (
+                  <p className="text-danger text-[11px] font-bold text-center mt-2 flex items-center justify-center gap-1 font-sans">
+                    <AlertTriangle className="w-3.5 h-3.5" />
+                    <span>{pinError}</span>
+                  </p>
+                )}
+              </div>
+
+              <div className="flex items-center justify-end gap-2 pt-2 border-t border-card-border">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowPinModal(false);
+                    setEnteredPin('');
+                    setPinError('');
+                  }}
+                  className="px-4 py-2 rounded-lg border border-card-border bg-[#0d121c] text-muted-foreground hover:text-foreground text-xs font-semibold"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={enteredPin.length < 4}
+                  className="px-5 py-2 rounded-lg bg-primary hover:bg-primary-hover text-white font-bold text-xs shadow-md transition-colors disabled:opacity-40"
+                >
+                  Verificar PIN
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}

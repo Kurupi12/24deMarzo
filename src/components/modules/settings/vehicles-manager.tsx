@@ -329,6 +329,8 @@ export function VehiclesManager() {
                   placeholder="Ej: 15"
                   value={capacityTons}
                   onChange={(e) => setCapacityTons(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary text-xs"
                 />
               </div>

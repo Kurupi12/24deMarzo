@@ -514,15 +514,28 @@ export function CashShiftPanel() {
                   </div>
 
                   <div>
-                    <label className="block text-[11px] font-mono text-muted-foreground mb-1">
-                      Conteo Físico Real en Cajón (₲) *
-                    </label>
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="block text-[11px] font-mono text-muted-foreground">
+                        Conteo Físico Real en Cajón (₲) *
+                      </label>
+                      {metrics?.expectedCashInDrawer !== undefined && (
+                        <button
+                          type="button"
+                          onClick={() => setClosingBalance(String(metrics.expectedCashInDrawer))}
+                          className="text-[10px] font-mono text-primary hover:underline"
+                        >
+                          Usar Esperado ({formatCurrencyPYG(metrics.expectedCashInDrawer)})
+                        </button>
+                      )}
+                    </div>
                     <input
                       type="number"
                       required
                       min="0"
                       value={closingBalance}
                       onChange={(e) => setClosingBalance(e.target.value)}
+                      onFocus={(e) => e.target.select()}
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
                       placeholder="Ingrese el monto exacto contado..."
                       className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground text-sm font-bold focus:outline-none focus:border-danger"
                     />
@@ -590,18 +603,44 @@ export function CashShiftPanel() {
 
           <form onSubmit={handleOpenShift} className="space-y-4 text-xs">
             <div>
-              <label className="block text-[11px] font-mono text-muted-foreground mb-1">
-                Efectivo Físico Encontrado en el Cajón (₲) *
-              </label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="block text-[11px] font-mono text-muted-foreground">
+                  Efectivo Físico Encontrado en el Cajón (₲) *
+                </label>
+                {expectedPreviousClose !== null && (
+                  <button
+                    type="button"
+                    onClick={() => setOpeningBalance(String(expectedPreviousClose))}
+                    className="text-[10px] font-mono text-primary hover:underline"
+                  >
+                    Usar Cierre Anterior ({formatCurrencyPYG(expectedPreviousClose)})
+                  </button>
+                )}
+              </div>
               <input
                 type="number"
                 required
                 min="0"
                 value={openingBalance}
                 onChange={(e) => setOpeningBalance(e.target.value)}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 placeholder="Ej: 500000"
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-2 font-mono text-foreground text-base font-bold focus:outline-none focus:border-primary"
               />
+              <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                <span className="text-[10px] font-mono text-muted-foreground">Comunes:</span>
+                {[300000, 500000, 1000000, 2000000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setOpeningBalance(String(amt))}
+                    className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0d121c] hover:bg-card border border-card-border hover:border-primary text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {formatCurrencyPYG(amt)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             {/* Comprobación de Arqueo contra el Cierre Anterior */}
@@ -683,8 +722,23 @@ export function CashShiftPanel() {
                 placeholder="Ej: 200000"
                 value={movementAmount}
                 onChange={(e) => setMovementAmount(e.target.value)}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground text-sm font-bold focus:outline-none focus:border-primary"
               />
+              <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+                <span className="text-[10px] font-mono text-muted-foreground">Rápido:</span>
+                {[50000, 100000, 200000, 500000, 1000000].map((amt) => (
+                  <button
+                    key={amt}
+                    type="button"
+                    onClick={() => setMovementAmount(String(amt))}
+                    className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0d121c] hover:bg-card border border-card-border hover:border-primary text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    +{formatCurrencyPYG(amt)}
+                  </button>
+                ))}
+              </div>
             </div>
 
             <div>
@@ -753,9 +807,25 @@ export function CashShiftPanel() {
                   placeholder="Ej: 100000"
                   value={movementAmount}
                   onChange={(e) => setMovementAmount(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground text-sm font-bold focus:outline-none focus:border-danger"
                 />
               </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-mono text-muted-foreground">Comunes:</span>
+              {[20000, 50000, 100000, 200000, 500000].map((amt) => (
+                <button
+                  key={amt}
+                  type="button"
+                  onClick={() => setMovementAmount(String(amt))}
+                  className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0d121c] hover:bg-card border border-card-border hover:border-danger text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {formatCurrencyPYG(amt)}
+                </button>
+              ))}
             </div>
 
             <div>
@@ -831,6 +901,8 @@ export function CashShiftPanel() {
                   placeholder="Ej: 3000000"
                   value={movementAmount}
                   onChange={(e) => setMovementAmount(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground text-sm font-bold focus:outline-none focus:border-accent"
                 />
               </div>
@@ -843,9 +915,25 @@ export function CashShiftPanel() {
                   placeholder="Ej: SOBRE-01"
                   value={envelopeCode}
                   onChange={(e) => setEnvelopeCode(e.target.value)}
+                  onFocus={(e) => e.target.select()}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground text-xs uppercase"
                 />
               </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[10px] font-mono text-muted-foreground">Rápido:</span>
+              {[500000, 1000000, 2000000, 3000000, 5000000, 10000000].map((amt) => (
+                <button
+                  key={amt}
+                  type="button"
+                  onClick={() => setMovementAmount(String(amt))}
+                  className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0d121c] hover:bg-card border border-card-border hover:border-accent text-muted-foreground hover:text-accent transition-colors"
+                >
+                  {formatCurrencyPYG(amt)}
+                </button>
+              ))}
             </div>
 
             <div>

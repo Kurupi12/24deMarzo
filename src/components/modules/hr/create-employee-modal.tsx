@@ -135,6 +135,8 @@ export function CreateEmployeeModal({ isOpen, onClose, onEmployeeCreated }: Crea
                 step="10000"
                 value={form.weeklySalary}
                 onChange={(e) => setForm({ ...form, weeklySalary: e.target.value })}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary"
               />
             </div>

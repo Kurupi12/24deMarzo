@@ -103,9 +103,24 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
               max={maxAllowed}
               value={amount}
               onChange={(e) => setAmount(e.target.value)}
+              onFocus={(e) => e.target.select()}
+              onClick={(e) => (e.target as HTMLInputElement).select()}
               placeholder={`Máximo: ${maxAllowed}`}
               className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-accent"
             />
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+              <span className="text-[10px] font-mono text-muted-foreground">Comunes:</span>
+              {[100000, 200000, 300000, 500000].filter(amt => amt <= maxAllowed).map((amt) => (
+                <button
+                  key={amt}
+                  type="button"
+                  onClick={() => setAmount(String(amt))}
+                  className="px-2 py-0.5 rounded text-[10px] font-mono bg-[#0d121c] hover:bg-card border border-card-border hover:border-accent text-muted-foreground hover:text-accent transition-colors"
+                >
+                  {formatCurrencyPYG(amt)}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div>

@@ -383,7 +383,9 @@ export function PurchasesView() {
                               min="1"
                               value={it.quantity}
                               onChange={(e) => updateItemQty(it.productId, parseInt(e.target.value) || 1)}
-                              className="w-16 bg-card border border-card-border rounded px-1.5 py-0.5 text-center text-foreground font-mono text-xs"
+                              onFocus={(e) => e.target.select()}
+                              onClick={(e) => (e.target as HTMLInputElement).select()}
+                              className="w-16 bg-card border border-card-border rounded px-1.5 py-0.5 text-center text-foreground font-mono text-xs focus:outline-none focus:border-primary"
                             />
                           </td>
                           <td className="py-2 px-3 text-right">
@@ -392,7 +394,9 @@ export function PurchasesView() {
                               min="0"
                               value={it.unitCost}
                               onChange={(e) => updateItemCost(it.productId, parseInt(e.target.value) || 0)}
-                              className="w-28 bg-card border border-card-border rounded px-1.5 py-0.5 text-right text-foreground font-mono text-xs"
+                              onFocus={(e) => e.target.select()}
+                              onClick={(e) => (e.target as HTMLInputElement).select()}
+                              className="w-28 bg-card border border-card-border rounded px-1.5 py-0.5 text-right text-foreground font-mono text-xs focus:outline-none focus:border-primary"
                             />
                           </td>
                           <td className="py-2 px-3 text-right font-bold text-foreground">

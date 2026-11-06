@@ -89,6 +89,7 @@ Este documento consolida el estado funcional de cada uno de los 8 módulos del s
   * `+ Ingreso de Sencillo`: Carga de cambio para dar vuelto.
   * `- Salida / Gasto`: Retiros autorizados con beneficiario obligatorio (*Adelanto a Carlos Cabañas, bidones de agua, flete menor*).
 * **Extracción de Billetes Grandes a Sobre:** Retiro seguro de fajos de billetes de 100k y 50k a la caja fuerte interna para evitar acumulación de efectivo en el mostrador.
+* **Ergonomía de Escritura Rápida en Modales:** Auto-selección instantánea de números en un clic/tab, supresión total de spinners/flechas del navegador y botones táctiles directos (`500k`, `1M`, `2M`, `3M`, `5M`, `10M`) para arqueos, sobres y retiros sin teclear ceros.
 * **Fórmula de Efectivo en Vivo:**
   $$\text{Efectivo en Cajón} = \text{Fondo Inicial} + \text{Ventas en Efectivo} + \text{Sencillo} - \text{Gastos} - \text{Sobres}$$
 * **Historial Permanente de Cierres:** Registro de auditoría de los últimos turnos archivados.

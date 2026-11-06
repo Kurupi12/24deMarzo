@@ -110,6 +110,8 @@ export function KardexModal({ product, isOpen, onClose, onMovementCreated }: Kar
                 required
                 value={quantity}
                 onChange={(e) => setQuantity(e.target.value)}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 placeholder="Ej: 5"
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 text-xs text-foreground font-mono focus:outline-none focus:border-primary"
               />

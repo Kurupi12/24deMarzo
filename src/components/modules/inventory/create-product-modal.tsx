@@ -143,6 +143,8 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
                 min="0"
                 value={form.costPrice}
                 onChange={(e) => setForm({ ...form, costPrice: e.target.value })}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 placeholder="0"
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary"
               />
@@ -155,6 +157,8 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
                 required
                 value={form.salePrice}
                 onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 placeholder="0"
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary"
               />
@@ -166,6 +170,8 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
                 min="0"
                 value={form.minStockAlert}
                 onChange={(e) => setForm({ ...form, minStockAlert: e.target.value })}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 placeholder="5"
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary"
               />

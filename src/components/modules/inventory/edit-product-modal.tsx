@@ -189,6 +189,8 @@ export function EditProductModal({
                 min="0"
                 value={form.costPrice}
                 onChange={(e) => setForm({ ...form, costPrice: e.target.value })}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary"
               />
             </div>
@@ -200,6 +202,8 @@ export function EditProductModal({
                 required
                 value={form.salePrice}
                 onChange={(e) => setForm({ ...form, salePrice: e.target.value })}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary"
               />
             </div>
@@ -210,6 +214,8 @@ export function EditProductModal({
                 min="0"
                 value={form.minStockAlert}
                 onChange={(e) => setForm({ ...form, minStockAlert: e.target.value })}
+                onFocus={(e) => e.target.select()}
+                onClick={(e) => (e.target as HTMLInputElement).select()}
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary"
               />
             </div>

@@ -435,6 +435,23 @@ export function CashShiftPanel() {
       ) : currentShift ? (
         /* VISTA: TURNO DE CAJA ACTIVO */
         <div className="space-y-5">
+          {/* Alerta de Apertura con Discrepancia Justificada si hubo diferencia al abrir */}
+          {currentShift.openingDifference && Number(currentShift.openingDifference) !== 0 && (
+            <div className="p-3.5 rounded-xl bg-warning/10 border border-warning/30 flex items-start gap-3 text-xs text-warning shadow-md">
+              <AlertTriangle className="w-5 h-5 shrink-0 text-warning mt-0.5" />
+              <div className="space-y-1 font-mono">
+                <p className="font-bold">
+                  Apertura Habilitada con Discrepancia Justificada: {Number(currentShift.openingDifference) > 0 ? '+' : ''}{formatCurrencyPYG(Number(currentShift.openingDifference))}
+                </p>
+                {currentShift.openingNotes && (
+                  <p className="text-[11px] text-muted-foreground font-sans">
+                    Motivo asentado para auditoría: <strong className="text-foreground">&ldquo;{currentShift.openingNotes}&rdquo;</strong>
+                  </p>
+                )}
+              </div>
+            </div>
+          )}
+
           {/* Tarjetas Métricas en Vivo */}
           <div className="grid grid-cols-2 md:grid-cols-6 gap-3">
             <div className="p-3 rounded-xl bg-card border border-card-border">
@@ -442,7 +459,15 @@ export function CashShiftPanel() {
               <p className="text-sm font-bold font-mono text-foreground mt-1">
                 {formatCurrencyPYG(metrics?.openingBalance || 0)}
               </p>
-              <span className="text-[9px] font-mono text-muted-foreground block">Conteo inicial</span>
+              {currentShift.openingDifference && Number(currentShift.openingDifference) !== 0 ? (
+                <span className="text-[9px] font-mono text-warning block mt-0.5 font-bold">
+                  Dif: {Number(currentShift.openingDifference) > 0 ? '+' : ''}{formatCurrencyPYG(Number(currentShift.openingDifference))}
+                </span>
+              ) : (
+                <span className="text-[9px] font-mono text-emerald-400 block mt-0.5">
+                  Cuadrado con cierre previo
+                </span>
+              )}
             </div>
 
             <div className="p-3 rounded-xl bg-card border border-card-border">
@@ -871,10 +896,23 @@ export function CashShiftPanel() {
               </button>
             </div>
 
+            {/* Aviso Destacado de Advertencia */}
+            <div className="p-3.5 rounded-lg bg-warning/15 border border-warning/40 flex items-start gap-3 text-warning">
+              <AlertTriangle className="w-5 h-5 shrink-0 text-warning mt-0.5" />
+              <div className="space-y-1 font-sans text-xs">
+                <p className="font-bold text-sm">
+                  Se detectó una diferencia de {mismatchOpeningData.diff > 0 ? '+' : ''}{formatCurrencyPYG(mismatchOpeningData.diff)} respecto al cierre anterior.
+                </p>
+                <p className="text-muted-foreground text-xs leading-relaxed">
+                  Para habilitar la caja, debe ingresar el <strong>motivo obligatorio para la auditoría</strong> (Ej: &ldquo;Faltante de 50.000 Gs. retirado por Fátima anoche para cambio de flete&rdquo;).
+                </p>
+              </div>
+            </div>
+
             {/* Tarjeta de Comparación */}
             <div className="p-3.5 rounded-lg bg-[#0d121c] border border-card-border space-y-2">
               <div className="flex justify-between items-center text-muted-foreground">
-                <span>Efectivo Contado por Usted:</span>
+                <span>Efectivo Contado Físicamente:</span>
                 <span className="text-foreground font-bold text-sm">
                   {formatCurrencyPYG(mismatchOpeningData.declared)}
                 </span>
@@ -887,7 +925,7 @@ export function CashShiftPanel() {
               </div>
 
               <div className="pt-2 border-t border-card-border flex justify-between items-center text-sm font-bold">
-                <span>Diferencia Inicial:</span>
+                <span>Diferencia Registrada:</span>
                 {mismatchOpeningData.diff < 0 ? (
                   <span className="text-danger flex items-center gap-1">
                     <AlertTriangle className="w-4 h-4" />
@@ -902,10 +940,6 @@ export function CashShiftPanel() {
               </div>
             </div>
 
-            <p className="text-[11px] text-muted-foreground leading-relaxed font-sans">
-              Para habilitar la caja y comenzar a facturar con esta diferencia, ingrese la <strong>justificación obligatoria</strong> que quedará asentada en la auditoría del turno. Si sospecha de un error en el conteo, puede volver a recontar los billetes.
-            </p>
-
             <div>
               <label className="block text-[11px] font-mono text-warning font-semibold mb-1">
                 Motivo / Justificación obligatoria para Auditoría *
@@ -917,7 +951,7 @@ export function CashShiftPanel() {
                 onChange={(e) =>
                   setMismatchOpeningData({ ...mismatchOpeningData, notes: e.target.value })
                 }
-                placeholder="Ej: Faltante de 50.000 Gs. verificado con gerencia por entrega de sencillo previo..."
+                placeholder="Ej: Faltante de 50.000 Gs. retirado por Fátima anoche para cambio de flete"
                 className="w-full bg-[#0d121c] border border-warning/50 rounded-md px-3 py-2 text-foreground text-xs focus:outline-none focus:border-warning"
               />
             </div>
@@ -944,7 +978,7 @@ export function CashShiftPanel() {
                   }
                   executeOpenShift(
                     mismatchOpeningData.declared,
-                    `Discrepancia justificada: ${mismatchOpeningData.notes.trim()}`
+                    mismatchOpeningData.notes.trim()
                   );
                 }}
                 className="w-full sm:w-auto px-4 py-2 rounded-lg bg-warning hover:bg-warning/80 text-black font-bold text-xs shadow-md transition-colors disabled:opacity-50"

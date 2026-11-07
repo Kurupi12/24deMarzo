@@ -21,6 +21,7 @@ import {
   Layers,
   Printer,
   FileText,
+  Clock,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { calculateVatBreakdown } from '@/shared/utils/vat-calculator';
@@ -298,7 +299,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
       return;
     }
 
-    if (paymentMethod === 'TRANSFERENCIA_BANCARIA' && !paymentReference.trim()) {
+    if (paymentCondition !== 'A_CUENTA' && paymentMethod === 'TRANSFERENCIA_BANCARIA' && !paymentReference.trim()) {
       customAlert({
         title: 'Comprobante de Transferencia Requerido',
         message: 'Cuando el pago es por transferencia bancaria (SIPAP), es obligatorio cargar el número de comprobante para tener un registro.',
@@ -703,31 +704,53 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                 <select
                   value={paymentCondition}
                   onChange={(e) => setPaymentCondition(e.target.value)}
-                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-2 py-1.5 text-foreground"
+                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-2 py-1.5 text-foreground font-medium"
                 >
-                  <option value="CONTADO">Contado</option>
-                  <option value="CREDITO">Crédito Fiscal</option>
+                  <option value="CONTADO">Contado (Cobro Inmediato)</option>
+                  <option value="CREDITO">Crédito Fiscal (Factura a Cobrar)</option>
                   <option value="A_CUENTA">A Cuenta / Libreta (Sin Facturar)</option>
                 </select>
               </div>
               <div>
                 <label className="block text-[11px] font-mono text-muted-foreground mb-1">Método de Pago</label>
-                <select
-                  value={paymentMethod}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
-                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-2 py-1.5 text-foreground"
-                >
-                  <option value="EFECTIVO">Efectivo</option>
-                  <option value="TRANSFERENCIA_BANCARIA">Transferencia SIPAP</option>
-                  <option value="TARJETA_DEBITO">Tarjeta Débito</option>
-                  <option value="TARJETA_CREDITO">Tarjeta Crédito</option>
-                  <option value="CHEQUE">Cheque al Día</option>
-                </select>
+                {paymentCondition === 'A_CUENTA' ? (
+                  <div className="w-full bg-[#0d121c]/70 border border-amber-500/40 rounded-md px-2.5 py-1.5 text-amber-300 font-mono text-xs flex items-center justify-between">
+                    <span className="font-semibold">Pendiente / Libreta</span>
+                    <span className="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30">
+                      Sin cobro hoy
+                    </span>
+                  </div>
+                ) : (
+                  <select
+                    value={paymentMethod}
+                    onChange={(e) => setPaymentMethod(e.target.value)}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2 py-1.5 text-foreground"
+                  >
+                    <option value="EFECTIVO">Efectivo</option>
+                    <option value="TRANSFERENCIA_BANCARIA">Transferencia SIPAP</option>
+                    <option value="TARJETA_DEBITO">Tarjeta Débito</option>
+                    <option value="TARJETA_CREDITO">Tarjeta Crédito</option>
+                    <option value="CHEQUE">Cheque al Día</option>
+                  </select>
+                )}
               </div>
             </div>
 
+            {/* Aviso Informativo cuando es A CUENTA */}
+            {paymentCondition === 'A_CUENTA' && (
+              <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 space-y-1 animate-in fade-in duration-150">
+                <div className="flex items-center gap-1.5 text-amber-400 font-semibold text-[11px]">
+                  <Clock className="w-3.5 h-3.5" />
+                  <span>Entrega a Cuenta de Obra (Sin ingreso a caja hoy)</span>
+                </div>
+                <p className="text-[10.5px] text-muted-foreground font-sans leading-relaxed">
+                  El cliente no paga en este momento. La mercadería se descuenta del stock y se imprime la <strong>Orden de Entrega A4 en Duplicado</strong> para el chofer y archivo. El dinero se cobrará en la pestaña <em>Cuentas Corrientes & Libreta</em> cuando haga su entrega (ej. viernes).
+                </p>
+              </div>
+            )}
+
             {/* Campo Condicional: Comprobante de Transferencia SIPAP */}
-            {paymentMethod === 'TRANSFERENCIA_BANCARIA' && (
+            {paymentCondition !== 'A_CUENTA' && paymentMethod === 'TRANSFERENCIA_BANCARIA' && (
               <div className="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/30 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-mono font-semibold text-blue-400 flex items-center gap-1.5">
@@ -747,13 +770,13 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                   className="w-full bg-[#0d121c] border border-blue-500/40 rounded-md px-2.5 py-1.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-400 font-mono text-xs"
                 />
                 <p className="text-[10px] text-muted-foreground font-sans">
-                  Quedará registrado para auditoría y se imprimirá en la Orden de Entrega y Factura.
+                  Quedará registrado para auditoría y se imprimirá en la Factura.
                 </p>
               </div>
             )}
 
             {/* Campo Condicional: N° de Cheque */}
-            {paymentMethod === 'CHEQUE' && (
+            {paymentCondition !== 'A_CUENTA' && paymentMethod === 'CHEQUE' && (
               <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 space-y-1.5">
                 <div className="flex items-center justify-between">
                   <label className="text-[11px] font-mono font-semibold text-amber-400 flex items-center gap-1.5">

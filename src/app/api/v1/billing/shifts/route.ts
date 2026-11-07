@@ -21,9 +21,12 @@ export async function GET() {
       where: { cashRegisterId: register.id, isOpen: true },
       include: {
         sales: {
-          select: { id: true, saleNumber: true, paymentMethod: true, grandTotal: true, createdAt: true, status: true },
+          select: { id: true, saleNumber: true, paymentMethod: true, paymentCondition: true, grandTotal: true, createdAt: true, status: true },
         },
         movements: {
+          orderBy: { createdAt: 'desc' },
+        },
+        customerPayments: {
           orderBy: { createdAt: 'desc' },
         },
       },
@@ -58,9 +61,15 @@ export async function GET() {
     // 4. Calcular métricas en vivo si hay turno abierto
     let metrics = null;
     if (currentShift) {
+      // Solo ventas CONTADO en efectivo ingresan dinero a caja (A_CUENTA y CREDITO no ingresan efectivo hoy)
       const cashSales = currentShift.sales
-        .filter((s) => s.paymentMethod === 'EFECTIVO' && s.status === 'COMPLETED')
+        .filter((s) => s.paymentMethod === 'EFECTIVO' && s.paymentCondition === 'CONTADO' && s.status === 'COMPLETED')
         .reduce((sum, s) => sum + Number(s.grandTotal), 0);
+
+      // Cobros de cuentas corrientes o pagos a cuenta de clientes cobrados en efectivo
+      const customerPaymentsCash = (currentShift.customerPayments || [])
+        .filter((cp) => cp.paymentMethod === 'EFECTIVO')
+        .reduce((sum, cp) => sum + Number(cp.amount), 0);
 
       const incomes = currentShift.movements
         .filter((m) => m.type === 'INCOME_CHANGE')
@@ -75,11 +84,12 @@ export async function GET() {
         .reduce((sum, m) => sum + Number(m.amount), 0);
 
       const opening = Number(currentShift.openingBalance);
-      const expectedCashInDrawer = opening + cashSales + incomes - expenses - safeDeposits;
+      const expectedCashInDrawer = opening + cashSales + customerPaymentsCash + incomes - expenses - safeDeposits;
 
       metrics = {
         openingBalance: opening,
         cashSales,
+        customerPaymentsCash,
         incomes,
         expenses,
         safeDeposits,
@@ -167,6 +177,7 @@ export async function POST(req: NextRequest) {
         include: {
           sales: true,
           movements: true,
+          customerPayments: true,
         },
       });
 
@@ -181,10 +192,15 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      // 1. Ventas cobradas en efectivo
+      // 1. Ventas CONTADO cobradas en efectivo de mostrador
       const cashSalesTotal = shift.sales
-        .filter((s) => s.paymentMethod === 'EFECTIVO' && s.status === 'COMPLETED')
+        .filter((s) => s.paymentMethod === 'EFECTIVO' && s.paymentCondition === 'CONTADO' && s.status === 'COMPLETED')
         .reduce((sum, s) => sum + Number(s.grandTotal), 0);
+
+      // 1.1 Cobros de cuentas corrientes o pagos a cuenta cobrados en efectivo
+      const customerPaymentsCashTotal = (shift.customerPayments || [])
+        .filter((p) => p.paymentMethod === 'EFECTIVO')
+        .reduce((sum, p) => sum + Number(p.amount), 0);
 
       // 2. Ingresos de sencillo
       const incomesTotal = shift.movements
@@ -202,7 +218,7 @@ export async function POST(req: NextRequest) {
         .reduce((sum, m) => sum + Number(m.amount), 0);
 
       // 5. Saldo esperado en el cajón del mostrador
-      const expectedInDrawer = Number(shift.openingBalance) + cashSalesTotal + incomesTotal - expensesTotal - safeDepositsTotal;
+      const expectedInDrawer = Number(shift.openingBalance) + cashSalesTotal + customerPaymentsCashTotal + incomesTotal - expensesTotal - safeDepositsTotal;
       const actualDeclared = Number(closingBalance) || 0;
       const difference = actualDeclared - expectedInDrawer;
 

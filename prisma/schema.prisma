@@ -42,6 +42,7 @@ model User {
   sales         Sale[]
   purchases     Purchase[]
   stockMoves    StockMovement[]
+  customerPayments CustomerPayment[]
   verifiedAttendances AttendanceRecord[] @relation("AttendanceVerifier")
   approvedAdvances    AdvancePayment[]   @relation("AdvanceApprover")
   approvedLeaves      LeaveRequest[]     @relation("LeaveApprover")
@@ -187,6 +188,7 @@ model StockMovement {
 enum PaymentCondition {
   CONTADO
   CREDITO
+  A_CUENTA
 }
 
 enum PaymentMethod {
@@ -271,6 +273,7 @@ model CashShift {
   cashRegister           CashRegister   @relation(fields: [cashRegisterId], references: [id])
   sales                  Sale[]
   movements              CashMovement[]
+  customerPayments       CustomerPayment[]
 
   createdAt              DateTime       @default(now())
   updatedAt              DateTime       @default(now()) @updatedAt
@@ -391,6 +394,27 @@ model Customer {
   @@index([name])
   @@index([ruc])
   @@map("customers")
+}
+
+model CustomerPayment {
+  id               String        @id @default(uuid())
+  receiptNumber    String        @unique // Ej: REC-000001
+  customerRuc      String
+  customerName     String
+  amount           Decimal       @db.Decimal(14, 2)
+  paymentMethod    PaymentMethod @default(EFECTIVO)
+  paymentReference String?       // N° Comprobante transferencia / cheque
+  cashShiftId      String?       // Enlazado a la caja activa del cajero
+  notes            String?
+  userId           String
+  createdAt        DateTime      @default(now())
+
+  cashShift        CashShift?    @relation(fields: [cashShiftId], references: [id])
+  user             User          @relation(fields: [userId], references: [id])
+
+  @@index([customerRuc])
+  @@index([cashShiftId])
+  @@map("customer_payments")
 }
 
 model SaleItem {

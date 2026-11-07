@@ -6,13 +6,14 @@ import { PosTerminal } from './pos-terminal';
 import { SalesHistoryTable } from './sales-history-table';
 import { InvoiceDetailModal } from './invoice-detail-modal';
 import { CashShiftPanel } from './cash-shift-panel';
-import { ReceiptText, History, Landmark, DollarSign, Receipt, CheckCircle2 } from 'lucide-react';
+import { CustomerAccountsPanel } from './customer-accounts-panel';
+import { ReceiptText, History, Landmark, DollarSign, Receipt, CheckCircle2, BookOpen } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 
 export function BillingView() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'pos';
-  const [activeTab, setActiveTab] = useState<'pos' | 'history' | 'shifts'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'pos' | 'history' | 'shifts' | 'accounts'>(initialTab);
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSaleForDetail, setSelectedSaleForDetail] = useState<any>(null);
@@ -121,6 +122,19 @@ export function BillingView() {
           <Landmark className="w-3.5 h-3.5" />
           <span>Control de Cajas</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('accounts')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            activeTab === 'accounts'
+              ? 'bg-primary/10 text-primary border border-primary/20 font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <BookOpen className="w-3.5 h-3.5" />
+          <span>Cuentas Corrientes & Libreta</span>
+        </button>
       </div>
 
       {/* Contenido */}
@@ -139,8 +153,10 @@ export function BillingView() {
           loading={loading}
           onViewInvoice={setSelectedSaleForDetail}
         />
-      ) : (
+      ) : activeTab === 'shifts' ? (
         <CashShiftPanel />
+      ) : (
+        <CustomerAccountsPanel onViewInvoice={setSelectedSaleForDetail} />
       )}
 
       {/* Modal de Detalle de DTE */}

@@ -72,18 +72,24 @@ export function DeliveryOrderA4({ sale }: DeliveryOrderA4Props) {
               N° {sale.saleNumber || '001-001-0000000'}
             </div>
 
-            {/* Casillas de Condición de Venta: CONTADO / CREDITO */}
-            <div className="flex items-center gap-3 mt-1 text-[8.5px] font-bold font-mono">
-              <span className="flex items-center gap-1">
+            {/* Casillas de Condición de Venta: CONTADO / CREDITO / A CUENTA */}
+            <div className="flex items-center gap-2 mt-1 text-[8px] font-bold font-mono">
+              <span className="flex items-center gap-0.5">
                 CONTADO
-                <span className="inline-flex items-center justify-center w-3.5 h-3.5 border border-black text-[9px] font-bold">
-                  {isContado ? 'X' : ''}
+                <span className="inline-flex items-center justify-center w-3 h-3 border border-black text-[8px] font-bold">
+                  {sale.paymentCondition === 'CONTADO' ? 'X' : ''}
                 </span>
               </span>
-              <span className="flex items-center gap-1">
+              <span className="flex items-center gap-0.5">
                 CRÉDITO
-                <span className="inline-flex items-center justify-center w-3.5 h-3.5 border border-black text-[9px] font-bold">
-                  {!isContado ? 'X' : ''}
+                <span className="inline-flex items-center justify-center w-3 h-3 border border-black text-[8px] font-bold">
+                  {sale.paymentCondition === 'CREDITO' ? 'X' : ''}
+                </span>
+              </span>
+              <span className="flex items-center gap-0.5">
+                A CUENTA
+                <span className="inline-flex items-center justify-center w-3 h-3 border border-black text-[8px] font-bold">
+                  {sale.paymentCondition === 'A_CUENTA' ? 'X' : ''}
                 </span>
               </span>
             </div>

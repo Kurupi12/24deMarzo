@@ -13,7 +13,7 @@ export const CreateSaleSchema = z.object({
   customerRuc: z.string().min(5, 'El RUC o documento del cliente es obligatorio'),
   customerEmail: z.string().email('Email inválido').optional().nullable(),
   customerAddress: z.string().optional().nullable(),
-  paymentCondition: z.enum(['CONTADO', 'CREDITO']).default('CONTADO'),
+  paymentCondition: z.enum(['CONTADO', 'CREDITO', 'A_CUENTA']).default('CONTADO'),
   paymentMethod: z.enum([
     'EFECTIVO',
     'TARJETA_DEBITO',

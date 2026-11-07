@@ -335,7 +335,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
             unitPrice: i.unitPrice,
             vatRate: i.vatRate,
           })),
-          issueInvoiceImmediately: true,
+          issueInvoiceImmediately: paymentCondition !== 'A_CUENTA',
         }),
       });
       const data = await res.json();
@@ -706,7 +706,8 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-2 py-1.5 text-foreground"
                 >
                   <option value="CONTADO">Contado</option>
-                  <option value="CREDITO">Crédito</option>
+                  <option value="CREDITO">Crédito Fiscal</option>
+                  <option value="A_CUENTA">A Cuenta / Libreta (Sin Facturar)</option>
                 </select>
               </div>
               <div>
@@ -996,10 +997,27 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
           <button
             type="submit"
             disabled={loading || cart.length === 0}
-            className="w-full py-2.5 rounded-md bg-primary hover:bg-primary-hover text-white text-xs font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors shadow-md"
+            className={`w-full py-2.5 rounded-md text-white text-xs font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors shadow-md ${
+              paymentCondition === 'A_CUENTA'
+                ? 'bg-amber-600 hover:bg-amber-500'
+                : 'bg-primary hover:bg-primary-hover'
+            }`}
           >
-            <ReceiptText className="w-4 h-4" />
-            <span>{loading ? 'Emitiendo DTE en DNIT...' : 'Emitir Factura Electrónica SIFEN'}</span>
+            {paymentCondition === 'A_CUENTA' ? (
+              <>
+                <Truck className="w-4 h-4" />
+                <span>
+                  {loading
+                    ? 'Registrando Entrega A Cuenta...'
+                    : 'Despachar a Cuenta (Imprimir Orden A4 Duplicado)'}
+                </span>
+              </>
+            ) : (
+              <>
+                <ReceiptText className="w-4 h-4" />
+                <span>{loading ? 'Emitiendo DTE en DNIT...' : 'Emitir Factura Electrónica SIFEN'}</span>
+              </>
+            )}
           </button>
         </form>
       </div>

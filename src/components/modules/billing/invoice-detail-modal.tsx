@@ -228,7 +228,7 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Condición:</span>
                   <span className="font-bold text-primary">
-                    {sale.paymentCondition} ({sale.paymentMethod?.replace(/_/g, ' ') || 'EFECTIVO'})
+                    {sale.paymentCondition?.replace(/_/g, ' ')} ({sale.paymentMethod?.replace(/_/g, ' ') || 'EFECTIVO'})
                   </span>
                 </div>
                 {sale.paymentReference && (

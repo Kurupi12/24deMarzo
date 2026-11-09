@@ -34,8 +34,7 @@ export function HrView() {
 
   // Cálculos consolidados de nómina
   const totalWeeklyPayroll = employees.reduce((acc, emp) => acc + Number(emp.salaryStructure?.weeklySalary || 0), 0);
-  const totalWeeklyIps = Math.round(totalWeeklyPayroll * 0.09);
-  const totalWeeklyNet = totalWeeklyPayroll - totalWeeklyIps;
+  const averageWeeklySalary = employees.length > 0 ? Math.round(totalWeeklyPayroll / employees.length) : 0;
 
   return (
     <div className="space-y-5">
@@ -67,29 +66,29 @@ export function HrView() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <div className="p-4 rounded-lg bg-card border border-card-border space-y-1">
           <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
-            <span>Nómina Semanal Bruta</span>
+            <span>Nómina Semanal Total</span>
             <DollarSign className="w-4 h-4 text-primary" />
           </div>
-          <div className="text-xl font-bold font-mono text-foreground">{formatCurrencyPYG(totalWeeklyPayroll)}</div>
-          <span className="text-[10px] text-muted-foreground font-mono">{employees.length} funcionarios activos</span>
+          <div className="text-xl font-bold font-mono text-emerald-400">{formatCurrencyPYG(totalWeeklyPayroll)}</div>
+          <span className="text-[10px] text-muted-foreground font-mono">Presupuesto semanal del depósito</span>
         </div>
 
         <div className="p-4 rounded-lg bg-card border border-card-border space-y-1">
           <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
-            <span>Aporte Obrero IPS (9%)</span>
-            <Wallet className="w-4 h-4 text-danger" />
+            <span>Plantilla Activa</span>
+            <Users className="w-4 h-4 text-accent" />
           </div>
-          <div className="text-xl font-bold font-mono text-danger">-{formatCurrencyPYG(totalWeeklyIps)}</div>
-          <span className="text-[10px] text-muted-foreground font-mono">Retención legal semanal</span>
+          <div className="text-xl font-bold font-mono text-foreground">{employees.length}</div>
+          <span className="text-[10px] text-muted-foreground font-mono">Colaboradores registrados</span>
         </div>
 
         <div className="p-4 rounded-lg bg-card border border-card-border space-y-1">
           <div className="flex items-center justify-between text-muted-foreground text-xs font-medium">
-            <span>Neto a Desembolsar</span>
-            <Wallet className="w-4 h-4 text-emerald-400" />
+            <span>Salario Promedio Semanal</span>
+            <Wallet className="w-4 h-4 text-primary" />
           </div>
-          <div className="text-xl font-bold font-mono text-emerald-400">{formatCurrencyPYG(totalWeeklyNet)}</div>
-          <span className="text-[10px] text-muted-foreground font-mono">Pago semanal estimado</span>
+          <div className="text-xl font-bold font-mono text-foreground">{formatCurrencyPYG(averageWeeklySalary)}</div>
+          <span className="text-[10px] text-muted-foreground font-mono">Por colaborador por semana</span>
         </div>
       </div>
 

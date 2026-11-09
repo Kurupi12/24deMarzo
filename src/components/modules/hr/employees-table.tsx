@@ -48,17 +48,12 @@ export function EmployeesTable({ employees, loading, onOpenAdvance }: EmployeesT
               <th className="py-2.5 px-3">Cargo</th>
               <th className="py-2.5 px-3">Contacto</th>
               <th className="py-2.5 px-3 text-right">Salario Semanal</th>
-              <th className="py-2.5 px-3 text-right">IPS (9%)</th>
-              <th className="py-2.5 px-3 text-right">Neto Semanal</th>
               <th className="py-2.5 px-3 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-card-border font-mono text-muted-foreground">
             {employees.map((emp) => {
               const weeklyGross = Number(emp.salaryStructure?.weeklySalary || 0);
-              const ipsPercent = Number(emp.salaryStructure?.ipsDeductionPercent || 9.0) / 100;
-              const ipsDeduction = Math.round(weeklyGross * ipsPercent);
-              const netWeekly = weeklyGross - ipsDeduction;
 
               return (
                 <tr key={emp.id} className="hover:bg-muted/20 transition-colors">
@@ -77,14 +72,8 @@ export function EmployeesTable({ employees, loading, onOpenAdvance }: EmployeesT
                       <span className="text-[10px] text-muted-foreground/60">—</span>
                     )}
                   </td>
-                  <td className="py-2.5 px-3 text-right font-bold text-foreground">
-                    {formatCurrencyPYG(weeklyGross)}
-                  </td>
-                  <td className="py-2.5 px-3 text-right text-danger font-medium">
-                    -{formatCurrencyPYG(ipsDeduction)}
-                  </td>
                   <td className="py-2.5 px-3 text-right font-bold text-emerald-400">
-                    {formatCurrencyPYG(netWeekly)}
+                    {formatCurrencyPYG(weeklyGross)}
                   </td>
                   <td className="py-2.5 px-3 text-center">
                     <button
@@ -106,7 +95,7 @@ export function EmployeesTable({ employees, loading, onOpenAdvance }: EmployeesT
 
       <div className="bg-[#0d121c] px-4 py-2.5 border-t border-card-border flex items-center justify-between text-[11px] text-muted-foreground font-mono">
         <span>Plantilla total: <strong className="text-foreground">{employees.length}</strong> empleados activos</span>
-        <span>Régimen: Salario Semanal con Retención Ley 9% IPS</span>
+        <span>Régimen: Salario Semanal</span>
       </div>
     </div>
   );

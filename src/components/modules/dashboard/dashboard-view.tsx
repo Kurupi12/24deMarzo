@@ -112,7 +112,7 @@ export function DashboardView() {
             {formatCurrencyPYG(Number(data?.weeklyPayrollTotal || 0))}
           </div>
           <div className="text-[11px] text-muted-foreground font-mono">
-            {data?.activeEmployeesCount || 7} colaboradores (IPS: -{formatCurrencyPYG(Number(data?.weeklyIpsTotal || 0))})
+            {data?.activeEmployeesCount || 7} colaboradores activos
           </div>
         </div>
 

@@ -112,7 +112,7 @@ export function ExpensesBalanceCard({ expenses, topProducts = [] }: ExpensesBala
                 />
                 <div
                   style={{ width: `${pctPayroll}%` }}
-                  title={`Nómina y Cargas IPS: ${pctPayroll}%`}
+                  title={`Nómina de Personal: ${pctPayroll}%`}
                   className="h-full bg-accent rounded-full transition-all duration-700"
                 />
                 <div

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, DollarSign, AlertCircle } from 'lucide-react';
+import { X, DollarSign, AlertCircle, Calendar } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 
 interface AdvanceModalProps {
@@ -18,7 +18,9 @@ interface AdvanceModalProps {
 }
 
 export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: AdvanceModalProps) {
-  const currentPeriod = new Date().toISOString().slice(0, 7); // YYYY-MM
+  const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const currentPeriod = todayStr.slice(0, 7); // YYYY-MM
+  const [requestDate, setRequestDate] = useState(todayStr);
   const [amount, setAmount] = useState('');
   const [deductionPeriod, setDeductionPeriod] = useState(currentPeriod);
   const [reason, setReason] = useState('');
@@ -49,6 +51,7 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
         body: JSON.stringify({
           employeeId: employee.id,
           amount: val,
+          requestDate,
           deductionPeriod,
           reason: reason.trim() || undefined,
         }),
@@ -93,7 +96,31 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-3 font-sans text-xs">
+        <form onSubmit={handleSubmit} className="space-y-3.5 font-sans text-xs">
+          {/* Fecha del Adelanto / Retroactiva */}
+          <div className="p-2.5 rounded-lg bg-[#0d121c] border border-card-border space-y-1">
+            <label className="text-[11px] font-mono font-semibold text-accent flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-accent" />
+              <span>Fecha del Adelanto / Vale *</span>
+            </label>
+            <input
+              type="date"
+              required
+              value={requestDate}
+              onChange={(e) => {
+                const val = e.target.value;
+                setRequestDate(val);
+                if (val) {
+                  setDeductionPeriod(val.slice(0, 7));
+                }
+              }}
+              className="w-full bg-card border border-card-border rounded px-2.5 py-1.5 font-mono text-foreground focus:outline-none focus:border-accent text-xs"
+            />
+            <p className="text-[10px] text-muted-foreground font-sans">
+              Por defecto carga la fecha de hoy, pero puedes seleccionar una fecha anterior (ej. lunes) si estás cargando el vale después.
+            </p>
+          </div>
+
           <div>
             <label className="block text-[11px] font-mono text-muted-foreground mb-1">Monto Solicitado (₲) *</label>
             <input
@@ -110,7 +137,7 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
             />
             <div className="flex items-center gap-1.5 mt-2 flex-wrap">
               <span className="text-[10px] font-mono text-muted-foreground">Comunes:</span>
-              {[100000, 200000, 300000, 500000].filter(amt => amt <= maxAllowed).map((amt) => (
+              {[50000, 100000, 200000, 300000, 500000].filter(amt => amt <= maxAllowed).map((amt) => (
                 <button
                   key={amt}
                   type="button"

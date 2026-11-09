@@ -9,7 +9,8 @@ export const dynamic = 'force-dynamic';
 const CreateAdvanceSchema = z.object({
   employeeId: z.string().uuid(),
   amount: z.number().positive('El monto debe ser mayor a 0'),
-  deductionPeriod: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Formato YYYY-MM requerido'),
+  deductionPeriod: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Formato YYYY-MM requerido').optional(),
+  requestDate: z.string().optional(),
   reason: z.string().max(300).optional(),
 });
 
@@ -17,9 +18,21 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const employeeId = searchParams.get('employeeId');
+    const startDate = searchParams.get('startDate');
+    const endDate = searchParams.get('endDate');
 
     const where: any = {};
     if (employeeId) where.employeeId = employeeId;
+
+    if (startDate || endDate) {
+      where.requestDate = {};
+      if (startDate) where.requestDate.gte = new Date(startDate);
+      if (endDate) {
+        const end = new Date(endDate);
+        end.setHours(23, 59, 59, 999);
+        where.requestDate.lte = end;
+      }
+    }
 
     const advances = await prisma.advancePayment.findMany({
       where,
@@ -28,8 +41,8 @@ export async function GET(req: NextRequest) {
           select: { id: true, code: true, firstName: true, lastName: true },
         },
       },
-      orderBy: { createdAt: 'desc' },
-      take: 50,
+      orderBy: { requestDate: 'desc' },
+      take: 100,
     });
 
     return NextResponse.json(createSuccessResponse(advances));
@@ -71,12 +84,19 @@ export async function POST(req: NextRequest) {
       );
     }
 
+    // Resolver fecha del adelanto (retroactiva o del día) y periodo fiscal
+    const requestDate = data.requestDate ? new Date(`${data.requestDate}T12:00:00Z`) : new Date();
+    const deductionPeriod =
+      data.deductionPeriod ||
+      `${requestDate.getFullYear()}-${String(requestDate.getMonth() + 1).padStart(2, '0')}`;
+
     const advance = await prisma.advancePayment.create({
       data: {
         employeeId: data.employeeId,
         amount: data.amount,
-        deductionPeriod: data.deductionPeriod,
-        reason: data.reason?.trim() || 'Solicitud de anticipo de fondos',
+        requestDate,
+        deductionPeriod,
+        reason: data.reason?.trim() || 'Vale / Anticipo semanal',
         status: 'APPROVED', // Aprobado automáticamente si no excede el límite
       },
     });

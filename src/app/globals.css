@@ -75,6 +75,26 @@ input[type="number"] {
     box-shadow: none !important;
   }
 
+  /* Modo 2: Recibo Semanal de Salarios Duplicado en Hoja A4 */
+  body.printing-weekly-receipt #printable-weekly-receipt,
+  body.printing-weekly-receipt #printable-weekly-receipt * {
+    visibility: visible;
+  }
+
+  body.printing-weekly-receipt #printable-weekly-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+  }
+
   /* Modo 2: Ticket Térmico / Factura Fiscal */
   body.printing-receipt #printable-receipt,
   body.printing-receipt #printable-receipt * {

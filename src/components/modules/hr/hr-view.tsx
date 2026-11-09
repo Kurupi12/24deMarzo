@@ -5,11 +5,12 @@ import { EmployeesTable } from './employees-table';
 import { AdvanceModal } from './advance-modal';
 import { AttendanceMonitor } from './attendance-monitor';
 import { CreateEmployeeModal } from './create-employee-modal';
-import { Users, UserPlus, ScanFace, DollarSign, Wallet } from 'lucide-react';
+import { WeeklySettlementPanel } from './weekly-settlement-panel';
+import { Users, UserPlus, ScanFace, DollarSign, Wallet, ReceiptText } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 
 export function HrView() {
-  const [activeTab, setActiveTab] = useState<'employees' | 'biometrics'>('employees');
+  const [activeTab, setActiveTab] = useState<'employees' | 'settlement' | 'biometrics'>('employees');
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -109,6 +110,19 @@ export function HrView() {
 
         <button
           type="button"
+          onClick={() => setActiveTab('settlement')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            activeTab === 'settlement'
+              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <ReceiptText className="w-3.5 h-3.5" />
+          <span>Liquidación Semanal & Recibos A4</span>
+        </button>
+
+        <button
+          type="button"
           onClick={() => setActiveTab('biometrics')}
           className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
             activeTab === 'biometrics'
@@ -128,6 +142,8 @@ export function HrView() {
           loading={loading}
           onOpenAdvance={setSelectedEmpForAdvance}
         />
+      ) : activeTab === 'settlement' ? (
+        <WeeklySettlementPanel />
       ) : (
         <AttendanceMonitor />
       )}

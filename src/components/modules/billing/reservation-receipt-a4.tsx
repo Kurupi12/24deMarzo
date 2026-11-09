@@ -206,3 +206,4 @@ export function ReservationReceiptA4({ sale }: ReservationReceiptA4Props) {
     </div>
   );
 }
+

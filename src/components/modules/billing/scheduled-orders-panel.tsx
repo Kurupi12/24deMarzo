@@ -585,3 +585,4 @@ export function ScheduledOrdersPanel({ onOrderDispatched }: { onOrderDispatched?
     </div>
   );
 }
+

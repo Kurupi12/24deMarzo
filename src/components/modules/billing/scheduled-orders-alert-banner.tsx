@@ -67,3 +67,4 @@ export function ScheduledOrdersAlertBanner({ onViewScheduled }: ScheduledOrdersA
     </div>
   );
 }
+

@@ -31,6 +31,12 @@ export const CreateSaleSchema = z.object({
   vehiclePlate: z.string().optional().nullable(),
   deliveryStatus: z.string().optional().default('DELIVERED'),
   deliveryNotes: z.string().optional().nullable(),
+  // Programación de Entrega a Futuro y Señas
+  isScheduled: z.boolean().optional().default(false),
+  scheduledDeliveryDate: z.string().optional().nullable(),
+  deliveryTimeSlot: z.string().optional().nullable(),
+  downPayment: z.number().min(0).optional().default(0),
+  balanceDue: z.number().min(0).optional().default(0),
   secondaryDriverId: z.string().uuid().optional().nullable(),
   secondaryHelperIds: z.array(z.string()).optional().default([]),
   secondaryVehiclePlate: z.string().optional().nullable(),

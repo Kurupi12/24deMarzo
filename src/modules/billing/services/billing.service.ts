@@ -39,6 +39,13 @@ export class BillingService {
       // 1. Obtener almacén principal para deducción de stock
       const warehouse = await tx.warehouse.findFirst({ where: { isMain: true } });
 
+      const isScheduled = !!input.isScheduled;
+      const downPayment = Number(input.downPayment || 0);
+      const balanceDue = Number(input.balanceDue ?? (taxSummary.grandTotal - downPayment));
+      const reservationReceiptNumber = isScheduled
+        ? `RES-${saleNumber.replace(/\D/g, '').padStart(6, '0')}`
+        : null;
+
       const sale = await tx.sale.create({
         data: {
           saleNumber,
@@ -56,8 +63,14 @@ export class BillingService {
           driverId: input.driverId || null,
           helperIds: input.helperIds || [],
           vehiclePlate: input.vehiclePlate?.trim() || null,
-          deliveryStatus: input.deliveryStatus || 'DELIVERED',
+          deliveryStatus: isScheduled ? 'PENDING_DELIVERY' : (input.deliveryStatus || 'DELIVERED'),
           deliveryNotes: input.deliveryNotes?.trim() || null,
+          isScheduled,
+          scheduledDeliveryDate: input.scheduledDeliveryDate ? new Date(input.scheduledDeliveryDate) : null,
+          deliveryTimeSlot: input.deliveryTimeSlot || null,
+          downPayment,
+          balanceDue,
+          reservationReceiptNumber,
           secondaryDriverId: input.secondaryDriverId || null,
           secondaryHelperIds: input.secondaryHelperIds || [],
           secondaryVehiclePlate: input.secondaryVehiclePlate?.trim() || null,
@@ -68,7 +81,7 @@ export class BillingService {
           totalVat10: taxSummary.taxable10,
           vat5Amount: taxSummary.vat5Amount,
           vat10Amount: taxSummary.vat10Amount,
-          status: 'COMPLETED',
+          status: isScheduled ? 'PENDING' : 'COMPLETED',
           items: {
             create: itemCalculations.map((item) => ({
               productId: item.productId,
@@ -100,39 +113,48 @@ export class BillingService {
         });
       }
 
-      // 2. Deducir stock y asentar Kardex
+      // 2. Gestión de Stock: Si es programado, reserva el stock; si es entrega inmediata, deduce de stock y asienta Kardex
       if (warehouse) {
         for (const item of itemCalculations) {
           const stockItem = await tx.stockItem.findUnique({
             where: { productId_warehouseId: { productId: item.productId, warehouseId: warehouse.id } },
           });
 
-          const prevStock = Number(stockItem?.currentStock || 0);
-          const newStock = prevStock - item.quantity;
-
           if (stockItem) {
-            await tx.stockItem.update({
-              where: { id: stockItem.id },
-              data: { currentStock: newStock },
-            });
-          }
+            if (isScheduled) {
+              // Incrementar stock reservado para evitar sobreventas mientras la mercadería sigue en planta
+              await tx.stockItem.update({
+                where: { id: stockItem.id },
+                data: { reservedStock: Number(stockItem.reservedStock || 0) + item.quantity },
+              });
+            } else {
+              // Deducción inmediata física
+              const prevStock = Number(stockItem.currentStock || 0);
+              const newStock = prevStock - item.quantity;
 
-          await tx.stockMovement.create({
-            data: {
-              movementType: 'OUT_SALE',
-              productId: item.productId,
-              warehouseId: warehouse.id,
-              quantity: item.quantity,
-              unitCost: item.unitPrice * 0.7, // estimación
-              totalCost: item.quantity * item.unitPrice * 0.7,
-              previousStock: prevStock,
-              newStock: newStock,
-              referenceType: 'FACTURA_VENTA',
-              referenceId: sale.id,
-              notes: `Venta mostrador a ${sale.customerName}`,
-              userId: input.userId,
-            },
-          });
+              await tx.stockItem.update({
+                where: { id: stockItem.id },
+                data: { currentStock: newStock },
+              });
+
+              await tx.stockMovement.create({
+                data: {
+                  movementType: 'OUT_SALE',
+                  productId: item.productId,
+                  warehouseId: warehouse.id,
+                  quantity: item.quantity,
+                  unitCost: item.unitPrice * 0.7, // estimación
+                  totalCost: item.quantity * item.unitPrice * 0.7,
+                  previousStock: prevStock,
+                  newStock: newStock,
+                  referenceType: 'FACTURA_VENTA',
+                  referenceId: sale.id,
+                  notes: `Venta mostrador a ${sale.customerName}`,
+                  userId: input.userId,
+                },
+              });
+            }
+          }
         }
       }
 

@@ -7,13 +7,15 @@ import { SalesHistoryTable } from './sales-history-table';
 import { InvoiceDetailModal } from './invoice-detail-modal';
 import { CashShiftPanel } from './cash-shift-panel';
 import { CustomerAccountsPanel } from './customer-accounts-panel';
-import { ReceiptText, History, Landmark, DollarSign, Receipt, CheckCircle2, BookOpen } from 'lucide-react';
+import { ScheduledOrdersPanel } from './scheduled-orders-panel';
+import { ScheduledOrdersAlertBanner } from './scheduled-orders-alert-banner';
+import { ReceiptText, History, Landmark, DollarSign, Receipt, CheckCircle2, BookOpen, Calendar } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 
 export function BillingView() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'pos';
-  const [activeTab, setActiveTab] = useState<'pos' | 'history' | 'shifts' | 'accounts'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'pos' | 'history' | 'shifts' | 'accounts' | 'scheduled'>(initialTab);
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSaleForDetail, setSelectedSaleForDetail] = useState<any>(null);
@@ -51,6 +53,9 @@ export function BillingView() {
           Emisión de DTEs fiscales con CDC de 44 dígitos, liquidación de IVA y control de turnos de caja.
         </p>
       </div>
+
+      {/* Alerta Destacada de Entregas Programadas para HOY */}
+      <ScheduledOrdersAlertBanner onViewScheduled={() => setActiveTab('scheduled')} />
 
       {/* Tarjetas KPI de Facturación */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -135,6 +140,19 @@ export function BillingView() {
           <BookOpen className="w-3.5 h-3.5" />
           <span>Cuentas Corrientes & Libreta</span>
         </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('scheduled')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            activeTab === 'scheduled'
+              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20 font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <Calendar className="w-3.5 h-3.5" />
+          <span>Pedidos Programados & Reservas</span>
+        </button>
       </div>
 
       {/* Contenido */}
@@ -155,8 +173,10 @@ export function BillingView() {
         />
       ) : activeTab === 'shifts' ? (
         <CashShiftPanel />
-      ) : (
+      ) : activeTab === 'accounts' ? (
         <CustomerAccountsPanel onViewInvoice={setSelectedSaleForDetail} />
+      ) : (
+        <ScheduledOrdersPanel onOrderDispatched={fetchSales} />
       )}
 
       {/* Modal de Detalle de DTE */}

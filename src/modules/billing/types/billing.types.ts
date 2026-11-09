@@ -25,6 +25,11 @@ export interface CreateSaleInput {
   vehiclePlate?: string | null;
   deliveryStatus?: string;
   deliveryNotes?: string | null;
+  isScheduled?: boolean;
+  scheduledDeliveryDate?: Date | string | null;
+  deliveryTimeSlot?: string | null;
+  downPayment?: number;
+  balanceDue?: number;
   secondaryDriverId?: string | null;
   secondaryHelperIds?: string[];
   secondaryVehiclePlate?: string | null;

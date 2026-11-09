@@ -340,6 +340,14 @@ model Sale {
   deliveryStatus   String           @default("DELIVERED")
   deliveryNotes    String?
 
+  // Programación de Entrega a Futuro, Señas y Recordatorios
+  isScheduled             Boolean          @default(false)
+  scheduledDeliveryDate   DateTime?
+  deliveryTimeSlot        String?          // ej: "MAÑANA (07:30 - 12:00)", "TARDE (13:00 - 18:00)"
+  downPayment             Decimal          @default(0) @db.Decimal(14, 2)
+  balanceDue              Decimal          @default(0) @db.Decimal(14, 2)
+  reservationReceiptNumber String?
+
   // 2do Chofer y 2do Camión (para envíos dobles o de gran volumen)
   secondaryDriverId String?
   secondaryDriver   Employee?       @relation("SaleSecondaryDriver", fields: [secondaryDriverId], references: [id])
@@ -358,6 +366,7 @@ model Sale {
   @@index([customerRuc])
   @@index([projectId])
   @@index([driverId])
+  @@index([scheduledDeliveryDate])
   @@index([createdAt])
   @@map("sales")
 }

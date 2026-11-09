@@ -73,3 +73,4 @@ export function WeeklyReceiptModal({ settlement, period, isOpen, onClose }: Week
     </div>
   );
 }
+

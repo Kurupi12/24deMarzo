@@ -241,3 +241,4 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
     </div>
   );
 }
+

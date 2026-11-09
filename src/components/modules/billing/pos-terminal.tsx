@@ -22,6 +22,8 @@ import {
   Printer,
   FileText,
   Clock,
+  Calendar,
+  Bell,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { calculateVatBreakdown } from '@/shared/utils/vat-calculator';
@@ -74,6 +76,16 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
   const [secondaryDriverId, setSecondaryDriverId] = useState<string>('');
   const [secondaryVehiclePlate, setSecondaryVehiclePlate] = useState<string>('');
   const [secondaryHelperIds, setSecondaryHelperIds] = useState<string[]>([]);
+
+  // Programación de Entrega a Futuro y Señas
+  const [isScheduled, setIsScheduled] = useState(false);
+  const [scheduledDeliveryDate, setScheduledDeliveryDate] = useState(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 2); // 2 días después (ej: de sábado a lunes)
+    return d.toISOString().slice(0, 10);
+  });
+  const [deliveryTimeSlot, setDeliveryTimeSlot] = useState('MAÑANA (07:30 - 12:00)');
+  const [downPayment, setDownPayment] = useState<string>('');
 
   const [loading, setLoading] = useState(false);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -308,6 +320,12 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
       return;
     }
 
+    const grandTotal = breakdown.grandTotal;
+    const downPaymentNum = isScheduled
+      ? Math.min(grandTotal, Math.max(0, parseFloat(downPayment) || 0))
+      : 0;
+    const balanceDueNum = isScheduled ? Math.max(0, grandTotal - downPaymentNum) : 0;
+
     setLoading(true);
     try {
       const res = await fetch('/api/v1/billing/sales', {
@@ -324,8 +342,14 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
           driverId: driverId || null,
           helperIds: selectedHelperIds,
           vehiclePlate: vehiclePlate || null,
-          deliveryStatus,
+          deliveryStatus: isScheduled ? 'PENDING_DELIVERY' : deliveryStatus,
           deliveryNotes: deliveryNotes || null,
+          // Programación a Futuro y Seña
+          isScheduled,
+          scheduledDeliveryDate: isScheduled ? scheduledDeliveryDate : null,
+          deliveryTimeSlot: isScheduled ? deliveryTimeSlot : null,
+          downPayment: downPaymentNum,
+          balanceDue: balanceDueNum,
           // 2do Chofer y 2do Camión si está habilitado
           secondaryDriverId: enableSecondaryDelivery ? (secondaryDriverId || null) : null,
           secondaryVehiclePlate: enableSecondaryDelivery ? (secondaryVehiclePlate || null) : null,
@@ -336,7 +360,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
             unitPrice: i.unitPrice,
             vatRate: i.vatRate,
           })),
-          issueInvoiceImmediately: paymentCondition !== 'A_CUENTA',
+          issueInvoiceImmediately: !isScheduled && paymentCondition !== 'A_CUENTA',
         }),
       });
       const data = await res.json();
@@ -345,11 +369,13 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
         setPaymentReference('');
         setSelectedProjectId('');
         setDeliveryNotes('');
+        setIsScheduled(false);
+        setDownPayment('');
         setEnableSecondaryDelivery(false);
         setSecondaryDriverId('');
         setSecondaryVehiclePlate('');
         setSecondaryHelperIds([]);
-        // Disparar la apertura inmediata del comprobante fiscal y recibo de despacho
+        // Disparar la apertura inmediata del comprobante fiscal y recibo de despacho / reserva
         onSaleCompleted(data.data);
       } else {
         customAlert({
@@ -798,6 +824,91 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
               </div>
             )}
 
+            {/* SECCIÓN ESPECIAL: PROGRAMACIÓN DE ENTREGA A FUTURO & SEÑA */}
+            <div className="border border-card-border rounded-md bg-[#0b0f19] p-3 space-y-2.5">
+              <div className="flex items-center justify-between">
+                <label className="text-[11px] font-mono font-bold text-amber-400 flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={isScheduled}
+                    onChange={(e) => setIsScheduled(e.target.checked)}
+                    className="w-4 h-4 rounded border-card-border text-amber-500 focus:ring-amber-400 accent-amber-500 cursor-pointer"
+                  />
+                  <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                  <span>Programar Entrega a Futuro (Reserva con Seña)</span>
+                </label>
+                {isScheduled && (
+                  <span className="text-[9px] font-mono bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-semibold flex items-center gap-1">
+                    <Bell className="w-2.5 h-2.5" /> Alarma Activa
+                  </span>
+                )}
+              </div>
+
+              {isScheduled && (
+                <div className="p-3 rounded-lg bg-[#0d121c] border border-amber-500/30 space-y-3 animate-in fade-in duration-150">
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <div>
+                      <label className="block text-[10px] font-mono font-semibold text-amber-300 mb-1 flex items-center gap-1">
+                        <Clock className="w-3 h-3" /> Fecha de Entrega *
+                      </label>
+                      <input
+                        type="date"
+                        required
+                        value={scheduledDeliveryDate}
+                        onChange={(e) => setScheduledDeliveryDate(e.target.value)}
+                        className="w-full bg-card border border-amber-500/40 rounded px-2.5 py-1.5 text-foreground text-xs font-mono focus:outline-none focus:border-amber-400 font-bold"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-[10px] font-mono text-muted-foreground mb-1">
+                        Turno / Franja Horaria
+                      </label>
+                      <select
+                        value={deliveryTimeSlot}
+                        onChange={(e) => setDeliveryTimeSlot(e.target.value)}
+                        className="w-full bg-card border border-card-border rounded px-2 py-1.5 text-foreground text-xs font-mono"
+                      >
+                        <option value="MAÑANA (07:30 - 12:00)">Mañana (07:30 - 12:00)</option>
+                        <option value="TARDE (13:00 - 18:00)">Tarde (13:00 - 18:00)</option>
+                        <option value="PRIMERA HORA">Primera Hora (07:00 hs)</option>
+                        <option value="A COORDINAR">A coordinar con cliente</option>
+                      </select>
+                    </div>
+                  </div>
+
+                  {/* Cuadro de Seña y Saldo a Cobrar */}
+                  <div className="p-2.5 rounded bg-amber-500/10 border border-amber-500/20 space-y-2">
+                    <div className="flex items-center justify-between text-[11px] font-mono">
+                      <span className="text-muted-foreground font-semibold">Monto de Seña Abonado Hoy (Gs.):</span>
+                      <input
+                        type="number"
+                        min="0"
+                        max={breakdown.grandTotal}
+                        value={downPayment}
+                        onChange={(e) => setDownPayment(e.target.value)}
+                        placeholder="Ej: 300000"
+                        className="w-32 bg-[#090d16] border border-amber-500/40 rounded px-2.5 py-1 text-right font-mono text-xs font-bold text-foreground focus:outline-none focus:border-amber-400"
+                      />
+                    </div>
+
+                    <div className="flex justify-between items-center text-[11px] font-mono pt-1.5 border-t border-amber-500/20">
+                      <span className="text-muted-foreground">Saldo a Cobrar al Entregar:</span>
+                      <span className="font-extrabold text-red-400 text-xs">
+                        {formatCurrencyPYG(
+                          Math.max(0, breakdown.grandTotal - (parseFloat(downPayment) || 0))
+                        )}
+                      </span>
+                    </div>
+
+                    <p className="text-[10px] text-muted-foreground font-sans leading-tight">
+                      &bull; El stock físico queda <strong className="text-foreground">reservado</strong> en depósito para evitar sobreventas.<br />
+                      &bull; La seña ingresa a la caja del día y se emite el <strong className="text-foreground">Comprobante de Reserva A4 en Duplicado</strong>.
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Logística y Despacho con Soporte de Dos Choferes y Camiones */}
             <div className="border border-card-border rounded-md bg-[#0b0f19] overflow-hidden">
               <button
@@ -1021,12 +1132,23 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
             type="submit"
             disabled={loading || cart.length === 0}
             className={`w-full py-2.5 rounded-md text-white text-xs font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors shadow-md ${
-              paymentCondition === 'A_CUENTA'
+              isScheduled
+                ? 'bg-amber-600 hover:bg-amber-500'
+                : paymentCondition === 'A_CUENTA'
                 ? 'bg-amber-600 hover:bg-amber-500'
                 : 'bg-primary hover:bg-primary-hover'
             }`}
           >
-            {paymentCondition === 'A_CUENTA' ? (
+            {isScheduled ? (
+              <>
+                <Calendar className="w-4 h-4" />
+                <span>
+                  {loading
+                    ? 'Registrando Reserva...'
+                    : 'Registrar Pedido Programado (Imprimir Reserva A4 Duplicado)'}
+                </span>
+              </>
+            ) : paymentCondition === 'A_CUENTA' ? (
               <>
                 <Truck className="w-4 h-4" />
                 <span>

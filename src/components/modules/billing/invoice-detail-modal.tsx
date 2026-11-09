@@ -4,6 +4,7 @@ import React, { useState } from 'react';
 import { X, Printer, ShieldCheck, CheckCircle2, Truck, FileText, Copy } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { DeliveryOrderA4 } from './delivery-order-a4';
+import { ReservationReceiptA4 } from './reservation-receipt-a4';
 
 interface InvoiceDetailModalProps {
   sale: any | null;
@@ -92,7 +93,7 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
               }`}
             >
               <Truck className="w-3.5 h-3.5" />
-              <span>Orden de Entrega (2 en A4)</span>
+              <span>{sale.isScheduled ? 'Comprobante de Reserva & Seña (A4)' : 'Orden de Entrega (2 en A4)'}</span>
             </button>
 
             <button
@@ -118,7 +119,11 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
                 className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-lg transition-all"
               >
                 <Printer className="w-4 h-4" />
-                <span>Imprimir Orden de Entrega (Hoja A4 Duplicado)</span>
+                <span>
+                  {sale.isScheduled
+                    ? 'Imprimir Comprobante de Reserva (A4 Duplicado)'
+                    : 'Imprimir Orden de Entrega (Hoja A4 Duplicado)'}
+                </span>
               </button>
             ) : (
               <button
@@ -149,10 +154,18 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
             <div className="flex flex-col items-center">
               <div className="text-[11px] font-mono text-muted-foreground mb-2 flex items-center gap-2 no-print">
                 <Copy className="w-3.5 h-3.5 text-primary" />
-                <span>Vista Previa: 2 órdenes en 1 hoja A4 (Original Superior + Duplicado Inferior)</span>
+                <span>
+                  {sale.isScheduled
+                    ? 'Vista Previa: Comprobante de Reserva & Seña (Original + Duplicado en A4)'
+                    : 'Vista Previa: 2 órdenes en 1 hoja A4 (Original Superior + Duplicado Inferior)'}
+                </span>
               </div>
               <div className="w-full max-w-[210mm] bg-white rounded shadow-2xl p-2 border border-neutral-300">
-                <DeliveryOrderA4 sale={sale} />
+                {sale.isScheduled ? (
+                  <ReservationReceiptA4 sale={sale} />
+                ) : (
+                  <DeliveryOrderA4 sale={sale} />
+                )}
               </div>
             </div>
           ) : (

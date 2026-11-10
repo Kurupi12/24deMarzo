@@ -31,3 +31,4 @@ export function comparePin(pin: string, storedPin: string | null): boolean {
   }
   return pin === storedPin;
 }
+

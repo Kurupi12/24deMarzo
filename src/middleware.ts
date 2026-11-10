@@ -44,9 +44,15 @@ export async function middleware(req: NextRequest) {
     const role = payload.role as string;
 
     // Regla de Protección Estricta: Módulo de Recursos Humanos (/hr)
-    // Solo permitido para SUPER_ADMIN, ADMIN y HR_MANAGER
+    // Permitido para SUPER_ADMIN, ADMIN, HR_MANAGER y OPERATIONAL_ADMIN (Fátima)
     if (pathname.startsWith('/hr')) {
-      if (role !== 'SUPER_ADMIN' && role !== 'ADMIN' && role !== 'HR_MANAGER') {
+      if (
+        role !== 'SUPER_ADMIN' &&
+        role !== 'ADMIN' &&
+        role !== 'HR_MANAGER' &&
+        role !== 'OPERATIONAL_ADMIN' &&
+        role !== 'GENERAL_MANAGER'
+      ) {
         // Redirigir a inicio con parámetro de acceso denegado
         const deniedUrl = new URL('/?error=forbidden_hr', req.url);
         return NextResponse.redirect(deniedUrl);
@@ -92,3 +98,4 @@ export const config = {
     '/((?!_next/static|_next/image|favicon.ico).*)',
   ],
 };
+

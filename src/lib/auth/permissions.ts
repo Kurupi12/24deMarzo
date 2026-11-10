@@ -41,6 +41,13 @@ export const ROLE_DEFINITIONS: Record<SystemRole, RoleConfig> = {
     description: 'Supervisión de ventas, caja, compras y reportes gerenciales.',
     allowedModules: ['dashboard', 'inventory', 'purchases', 'billing', 'shifts', 'scheduled', 'reports', 'hr', 'settings'],
   },
+  OPERATIONAL_ADMIN: {
+    label: 'Administración Operativa (Fátima)',
+    badgeColor: 'text-teal-400 border-teal-500/30',
+    badgeBg: 'bg-teal-500/10',
+    description: 'Carga de productos, facturas, notas de pedido, recibos y nómina de personal. Precios protegidos por código.',
+    allowedModules: ['dashboard', 'inventory', 'billing', 'shifts', 'scheduled', 'hr'],
+  },
   CASHIER: {
     label: 'Cajero de Mostrador',
     badgeColor: 'text-emerald-400 border-emerald-500/30',
@@ -87,3 +94,4 @@ export function hasModulePermission(role: SystemRole | undefined | null, module:
   if (!config) return false;
   return config.allowedModules.includes(module);
 }
+

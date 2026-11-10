@@ -482,6 +482,7 @@ export function UsersManager() {
                 >
                   <option value="SUPER_ADMIN">Super Administrador (Osvaldo & Dirección)</option>
                   <option value="ADMIN">Administrador General</option>
+                  <option value="OPERATIONAL_ADMIN">Administración Operativa (Fátima - Productos, Ventas, RRHH)</option>
                   <option value="CASHIER">Cajero de Mostrador (Punto de Venta & Caja)</option>
                   <option value="WAREHOUSE_MANAGER">Jefe de Depósito & Despacho (Stock & Flota)</option>
                   <option value="ACCOUNTANT">Contador / Auditor (IVA & Facturas DNIT)</option>
@@ -599,3 +600,4 @@ export function UsersManager() {
     </div>
   );
 }
+

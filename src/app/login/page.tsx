@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { DepositoLogo } from '@/components/layout/deposito-logo';
 import {
@@ -9,10 +9,8 @@ import {
   Eye,
   EyeOff,
   ShieldCheck,
-  Building2,
   AlertCircle,
   Loader2,
-  KeyRound,
   ArrowRight,
 } from 'lucide-react';
 
@@ -23,6 +21,13 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Asegurar que los campos inicien completamente vacíos sin recordar contraseñas
+  useEffect(() => {
+    setEmail('');
+    setPassword('');
+    setErrorMessage('');
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,13 +43,8 @@ export default function LoginPage() {
     if (!res.success) {
       setErrorMessage(res.error || 'Credenciales inválidas');
       setIsLoading(false);
+      setPassword(''); // Limpiar campo de clave tras error
     }
-  };
-
-  const handleQuickFill = (userEmail: string, pass: string) => {
-    setEmail(userEmail);
-    setPassword(pass);
-    setErrorMessage('');
   };
 
   return (
@@ -80,8 +80,8 @@ export default function LoginPage() {
             </div>
           )}
 
-          {/* Formulario de Login */}
-          <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Formulario de Login sin autocompletado ni recordar claves */}
+          <form onSubmit={handleSubmit} autoComplete="off" className="space-y-4">
             {/* Campo de Correo / Usuario */}
             <div className="space-y-1.5">
               <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
@@ -91,13 +91,14 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   type="text"
+                  name="d4m_identity_user"
+                  autoComplete="off"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="ej. admin@deposito4demarzo.com.py"
+                  placeholder="usuario@deposito4demarzo.com.py"
                   disabled={isLoading}
-                  autoComplete="username"
                   required
-                  className="w-full bg-[#0d121c] border border-card-border rounded-lg px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50"
+                  className="w-full bg-[#0d121c] border border-card-border rounded-lg px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50"
                 />
               </div>
             </div>
@@ -113,13 +114,14 @@ export default function LoginPage() {
               <div className="relative">
                 <input
                   type={showPassword ? 'text' : 'password'}
+                  name="d4m_identity_password"
+                  autoComplete="new-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="&bull;&bull;&bull;&bull;&bull;&bull;&bull;&bull;"
                   disabled={isLoading}
-                  autoComplete="current-password"
                   required
-                  className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-3.5 pr-10 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/50 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50"
+                  className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-3.5 pr-10 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/40 focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-colors disabled:opacity-50"
                 />
                 <button
                   type="button"
@@ -155,37 +157,10 @@ export default function LoginPage() {
             </button>
           </form>
 
-          {/* Accesos rápidos de demostración / configuración inicial */}
-          <div className="pt-3 border-t border-card-border/60">
-            <div className="text-[11px] font-mono text-muted-foreground mb-2 flex items-center justify-between">
-              <span className="flex items-center gap-1">
-                <KeyRound className="w-3 h-3 text-amber-400" />
-                <span>Acceso Administrador Inicial:</span>
-              </span>
-              <button
-                type="button"
-                onClick={() => handleQuickFill('admin@deposito4demarzo.com.py', 'Admin1234!')}
-                className="text-[10px] text-primary hover:underline font-mono"
-              >
-                Autocompletar
-              </button>
-            </div>
-            <div className="p-2 bg-[#0d121c]/80 border border-card-border rounded-md text-[11px] font-mono text-muted-foreground space-y-0.5">
-              <div className="flex justify-between">
-                <span>Usuario:</span>
-                <span className="text-foreground">admin@deposito4demarzo.com.py</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Clave por defecto:</span>
-                <span className="text-foreground">Admin1234!</span>
-              </div>
-            </div>
-          </div>
-
           {/* Pie de Seguridad */}
-          <div className="flex items-center justify-center gap-2 text-[11px] font-mono text-muted-foreground/70">
+          <div className="flex items-center justify-center gap-2 pt-2 border-t border-card-border/60 text-[11px] font-mono text-muted-foreground/70">
             <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Acceso Seguro con Cifrado & Auditoría DNIT</span>
+            <span>Acceso Seguro &bull; Sesión Cifrada</span>
           </div>
 
         </div>

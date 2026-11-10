@@ -22,6 +22,7 @@ enum SystemRole {
   SUPER_ADMIN
   ADMIN
   GENERAL_MANAGER
+  OPERATIONAL_ADMIN
   ACCOUNTANT
   CASHIER
   WAREHOUSE_MANAGER
@@ -47,11 +48,30 @@ model User {
   verifiedAttendances AttendanceRecord[] @relation("AttendanceVerifier")
   approvedAdvances    AdvancePayment[]   @relation("AdvanceApprover")
   approvedLeaves      LeaveRequest[]     @relation("LeaveApprover")
+  createdTokens       PriceOverrideToken[] @relation("TokenCreator")
+  usedTokens          PriceOverrideToken[] @relation("TokenConsumer")
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
 
   @@map("users")
+}
+
+model PriceOverrideToken {
+  id              String      @id @default(uuid())
+  code            String      @unique // Código OTP de 6 dígitos (ej: 849201)
+  createdById     String
+  createdBy       User        @relation("TokenCreator", fields: [createdById], references: [id])
+  usedById        String?
+  usedBy          User?       @relation("TokenConsumer", fields: [usedById], references: [id])
+  isUsed          Boolean     @default(false)
+  usedAt          DateTime?
+  expiresAt       DateTime
+  notes           String?
+  createdAt       DateTime    @default(now())
+
+  @@index([code, isUsed])
+  @@map("price_override_tokens")
 }
 
 // ------------------------------------------------------------------------------

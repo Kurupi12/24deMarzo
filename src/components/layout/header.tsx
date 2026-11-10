@@ -16,10 +16,12 @@ import {
   KeyRound,
   Shield,
   ChevronDown,
+  Sparkles,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_DEFINITIONS } from '@/lib/auth/permissions';
 import { OperatorSwitchModal } from './operator-switch-modal';
+import { OtpGeneratorModal } from './otp-generator-modal';
 
 interface SystemNotification {
   id: string;
@@ -38,9 +40,12 @@ export function Header() {
   const [isNotifOpen, setIsNotifOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const [isSwitchModalOpen, setIsSwitchModalOpen] = useState(false);
+  const [isOtpModalOpen, setIsOtpModalOpen] = useState(false);
 
   const notifDropdownRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
+
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
 
   const fetchNotifications = async () => {
     try {
@@ -101,6 +106,19 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Botón de Generar Código de Descuento (Exclusivo para Osvaldo / Super Admin) */}
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => setIsOtpModalOpen(true)}
+              title="Generar código de 6 dígitos para autorizar cambio de precio en caja"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-400 text-xs font-semibold shadow-sm transition-all active:scale-[0.98]"
+            >
+              <KeyRound className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden sm:inline">Autorizar Descuento (OTP)</span>
+            </button>
+          )}
+
           {/* Indicador de conexión Neon Postgres */}
           <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded bg-[#0d121c] border border-card-border text-[11px] font-mono text-muted-foreground">
             <Database className="w-3.5 h-3.5 text-accent" />
@@ -239,6 +257,21 @@ export function Header() {
                 </div>
 
                 <div className="p-1 space-y-0.5">
+                  {/* Opción de generar OTP si es admin */}
+                  {isSuperAdmin && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setIsUserMenuOpen(false);
+                        setIsOtpModalOpen(true);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-amber-400 hover:bg-amber-500/10 rounded-md transition-colors"
+                    >
+                      <KeyRound className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                      <span>Generar Token Descuento</span>
+                    </button>
+                  )}
+
                   {/* Opción: Cambiar de Cajero / Operador (PIN) */}
                   <button
                     type="button"
@@ -248,7 +281,7 @@ export function Header() {
                     }}
                     className="w-full flex items-center gap-2.5 px-3 py-2 text-xs font-medium text-foreground hover:bg-muted/30 rounded-md transition-colors"
                   >
-                    <KeyRound className="w-3.5 h-3.5 text-primary shrink-0" />
+                    <User className="w-3.5 h-3.5 text-primary shrink-0" />
                     <span>Cambiar Operador (PIN)</span>
                   </button>
 
@@ -285,6 +318,12 @@ export function Header() {
       <OperatorSwitchModal
         isOpen={isSwitchModalOpen}
         onClose={() => setIsSwitchModalOpen(false)}
+      />
+
+      {/* Modal de Generación de Token OTP de Precio */}
+      <OtpGeneratorModal
+        isOpen={isOtpModalOpen}
+        onClose={() => setIsOtpModalOpen(false)}
       />
     </>
   );

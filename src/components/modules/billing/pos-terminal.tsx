@@ -24,13 +24,23 @@ import {
   Clock,
   Calendar,
   Bell,
+  Lock,
+  Unlock,
+  KeyRound,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { calculateVatBreakdown } from '@/shared/utils/vat-calculator';
 import { validateParaguayRuc } from '@/shared/utils/ruc-validator';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
+import { useAuth } from '@/lib/auth/auth-context';
+import { PriceAuthModal } from './price-auth-modal';
 
 export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any) => void }) {
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
+  const [unlockedProductIds, setUnlockedProductIds] = useState<string[]>([]);
+  const [authModalProduct, setAuthModalProduct] = useState<{ id: string; name: string; originalPrice: number } | null>(null);
+
   const { alert: customAlert } = useCustomDialog();
   const [productSearch, setProductSearch] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -520,28 +530,88 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                           </div>
                         </div>
 
-                        {/* Modificador de Precio Unitario (Precio Negociado) */}
-                        <div className="flex items-center gap-1.5">
-                          <span className="text-[10px] font-mono text-muted-foreground font-semibold">P. Unit:</span>
-                          <input
-                            type="number"
-                            min="0"
-                            step="100"
-                            value={item.unitPrice}
-                            onFocus={(e) => e.target.select()}
-                            onClick={(e) => (e.target as HTMLInputElement).select()}
-                            onKeyDown={(e) => {
-                              if (e.key === 'Enter') {
-                                e.preventDefault();
-                                searchInputRef.current?.focus();
-                              }
-                            }}
-                            onChange={(e) => updateUnitPrice(item.productId, parseInt(e.target.value) || 0)}
-                            className={`w-28 bg-card border rounded px-2 py-0.5 text-right font-mono font-bold text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:outline-none focus:bg-primary/10 ${
-                              isBelowCost ? 'border-warning text-warning' : isModified ? 'border-primary text-primary' : 'border-card-border text-foreground'
-                            }`}
-                          />
-                        </div>
+                        {/* Modificador de Precio Unitario (Precio Protegido por Token OTP) */}
+                        {(() => {
+                          const isPriceUnlocked = isSuperAdmin || unlockedProductIds.includes(item.productId);
+                          return (
+                            <div className="flex items-center gap-1">
+                              <span className="text-[10px] font-mono text-muted-foreground font-semibold">P. Unit:</span>
+                              {!isPriceUnlocked ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    setAuthModalProduct({
+                                      id: item.productId,
+                                      name: item.productName,
+                                      originalPrice: item.originalPrice,
+                                    })
+                                  }
+                                  className="p-1 rounded hover:bg-amber-500/20 text-amber-400 transition-colors"
+                                  title="Precio protegido. Clic para ingresar código de autorización de Osvaldo"
+                                >
+                                  <Lock className="w-3.5 h-3.5 text-amber-400" />
+                                </button>
+                              ) : (
+                                !isSuperAdmin && (
+                                  <span title="Precio desbloqueado con autorización" className="p-1 text-emerald-400">
+                                    <Unlock className="w-3.5 h-3.5 text-emerald-400" />
+                                  </span>
+                                )
+                              )}
+                              <input
+                                type="number"
+                                min="0"
+                                step="100"
+                                readOnly={!isPriceUnlocked}
+                                value={item.unitPrice}
+                                onFocus={(e) => {
+                                  if (!isPriceUnlocked) {
+                                    e.target.blur();
+                                    setAuthModalProduct({
+                                      id: item.productId,
+                                      name: item.productName,
+                                      originalPrice: item.originalPrice,
+                                    });
+                                  } else {
+                                    e.target.select();
+                                  }
+                                }}
+                                onClick={(e) => {
+                                  if (!isPriceUnlocked) {
+                                    setAuthModalProduct({
+                                      id: item.productId,
+                                      name: item.productName,
+                                      originalPrice: item.originalPrice,
+                                    });
+                                  } else {
+                                    (e.target as HTMLInputElement).select();
+                                  }
+                                }}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter') {
+                                    e.preventDefault();
+                                    searchInputRef.current?.focus();
+                                  }
+                                }}
+                                onChange={(e) => updateUnitPrice(item.productId, parseInt(e.target.value) || 0)}
+                                className={`w-28 bg-card border rounded px-2 py-0.5 text-right font-mono font-bold text-xs [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus:outline-none ${
+                                  !isPriceUnlocked
+                                    ? 'cursor-pointer border-card-border/60 text-foreground/80 bg-[#0b0e14]'
+                                    : isBelowCost
+                                    ? 'border-warning text-warning focus:bg-warning/10'
+                                    : isModified
+                                    ? 'border-primary text-primary focus:bg-primary/10'
+                                    : 'border-card-border text-foreground focus:bg-primary/10'
+                                }`}
+                                title={
+                                  !isPriceUnlocked
+                                    ? 'Precio fijado por catálogo. Requiere código de autorización para modificar.'
+                                    : 'Precio editable'
+                                }
+                              />
+                            </div>
+                          );
+                        })()}
 
                         {/* Subtotal de Fila */}
                         <span className="w-24 text-right font-mono font-bold text-foreground text-xs">
@@ -1260,6 +1330,15 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
           </div>
         </div>
       )}
+      {/* Modal de Autorización de Descuento / Cambio de Precio */}
+      <PriceAuthModal
+        isOpen={!!authModalProduct}
+        product={authModalProduct}
+        onClose={() => setAuthModalProduct(null)}
+        onSuccess={(productId) => {
+          setUnlockedProductIds((prev) => [...prev, productId]);
+        }}
+      />
     </div>
   );
 }

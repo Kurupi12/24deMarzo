@@ -35,6 +35,7 @@ model User {
   name          String
   passwordHash  String
   role          SystemRole  @default(OPERATOR)
+  pinCode       String?     // PIN de 4 dígitos para cambio rápido de cajero en mostrador
   isActive      Boolean     @default(true)
   lastLoginAt   DateTime?
   

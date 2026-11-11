@@ -89,7 +89,7 @@ export function HrView() {
           <div className="flex items-center gap-2">
             <Users className="w-5 h-5 text-primary" />
             <h1 className="text-xl font-bold tracking-tight text-foreground">
-              Recursos Humanos, Nómina & Biometría
+              Recursos Humanos
             </h1>
           </div>
           <p className="text-xs text-muted-foreground mt-0.5">

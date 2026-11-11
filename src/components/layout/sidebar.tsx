@@ -34,7 +34,7 @@ const navigationItems: NavItem[] = [
   { name: 'Ventas & Facturación SIFEN', href: '/billing', icon: ReceiptText, module: 'billing' },
   { name: 'Caja & Tesorería', href: '/billing?tab=shifts', icon: Landmark, module: 'shifts' },
   { name: 'Reportes & Obras', href: '/reports', icon: FileBarChart, module: 'reports' },
-  { name: 'Recursos Humanos & Nómina', href: '/hr', icon: Users, module: 'hr' },
+  { name: 'Recursos Humanos', href: '/hr', icon: Users, module: 'hr' },
   { name: 'Configuración & Flota', href: '/settings', icon: Settings, module: 'settings' },
 ];
 

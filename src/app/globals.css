@@ -90,106 +90,104 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
 /* ==========================================================================
    ESTILOS DE IMPRESIÓN (ORDEN DE ENTREGA A4 DUPLICADO & TICKET FISCAL SIFEN)
    ========================================================================== */
+@page {
+  size: A4 portrait;
+  margin: 4mm 5mm;
+}
+
 @media print {
-  /* Ocultar elementos generales de la aplicación */
-  body * {
-    visibility: hidden;
-  }
-
-  /* Modo 1: Orden de Entrega Duplicado en Hoja A4 */
-  body.printing-delivery-order #printable-delivery-order,
-  body.printing-delivery-order #printable-delivery-order * {
-    visibility: visible;
-  }
-
-  body.printing-delivery-order #printable-delivery-order {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  /* Modo 2: Recibo Semanal de Salarios Duplicado en Hoja A4 */
-  body.printing-weekly-receipt #printable-weekly-receipt,
-  body.printing-weekly-receipt #printable-weekly-receipt * {
-    visibility: visible;
-  }
-
-  body.printing-weekly-receipt #printable-weekly-receipt {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100% !important;
-    max-width: 100% !important;
-    margin: 0 !important;
-    padding: 0 !important;
-    background: #ffffff !important;
-    color: #000000 !important;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  /* Modo 2: Ticket Térmico / Factura Fiscal */
-  body.printing-receipt #printable-receipt,
-  body.printing-receipt #printable-receipt * {
-    visibility: visible;
-  }
-
-  body.printing-receipt #printable-receipt {
-    position: absolute;
-    left: 0;
-    top: 0;
-    width: 100%;
-    max-width: 80mm;
-    margin: 0 auto;
-    padding: 8px 12px;
-    background: #ffffff !important;
-    color: #000000 !important;
-    font-family: 'Courier New', Courier, monospace, system-ui;
-    font-size: 11px;
-    line-height: 1.25;
-    border: none !important;
-    box-shadow: none !important;
-  }
-
-  /* Fallback directo si no se especifica clase en body */
-  body:not(.printing-receipt) #printable-delivery-order,
-  body:not(.printing-receipt) #printable-delivery-order * {
-    visibility: visible;
-  }
-
-  body:not(.printing-delivery-order) #printable-receipt,
-  body:not(.printing-delivery-order) #printable-receipt * {
-    visibility: visible;
-  }
-
-  /* Estilos universales de impresión en blanco y negro nítido */
-  #printable-delivery-order,
-  #printable-receipt {
-    color: #000000 !important;
-    background-color: #ffffff !important;
-  }
-
-  #printable-delivery-order *,
-  #printable-receipt * {
-    color: #000000 !important;
-    border-color: #000000 !important;
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
   }
 
   .no-print {
     display: none !important;
   }
 
-  @page {
-    margin: 5mm;
-    size: A4 portrait;
+  /* Impresión directa desde la ventana principal como respaldo */
+  body.printing-delivery-order,
+  body.printing-weekly-receipt,
+  body.printing-receipt {
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    position: static !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  body.printing-delivery-order *,
+  body.printing-weekly-receipt *,
+  body.printing-receipt * {
+    visibility: hidden;
+  }
+
+  body.printing-delivery-order #printable-delivery-order,
+  body.printing-delivery-order #printable-delivery-order * {
+    visibility: visible !important;
+  }
+
+  body.printing-weekly-receipt #printable-weekly-receipt,
+  body.printing-weekly-receipt #printable-weekly-receipt * {
+    visibility: visible !important;
+  }
+
+  body.printing-receipt #printable-receipt,
+  body.printing-receipt #printable-receipt * {
+    visibility: visible !important;
+  }
+
+  body.printing-delivery-order #printable-delivery-order,
+  body.printing-weekly-receipt #printable-weekly-receipt {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    margin: 0 auto !important;
+    width: 196mm !important;
+    max-width: 196mm !important;
+    padding: 0 !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    border: none !important;
+    box-shadow: none !important;
+    z-index: 999999 !important;
+    page-break-after: avoid !important;
+    break-after: avoid !important;
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+
+  body.printing-receipt #printable-receipt {
+    position: fixed !important;
+    left: 0 !important;
+    right: 0 !important;
+    top: 0 !important;
+    margin: 0 auto !important;
+    width: 74mm !important;
+    max-width: 74mm !important;
+    padding: 4px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+    box-shadow: none !important;
+    z-index: 999999 !important;
+  }
+
+  /* Estilos universales de impresión en blanco y negro nítido */
+  #printable-delivery-order,
+  #printable-weekly-receipt,
+  #printable-receipt {
+    color: #000000 !important;
+    background-color: #ffffff !important;
+  }
+
+  #printable-delivery-order *,
+  #printable-weekly-receipt *,
+  #printable-receipt * {
+    color: #000000 !important;
+    border-color: #000000 !important;
   }
 }
 

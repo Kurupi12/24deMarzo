@@ -3,6 +3,7 @@
 import React from 'react';
 import { X, Printer, FileText } from 'lucide-react';
 import { WeeklyReceiptA4, SettlementEmployeeData } from './weekly-receipt-a4';
+import { printElementById } from '@/shared/utils/print-html';
 
 interface WeeklyReceiptModalProps {
   settlement: SettlementEmployeeData | null;
@@ -18,13 +19,10 @@ export function WeeklyReceiptModal({ settlement, period, isOpen, onClose }: Week
   if (!isOpen || !settlement) return null;
 
   const handlePrint = () => {
-    // Agregar clase al body para activar CSS de impresión A4
-    document.body.classList.add('printing-weekly-receipt');
-    window.print();
-    // Quitar después de la ventana de impresión
-    setTimeout(() => {
-      document.body.classList.remove('printing-weekly-receipt');
-    }, 1000);
+    printElementById('printable-weekly-receipt', {
+      paperSize: 'A4',
+      title: `Recibo_Semanal_${settlement.firstName}_${settlement.lastName}`,
+    });
   };
 
   return (

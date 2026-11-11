@@ -72,7 +72,7 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
     const isOriginal = copyType === 'ORIGINAL';
 
     return (
-      <div className="relative border border-black p-3.5 bg-white text-black font-sans text-[10px] leading-tight flex flex-col justify-between h-[134mm] box-border overflow-hidden">
+      <div className="relative border border-black p-3 bg-white text-black font-sans text-[10px] leading-tight flex flex-col justify-between h-[132mm] max-h-[132mm] box-border overflow-hidden">
         {/* Banda lateral para archivo */}
         <div className="absolute -left-3 top-1/2 -translate-y-1/2 -rotate-90 text-[7px] font-mono tracking-widest text-neutral-500 uppercase select-none pointer-events-none">
           {isOriginal ? 'Original - Funcionario' : 'Duplicado - Archivo Administración Depósito'}
@@ -259,12 +259,12 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
   };
 
   return (
-    <div id="printable-weekly-receipt" className="w-[210mm] max-w-[210mm] mx-auto bg-white p-2 space-y-2 box-border">
+    <div id="printable-weekly-receipt" className="w-full max-w-[196mm] mx-auto bg-white p-0 space-y-1 box-border">
       {/* Copia 1: ORIGINAL (Superior) */}
       {renderSingleReceipt('ORIGINAL')}
 
       {/* Línea de corte / Perforación central */}
-      <div className="w-full flex items-center justify-between text-[7px] font-mono text-neutral-400 select-none py-0.5 border-t border-b border-dashed border-neutral-300">
+      <div className="w-full flex items-center justify-between text-[7px] font-mono text-neutral-400 select-none py-0.5 border-t border-b border-dashed border-neutral-300 my-0.5">
         <span>&bull; &bull; &bull; TIJERA / CORTAR AQUÍ</span>
         <span className="tracking-widest uppercase font-bold text-neutral-500">
           - - - - - - - - - - - - - - - LÍNEA DE CORTE - - - - - - - - - - - - - - -

@@ -33,7 +33,7 @@ export function DeliveryOrderA4({ sale }: DeliveryOrderA4Props) {
     const isOriginal = copyType === 'ORIGINAL';
 
     return (
-      <div className="relative border border-black p-3 bg-white text-black font-sans text-[10px] leading-tight flex flex-col justify-between h-[134mm] box-border overflow-hidden">
+      <div className="relative border border-black p-3 bg-white text-black font-sans text-[10px] leading-tight flex flex-col justify-between h-[132mm] max-h-[132mm] box-border overflow-hidden">
         {/* Banda lateral tipo imprenta continua (como en la foto real) */}
         <div className="absolute -left-2 top-1/2 -translate-y-1/2 -rotate-90 text-[7px] font-mono tracking-widest text-neutral-500 uppercase select-none pointer-events-none">
           {isOriginal ? 'Original Blanco - Cliente / Obra' : 'Duplicado Amarillo - Control Depósito / Archivo'}
@@ -272,17 +272,19 @@ export function DeliveryOrderA4({ sale }: DeliveryOrderA4Props) {
   };
 
   return (
-    <div id="printable-delivery-order" className="bg-white text-black font-sans w-full max-w-[210mm] mx-auto p-2 space-y-2 box-border">
+    <div id="printable-delivery-order" className="bg-white text-black font-sans w-full max-w-[196mm] mx-auto p-0 space-y-1 box-border">
       {/* Copia 1: ORIGINAL (Mitad Superior A4) */}
       <div className="order-copy">
         {renderSingleOrder('ORIGINAL')}
       </div>
 
       {/* Línea de Corte Perforada para la Hoja A4 */}
-      <div className="relative py-1 flex items-center justify-center my-0.5 border-t border-dashed border-neutral-400 no-print">
-        <span className="bg-neutral-100 text-neutral-600 font-mono text-[8px] px-2 py-0.5 rounded border border-neutral-300">
-          &bull; &bull; &bull; Línea de Corte &bull; Hoja A4 en Duplicado &bull; &bull; &bull;
+      <div className="w-full flex items-center justify-between text-[7px] font-mono text-neutral-400 select-none py-0.5 border-t border-b border-dashed border-neutral-300 my-0.5">
+        <span>&bull; &bull; &bull; TIJERA / CORTAR AQUÍ</span>
+        <span className="tracking-widest uppercase font-bold text-neutral-500">
+          - - - - - - - - - - - - - - - ORDEN DE ENTREGA &bull; DUPLICADO - - - - - - - - - - - - - - -
         </span>
+        <span>ORIGINAL BLANCO / DUPLICADO CONTROL &bull; &bull; &bull;</span>
       </div>
 
       {/* Copia 2: DUPLICADO (Mitad Inferior A4) */}

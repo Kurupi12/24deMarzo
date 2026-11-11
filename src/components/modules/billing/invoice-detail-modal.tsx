@@ -5,6 +5,7 @@ import { X, Printer, ShieldCheck, CheckCircle2, Truck, FileText, Copy } from 'lu
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { DeliveryOrderA4 } from './delivery-order-a4';
 import { ReservationReceiptA4 } from './reservation-receipt-a4';
+import { printElementById } from '@/shared/utils/print-html';
 
 interface InvoiceDetailModalProps {
   sale: any | null;
@@ -34,19 +35,20 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
 
   const handlePrint = (mode: 'delivery_order' | 'invoice') => {
     if (mode === 'delivery_order') {
-      document.body.classList.remove('printing-receipt');
-      document.body.classList.add('printing-delivery-order');
+      const docTitle = sale.isScheduled
+        ? `Comprobante_Reserva_${sale.reservationReceiptNumber || sale.saleNumber || 'A4'}`
+        : `Orden_Entrega_${sale.saleNumber || 'A4'}`;
+
+      printElementById('printable-delivery-order', {
+        paperSize: 'A4',
+        title: docTitle,
+      });
     } else {
-      document.body.classList.remove('printing-delivery-order');
-      document.body.classList.add('printing-receipt');
+      printElementById('printable-receipt', {
+        paperSize: 'ticket',
+        title: `Ticket_${sale.saleNumber || 'Venta'}`,
+      });
     }
-
-    window.print();
-
-    // Limpiar clases al terminar la impresión
-    setTimeout(() => {
-      document.body.classList.remove('printing-delivery-order', 'printing-receipt');
-    }, 1500);
   };
 
   return (
@@ -160,7 +162,7 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
                     : 'Vista Previa: 2 órdenes en 1 hoja A4 (Original Superior + Duplicado Inferior)'}
                 </span>
               </div>
-              <div className="w-full max-w-[210mm] bg-white rounded shadow-2xl p-2 border border-neutral-300">
+              <div className="w-full max-w-[200mm] bg-white rounded shadow-2xl p-2 border border-neutral-300">
                 {sale.isScheduled ? (
                   <ReservationReceiptA4 sale={sale} />
                 ) : (

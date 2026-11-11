@@ -162,3 +162,4 @@ export function OtpGeneratorModal({ isOpen, onClose }: OtpGeneratorModalProps) {
     </div>
   );
 }
+

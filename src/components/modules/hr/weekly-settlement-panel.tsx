@@ -14,6 +14,7 @@ import {
   Clock,
   ChevronDown,
   ChevronUp,
+  Coins,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { SettlementEmployeeData } from './weekly-receipt-a4';
@@ -52,6 +53,8 @@ export function WeeklySettlementPanel() {
     totalEmployees: 0,
     totalWeeklySalary: 0,
     totalAdvances: 0,
+    totalLoans: 0,
+    totalDeductions: 0,
     totalNetPayable: 0,
   });
 
@@ -210,14 +213,14 @@ export function WeeklySettlementPanel() {
 
         <div className="p-3.5 rounded-xl bg-card border border-card-border space-y-1">
           <div className="flex items-center justify-between text-muted-foreground text-xs">
-            <span>Vales / Adelantos Retirados</span>
+            <span>Deducciones (Vales & Préstamos)</span>
             <ReceiptText className="w-4 h-4 text-red-400" />
           </div>
           <div className="text-xl font-bold font-mono text-red-400">
-            -{formatCurrencyPYG(summary.totalAdvances)}
+            -{formatCurrencyPYG(summary.totalDeductions || (summary.totalAdvances + (summary.totalLoans || 0)))}
           </div>
           <p className="text-[10px] text-muted-foreground font-mono">
-            Descuentos aplicados en el periodo
+            Vales: {formatCurrencyPYG(summary.totalAdvances)} | Cuotas: {formatCurrencyPYG(summary.totalLoans || 0)}
           </p>
         </div>
 
@@ -270,7 +273,7 @@ export function WeeklySettlementPanel() {
                 <th className="py-2.5 px-3">Funcionario</th>
                 <th className="py-2.5 px-3">Cargo</th>
                 <th className="py-2.5 px-3 text-right">Salario Semanal</th>
-                <th className="py-2.5 px-3 text-right">Vales Descontados</th>
+                <th className="py-2.5 px-3 text-right">Deducciones (Vales & Cuotas)</th>
                 <th className="py-2.5 px-3 text-right">Neto a Cobrar</th>
                 <th className="py-2.5 px-3 text-center">Recibo & Acciones</th>
               </tr>
@@ -284,7 +287,9 @@ export function WeeklySettlementPanel() {
                 </tr>
               ) : (
                 filteredSettlements.map((emp) => {
-                  const hasAdvances = emp.advances.length > 0;
+                  const hasAdvances = emp.advances && emp.advances.length > 0;
+                  const hasLoans = emp.loanDeductions && emp.loanDeductions.length > 0;
+                  const totalDeductions = emp.totalDeductions ?? (emp.totalAdvances + (emp.totalLoans || 0));
                   const isExpanded = expandedEmployeeId === emp.id;
 
                   return (
@@ -306,17 +311,27 @@ export function WeeklySettlementPanel() {
                           {formatCurrencyPYG(emp.weeklySalary)}
                         </td>
                         <td className="py-2.5 px-3 text-right">
-                          {hasAdvances ? (
+                          {totalDeductions > 0 ? (
                             <button
                               type="button"
                               onClick={() => setExpandedEmployeeId(isExpanded ? null : emp.id)}
-                              className="inline-flex items-center gap-1 text-red-400 font-bold hover:underline"
-                              title="Ver desglose de vales de la semana"
+                              className="inline-flex items-center gap-1.5 text-red-400 font-bold hover:underline"
+                              title="Ver desglose de vales y cuotas de préstamos"
                             >
-                              <span>-{formatCurrencyPYG(emp.totalAdvances)}</span>
-                              <span className="text-[10px] px-1 py-0.2 rounded bg-red-500/20 text-red-300 font-mono">
-                                ({emp.advances.length})
-                              </span>
+                              <span>-{formatCurrencyPYG(totalDeductions)}</span>
+                              <div className="flex items-center gap-1">
+                                {hasAdvances && (
+                                  <span className="text-[10px] px-1 py-0.2 rounded bg-red-500/20 text-red-300 font-mono">
+                                    V:{emp.advances.length}
+                                  </span>
+                                )}
+                                {hasLoans && (
+                                  <span className="text-[10px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono flex items-center gap-0.5">
+                                    <Coins className="w-2.5 h-2.5" />
+                                    <span>P:{emp.loanDeductions!.length}</span>
+                                  </span>
+                                )}
+                              </div>
                               {isExpanded ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
                             </button>
                           ) : (
@@ -358,39 +373,73 @@ export function WeeklySettlementPanel() {
                         </td>
                       </tr>
 
-                      {/* Desglose desplegable de Vales diarios */}
-                      {isExpanded && hasAdvances && (
+                      {/* Desglose desplegable de Vales diarios y Cuotas de Préstamos */}
+                      {isExpanded && (hasAdvances || hasLoans) && (
                         <tr className="bg-[#090d16] border-y border-dashed border-red-500/20">
-                          <td colSpan={7} className="py-2.5 px-6">
-                            <div className="space-y-1">
-                              <span className="text-[10px] font-mono text-red-400 font-bold uppercase tracking-wider block">
-                                Detalle de Vales Retirados en la Semana:
-                              </span>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
-                                {emp.advances.map((adv) => {
-                                  const advDate = new Date(adv.requestDate);
-                                  const dFmt = advDate.toLocaleDateString('es-PY', {
-                                    weekday: 'short',
-                                    day: '2-digit',
-                                    month: '2-digit',
-                                  });
-                                  return (
-                                    <div
-                                      key={adv.id}
-                                      className="p-2 rounded bg-card border border-card-border text-[11px] font-mono flex items-center justify-between"
-                                    >
-                                      <div>
-                                        <span className="font-bold text-foreground capitalize">{dFmt}: </span>
-                                        <span className="text-muted-foreground font-sans text-[10px]">{adv.reason}</span>
+                          <td colSpan={7} className="py-3 px-6 space-y-3">
+                            {hasAdvances && (
+                              <div className="space-y-1">
+                                <span className="text-[10px] font-mono text-red-400 font-bold uppercase tracking-wider block">
+                                  Vales Retirados en la Semana:
+                                </span>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
+                                  {emp.advances.map((adv) => {
+                                    const advDate = new Date(adv.requestDate);
+                                    const dFmt = advDate.toLocaleDateString('es-PY', {
+                                      weekday: 'short',
+                                      day: '2-digit',
+                                      month: '2-digit',
+                                    });
+                                    return (
+                                      <div
+                                        key={adv.id}
+                                        className="p-2 rounded bg-card border border-card-border text-[11px] font-mono flex items-center justify-between"
+                                      >
+                                        <div>
+                                          <span className="font-bold text-foreground capitalize">{dFmt}: </span>
+                                          <span className="text-muted-foreground font-sans text-[10px]">{adv.reason}</span>
+                                        </div>
+                                        <span className="font-bold text-red-400 ml-2">
+                                          -{formatCurrencyPYG(adv.amount)}
+                                        </span>
                                       </div>
-                                      <span className="font-bold text-red-400 ml-2">
-                                        -{formatCurrencyPYG(adv.amount)}
-                                      </span>
-                                    </div>
-                                  );
-                                })}
+                                    );
+                                  })}
+                                </div>
                               </div>
-                            </div>
+                            )}
+
+                            {hasLoans && (
+                              <div className="space-y-1">
+                                <span className="text-[10px] font-mono text-amber-400 font-bold uppercase tracking-wider flex items-center gap-1">
+                                  <Coins className="w-3 h-3" />
+                                  <span>Cuotas de Préstamos Semanales:</span>
+                                </span>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pt-1">
+                                  {emp.loanDeductions!.map((loan) => (
+                                    <div
+                                      key={loan.installmentId}
+                                      className="p-2.5 rounded bg-card border border-amber-500/30 text-[11px] font-mono flex flex-col justify-between space-y-1"
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <span className="font-bold text-amber-300">
+                                          {loan.loanNumber} (Cuota {loan.installmentNumber}/{loan.totalInstallments})
+                                        </span>
+                                        <span className="font-bold text-amber-400">
+                                          -{formatCurrencyPYG(loan.amount)}
+                                        </span>
+                                      </div>
+                                      <div className="text-[10px] text-muted-foreground font-sans flex items-center justify-between">
+                                        <span>Saldo rest. tras cuota:</span>
+                                        <span className="font-mono text-foreground font-semibold">
+                                          {formatCurrencyPYG(loan.remainingBalance)}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       )}

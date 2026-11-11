@@ -21,6 +21,19 @@ export interface SettlementEmployeeData {
     notes?: string | null;
   }>;
   totalAdvances: number;
+  loanDeductions?: Array<{
+    loanId: string;
+    installmentId: string;
+    loanNumber: string;
+    installmentNumber: number;
+    totalInstallments: number;
+    amount: number;
+    originalBalance: number;
+    remainingBalance: number;
+    scheduledDate: string | Date;
+  }>;
+  totalLoans?: number;
+  totalDeductions?: number;
   netPayable: number;
 }
 
@@ -169,11 +182,34 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
               })
             )}
 
-            {/* Fila de Totales de Haberes y Vales */}
+            {/* Filas: Cuotas de Préstamo al Personal */}
+            {settlement.loanDeductions && settlement.loanDeductions.length > 0 && (
+              settlement.loanDeductions.map((loan, idx) => (
+                <div
+                  key={loan.installmentId || idx}
+                  className="grid grid-cols-12 text-[8px] font-mono py-0.5 px-2 border-b border-neutral-200 items-center bg-amber-50/40"
+                >
+                  <div className="col-span-6 text-neutral-800">
+                    &bull; <strong>Préstamo {loan.loanNumber}:</strong> Cuota {loan.installmentNumber} de {loan.totalInstallments} (Saldo rest: {formatCurrencyPYG(loan.remainingBalance)})
+                  </div>
+                  <div className="col-span-2 text-center font-bold text-amber-800">
+                    Cuota {loan.installmentNumber}/{loan.totalInstallments}
+                  </div>
+                  <div className="col-span-2 text-right text-neutral-400">0</div>
+                  <div className="col-span-2 text-right font-bold text-red-700">
+                    -{formatCurrencyPYG(loan.amount)}
+                  </div>
+                </div>
+              ))
+            )}
+
+            {/* Fila de Totales de Haberes y Vales / Deducciones */}
             <div className="bg-neutral-50 grid grid-cols-12 text-[8.5px] font-mono font-bold py-1 px-2 border-t border-black">
-              <div className="col-span-8 text-right uppercase">Subtotales:</div>
+              <div className="col-span-8 text-right uppercase">Subtotales / Total Deducciones:</div>
               <div className="col-span-2 text-right text-black">{formatCurrencyPYG(settlement.weeklySalary)}</div>
-              <div className="col-span-2 text-right text-red-700">-{formatCurrencyPYG(settlement.totalAdvances)}</div>
+              <div className="col-span-2 text-right text-red-700">
+                -{formatCurrencyPYG(settlement.totalDeductions !== undefined ? settlement.totalDeductions : (settlement.totalAdvances + (settlement.totalLoans || 0)))}
+              </div>
             </div>
           </div>
 

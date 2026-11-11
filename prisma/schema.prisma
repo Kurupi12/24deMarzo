@@ -572,6 +572,7 @@ model Employee {
   // Relaciones
   salaryStructure SalaryStructure?
   advancePayments AdvancePayment[]
+  loans           EmployeeLoan[]
   leaveRequests   LeaveRequest[]
   attendances     AttendanceRecord[]
   drivenSales     Sale[]             @relation("SaleDriver")
@@ -632,6 +633,60 @@ model AdvancePayment {
 
   @@index([employeeId, deductionPeriod])
   @@map("advance_payments")
+}
+
+enum LoanStatus {
+  ACTIVE
+  PAID
+  PAUSED
+  CANCELLED
+}
+
+model EmployeeLoan {
+  id                   String          @id @default(uuid())
+  loanNumber           String          @unique // ej: PREST-0001
+  employeeId           String
+  employee             Employee        @relation(fields: [employeeId], references: [id], onDelete: Restrict)
+  totalAmount          Decimal         @db.Decimal(14, 2) // ej: 600000
+  installmentAmount    Decimal         @db.Decimal(14, 2) // ej: 100000
+  totalInstallments    Int             // ej: 6
+  paidInstallments     Int             @default(0)
+  totalPaid            Decimal         @default(0) @db.Decimal(14, 2)
+  remainingBalance     Decimal         @db.Decimal(14, 2) // ej: 600000
+  issueDate            DateTime        @default(now())
+  firstDeductionDate   DateTime        // Sábado a partir del cual se descuenta
+  status               LoanStatus      @default(ACTIVE)
+  reason               String?
+  notes                String?
+  disbursedFromCash    Boolean         @default(false)
+
+  installments         LoanInstallment[]
+
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  @@index([employeeId, status])
+  @@map("employee_loans")
+}
+
+model LoanInstallment {
+  id                   String          @id @default(uuid())
+  loanId               String
+  loan                 EmployeeLoan    @relation(fields: [loanId], references: [id], onDelete: Cascade)
+  installmentNumber    Int             // 1, 2, 3...
+  amount               Decimal         @db.Decimal(14, 2)
+  scheduledDate        DateTime        // Fecha sábado programado
+  deductedDate         DateTime?
+  isDeducted           Boolean         @default(false)
+  isSkipped            Boolean         @default(false)
+  settlementPeriod     String?         // ej: "2026-11-09_2026-11-14"
+  notes                String?
+
+  createdAt            DateTime        @default(now())
+  updatedAt            DateTime        @updatedAt
+
+  @@index([loanId, isDeducted, scheduledDate])
+  @@map("loan_installments")
 }
 
 model LeaveRequest {

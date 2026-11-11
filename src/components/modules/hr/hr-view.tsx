@@ -5,18 +5,22 @@ import { EmployeesTable } from './employees-table';
 import { AdvanceModal } from './advance-modal';
 import { AttendanceMonitor } from './attendance-monitor';
 import { CreateEmployeeModal } from './create-employee-modal';
+import { EditEmployeeModal } from './edit-employee-modal';
 import { WeeklySettlementPanel } from './weekly-settlement-panel';
 import { LoansManager } from './loans-manager';
 import { Users, UserPlus, ScanFace, DollarSign, Wallet, ReceiptText, Coins } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 export function HrView() {
+  const { confirm, alert } = useCustomDialog();
   const [activeTab, setActiveTab] = useState<'employees' | 'settlement' | 'loans' | 'biometrics'>('employees');
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Modales
   const [selectedEmpForAdvance, setSelectedEmpForAdvance] = useState<any>(null);
+  const [selectedEmpForEdit, setSelectedEmpForEdit] = useState<any>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
 
   const fetchEmployees = useCallback(async () => {
@@ -37,6 +41,45 @@ export function HrView() {
   // Cálculos consolidados de nómina
   const totalWeeklyPayroll = employees.reduce((acc, emp) => acc + Number(emp.salaryStructure?.weeklySalary || 0), 0);
   const averageWeeklySalary = employees.length > 0 ? Math.round(totalWeeklyPayroll / employees.length) : 0;
+
+  const handleDeleteEmployee = async (emp: any) => {
+    const ok = await confirm({
+      title: 'Eliminar Funcionario',
+      message: `¿Estás seguro de que deseas eliminar permanentemente de la nómina a ${emp.firstName} ${emp.lastName} (${emp.code})? Esta acción desvinculará sus registros y asistencias asociadas.`,
+      confirmText: 'Sí, Eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+
+    if (!ok) return;
+
+    try {
+      const res = await fetch(`/api/v1/hr/employees/${emp.id}`, {
+        method: 'DELETE',
+      });
+      const data = await res.json();
+      if (data.success) {
+        await alert({
+          title: 'Funcionario Eliminado',
+          message: data.data?.message || `El funcionario ${emp.firstName} ${emp.lastName} fue eliminado correctamente.`,
+          variant: 'success',
+        });
+        fetchEmployees();
+      } else {
+        await alert({
+          title: 'No se pudo eliminar',
+          message: data.error?.message || 'Error al eliminar el funcionario',
+          variant: 'danger',
+        });
+      }
+    } catch (err: any) {
+      await alert({
+        title: 'Error de Red',
+        message: err.message || 'No se pudo contactar al servidor',
+        variant: 'danger',
+      });
+    }
+  };
 
   return (
     <div className="space-y-5">
@@ -155,6 +198,8 @@ export function HrView() {
           employees={employees}
           loading={loading}
           onOpenAdvance={setSelectedEmpForAdvance}
+          onOpenEdit={setSelectedEmpForEdit}
+          onDeleteEmployee={handleDeleteEmployee}
         />
       ) : activeTab === 'settlement' ? (
         <WeeklySettlementPanel />
@@ -176,6 +221,13 @@ export function HrView() {
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
         onEmployeeCreated={fetchEmployees}
+      />
+
+      <EditEmployeeModal
+        employee={selectedEmpForEdit}
+        isOpen={!!selectedEmpForEdit}
+        onClose={() => setSelectedEmpForEdit(null)}
+        onEmployeeUpdated={fetchEmployees}
       />
     </div>
   );

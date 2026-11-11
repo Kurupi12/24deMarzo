@@ -6,6 +6,7 @@ import {
   Plus,
   Minus,
   Trash2,
+  Receipt,
   ReceiptText,
   ShieldCheck,
   CheckCircle2,
@@ -47,6 +48,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
   const [cart, setCart] = useState<any[]>([]);
   
   // Cliente & Facturación
+  const [docType, setDocType] = useState<'TICKET' | 'INVOICE'>('TICKET');
   const [customerName, setCustomerName] = useState('Sin Nombre (Consumidor Final)');
   const [customerRuc, setCustomerRuc] = useState('44444401-7');
   const [customerAddress, setCustomerAddress] = useState('');
@@ -330,6 +332,18 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
       return;
     }
 
+    if (docType === 'INVOICE' && !rucValidation.isValid && customerRuc.trim() !== '44444401-7') {
+      customAlert({
+        title: 'RUC Inválido para Factura SIFEN',
+        message: 'Para emitir Factura Electrónica SIFEN, debe ingresar un RUC válido con su Dígito Verificador (ej: 80012345-6). Si el cliente no tiene RUC, seleccione la opción "Comprobante / Ticket (Sin Factura)".',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    const finalCustomerRuc = customerRuc.trim() || '44444401-7';
+    const finalCustomerName = customerName.trim() || (docType === 'TICKET' ? 'Cliente Ocasional / Mostrador' : 'Sin Nombre (Consumidor Final)');
+
     const grandTotal = breakdown.grandTotal;
     const downPaymentNum = isScheduled
       ? Math.min(grandTotal, Math.max(0, parseFloat(downPayment) || 0))
@@ -342,8 +356,8 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          customerName,
-          customerRuc,
+          customerName: finalCustomerName,
+          customerRuc: finalCustomerRuc,
           customerAddress: customerAddress || undefined,
           paymentCondition,
           paymentMethod,
@@ -370,7 +384,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
             unitPrice: i.unitPrice,
             vatRate: i.vatRate,
           })),
-          issueInvoiceImmediately: !isScheduled && paymentCondition !== 'A_CUENTA',
+          issueInvoiceImmediately: !isScheduled && paymentCondition !== 'A_CUENTA' && docType === 'INVOICE',
         }),
       });
       const data = await res.json();
@@ -631,10 +645,10 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
       <div className="lg:col-span-5 bg-card border border-card-border rounded-lg p-5 flex flex-col justify-between space-y-4">
         <form onSubmit={handleCheckout} className="space-y-3 font-sans text-xs flex-1 flex flex-col justify-between">
           <div className="space-y-3">
-            {/* Cabecera SIFEN */}
+            {/* Cabecera Tipo de Documento */}
             <div className="flex items-center justify-between pb-2 border-b border-card-border">
               <span className="text-xs font-mono uppercase text-muted-foreground font-semibold flex items-center gap-1.5">
-                <ShieldCheck className="w-3.5 h-3.5 text-primary" /> Datos del Cliente & SIFEN
+                <Receipt className="w-3.5 h-3.5 text-primary" /> Datos del Cliente & Comprobante
               </span>
               <button
                 type="button"
@@ -647,8 +661,53 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                 }
                 className="text-[10px] font-mono text-primary hover:underline flex items-center gap-1"
               >
-                <span>Consumidor Final</span>
+                <span>Consumidor Final (44444401-7)</span>
               </button>
+            </div>
+
+            {/* Selector de Tipo de Venta: Comprobante / Ticket vs Factura Electrónica SIFEN */}
+            <div className="space-y-1">
+              <label className="block text-[11px] font-mono text-muted-foreground font-semibold">
+                Tipo de Comprobante a Emitir:
+              </label>
+              <div className="grid grid-cols-2 gap-2 p-1 bg-[#090d16] border border-card-border rounded-lg">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDocType('TICKET');
+                    if (!customerRuc || customerRuc === '') {
+                      setCustomerRuc('44444401-7');
+                    }
+                  }}
+                  className={`py-2 px-2.5 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                    docType === 'TICKET'
+                      ? 'bg-emerald-600 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card/40'
+                  }`}
+                >
+                  <Receipt className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Comprobante / Ticket (Sin Factura)</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDocType('INVOICE');
+                    if (customerRuc === '44444401-7') {
+                      setCustomerRuc('');
+                      setCustomerName('');
+                    }
+                  }}
+                  className={`py-2 px-2.5 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                    docType === 'INVOICE'
+                      ? 'bg-primary text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card/40'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Factura Electrónica (SIFEN)</span>
+                </button>
+              </div>
             </div>
 
             {/* Buscador y Selector Autocompletable de Clientes */}
@@ -722,8 +781,14 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
             <div className="grid grid-cols-12 gap-2">
               <div className="col-span-5">
                 <div className="flex justify-between items-center mb-1">
-                  <label className="text-[11px] font-mono text-muted-foreground">RUC o CI con DV *</label>
-                  {rucValidation.isValid ? (
+                  <label className="text-[11px] font-mono text-muted-foreground">
+                    {docType === 'TICKET' ? 'C.I. / RUC (Opcional)' : 'RUC o CI con DV *'}
+                  </label>
+                  {docType === 'TICKET' ? (
+                    <span className="text-[9px] text-emerald-400 font-mono">
+                      Consumidor Final
+                    </span>
+                  ) : rucValidation.isValid ? (
                     <span className="text-[9px] text-emerald-400 font-mono flex items-center gap-0.5">
                       <CheckCircle2 className="w-2.5 h-2.5" /> Válido
                     </span>
@@ -733,16 +798,18 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                 </div>
                 <input
                   type="text"
-                  required
                   value={customerRuc}
                   onChange={(e) => setCustomerRuc(e.target.value)}
                   onFocus={(e) => e.target.select()}
                   onClick={(e) => (e.target as HTMLInputElement).select()}
+                  placeholder={docType === 'TICKET' ? '44444401-7' : 'ej. 80012345-6'}
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono font-bold text-foreground focus:outline-none focus:border-primary text-xs"
                 />
               </div>
               <div className="col-span-7">
-                <label className="block text-[11px] font-mono text-muted-foreground mb-1">Razón Social *</label>
+                <label className="block text-[11px] font-mono text-muted-foreground mb-1">
+                  {docType === 'TICKET' ? 'Nombre del Cliente (ej: Don Pedro) *' : 'Razón Social Oficial *'}
+                </label>
                 <input
                   type="text"
                   required
@@ -750,6 +817,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                   onChange={(e) => setCustomerName(e.target.value)}
                   onFocus={(e) => e.target.select()}
                   onClick={(e) => (e.target as HTMLInputElement).select()}
+                  placeholder={docType === 'TICKET' ? 'Nombre o Consumidor Final' : 'Nombre o Razón Social'}
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground font-semibold focus:outline-none focus:border-primary text-xs truncate"
                 />
               </div>
@@ -1207,6 +1275,8 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                 ? 'bg-amber-600 hover:bg-amber-500'
                 : paymentCondition === 'A_CUENTA'
                 ? 'bg-amber-600 hover:bg-amber-500'
+                : docType === 'TICKET'
+                ? 'bg-emerald-600 hover:bg-emerald-500'
                 : 'bg-primary hover:bg-primary-hover'
             }`}
           >
@@ -1228,9 +1298,18 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                     : 'Despachar a Cuenta (Imprimir Orden A4 Duplicado)'}
                 </span>
               </>
+            ) : docType === 'TICKET' ? (
+              <>
+                <Printer className="w-4 h-4" />
+                <span>
+                  {loading
+                    ? 'Registrando Venta en Caja...'
+                    : 'Cobrar y Emitir Comprobante (A4 Duplicado)'}
+                </span>
+              </>
             ) : (
               <>
-                <ReceiptText className="w-4 h-4" />
+                <ShieldCheck className="w-4 h-4" />
                 <span>{loading ? 'Emitiendo DTE en DNIT...' : 'Emitir Factura Electrónica SIFEN'}</span>
               </>
             )}

@@ -93,7 +93,7 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
               }`}
             >
               <Truck className="w-3.5 h-3.5" />
-              <span>{sale.isScheduled ? 'Comprobante de Reserva & Seña (A4)' : 'Orden de Entrega (2 en A4)'}</span>
+              <span>{sale.isScheduled ? 'Comprobante de Reserva & Seña (A4)' : 'Comprobante / Orden de Entrega (A4 Duplicado)'}</span>
             </button>
 
             <button
@@ -106,7 +106,7 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
               }`}
             >
               <ShieldCheck className="w-3.5 h-3.5" />
-              <span>Factura Electrónica SIFEN</span>
+              <span>{invoice ? 'Factura Electrónica SIFEN' : 'Ticket Térmico (Sin Factura)'}</span>
             </button>
           </div>
 
@@ -122,7 +122,7 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
                 <span>
                   {sale.isScheduled
                     ? 'Imprimir Comprobante de Reserva (A4 Duplicado)'
-                    : 'Imprimir Orden de Entrega (Hoja A4 Duplicado)'}
+                    : 'Imprimir Comprobante de Entrega (A4 Duplicado)'}
                 </span>
               </button>
             ) : (
@@ -132,7 +132,7 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
                 className="px-4 py-2 bg-primary hover:bg-primary-hover text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-lg transition-all"
               >
                 <Printer className="w-4 h-4" />
-                <span>Imprimir Factura SIFEN</span>
+                <span>{invoice ? 'Imprimir Factura SIFEN' : 'Imprimir Ticket Térmico'}</span>
               </button>
             )}
 

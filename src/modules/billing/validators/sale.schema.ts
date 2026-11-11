@@ -9,8 +9,16 @@ export const SaleItemSchema = z.object({
 });
 
 export const CreateSaleSchema = z.object({
-  customerName: z.string().min(2, 'El nombre del cliente es obligatorio'),
-  customerRuc: z.string().min(5, 'El RUC o documento del cliente es obligatorio'),
+  customerName: z
+    .string()
+    .optional()
+    .default('Sin Nombre (Consumidor Final)')
+    .transform((val) => (val && val.trim().length >= 2 ? val.trim() : 'Sin Nombre (Consumidor Final)')),
+  customerRuc: z
+    .string()
+    .optional()
+    .default('44444401-7')
+    .transform((val) => (val && val.trim().length >= 3 ? val.trim() : '44444401-7')),
   customerEmail: z.string().email('Email inválido').optional().nullable(),
   customerAddress: z.string().optional().nullable(),
   paymentCondition: z.enum(['CONTADO', 'CREDITO', 'A_CUENTA']).default('CONTADO'),

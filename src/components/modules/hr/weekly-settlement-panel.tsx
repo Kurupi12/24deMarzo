@@ -133,7 +133,7 @@ export function WeeklySettlementPanel() {
       <div className="bg-card border border-card-border rounded-xl p-4 space-y-3">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <Calendar className="w-4 h-4 text-primary" />
+            <Calendar className="w-4 h-4 text-sky-400" />
             <h2 className="text-sm font-semibold text-foreground">
               Periodo de Liquidación Semanal
             </h2>
@@ -159,26 +159,28 @@ export function WeeklySettlementPanel() {
 
         <div className="grid grid-cols-1 sm:grid-cols-12 gap-3 items-end">
           <div className="sm:col-span-4">
-            <label className="block text-[11px] font-mono text-muted-foreground mb-1">
-              Fecha Desde (Lunes)
+            <label className="text-[11px] font-mono font-semibold text-sky-300 mb-1 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-sky-400" />
+              <span>Fecha Desde (Lunes):</span>
             </label>
             <input
               type="date"
               value={startDate}
               onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground text-xs focus:outline-none focus:border-primary"
+              className="w-full bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-md px-3 py-1.5 font-mono text-foreground text-xs focus:outline-none focus:border-sky-400 transition-colors"
             />
           </div>
 
           <div className="sm:col-span-4">
-            <label className="block text-[11px] font-mono text-muted-foreground mb-1">
-              Fecha Hasta (Sábado / Cierre)
+            <label className="text-[11px] font-mono font-semibold text-sky-300 mb-1 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-sky-400" />
+              <span>Fecha Hasta (Sábado / Cierre):</span>
             </label>
             <input
               type="date"
               value={endDate}
               onChange={(e) => setEndDate(e.target.value)}
-              className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground text-xs focus:outline-none focus:border-primary"
+              className="w-full bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-md px-3 py-1.5 font-mono text-foreground text-xs focus:outline-none focus:border-sky-400 transition-colors"
             />
           </div>
 

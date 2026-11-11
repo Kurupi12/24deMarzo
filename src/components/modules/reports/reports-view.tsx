@@ -193,22 +193,23 @@ export function ReportsView() {
       {/* Barra de Filtros */}
       <div className="bg-card border border-card-border rounded-xl p-4 flex flex-wrap items-center gap-3 text-xs">
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-muted-foreground" />
-          <span className="font-mono text-muted-foreground">Desde:</span>
+          <Calendar className="w-4 h-4 text-sky-400" />
+          <span className="font-mono text-sky-300 font-semibold">Desde:</span>
           <input
             type="date"
             value={startDate}
             onChange={(e) => setStartDate(e.target.value)}
-            className="bg-[#0d121c] border border-card-border rounded px-2.5 py-1 text-foreground font-mono text-xs"
+            className="bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded px-2.5 py-1 text-foreground font-mono text-xs focus:outline-none focus:border-sky-400 transition-colors"
           />
         </div>
         <div className="flex items-center gap-2">
-          <span className="font-mono text-muted-foreground">Hasta:</span>
+          <Calendar className="w-4 h-4 text-sky-400" />
+          <span className="font-mono text-sky-300 font-semibold">Hasta:</span>
           <input
             type="date"
             value={endDate}
             onChange={(e) => setEndDate(e.target.value)}
-            className="bg-[#0d121c] border border-card-border rounded px-2.5 py-1 text-foreground font-mono text-xs"
+            className="bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded px-2.5 py-1 text-foreground font-mono text-xs focus:outline-none focus:border-sky-400 transition-colors"
           />
         </div>
         <div className="flex-1 min-w-[200px]">

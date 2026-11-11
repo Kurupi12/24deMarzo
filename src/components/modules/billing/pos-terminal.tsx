@@ -918,15 +918,16 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                 <div className="p-3 rounded-lg bg-[#0d121c] border border-amber-500/30 space-y-3 animate-in fade-in duration-150">
                   <div className="grid grid-cols-2 gap-2.5">
                     <div>
-                      <label className="block text-[10px] font-mono font-semibold text-amber-300 mb-1 flex items-center gap-1">
-                        <Clock className="w-3 h-3" /> Fecha de Entrega *
+                      <label className="block text-[10px] font-mono font-semibold text-amber-300 mb-1 flex items-center gap-1.5">
+                        <Calendar className="w-3.5 h-3.5 text-amber-400" />
+                        <span>Fecha de Entrega *</span>
                       </label>
                       <input
                         type="date"
                         required
                         value={scheduledDeliveryDate}
                         onChange={(e) => setScheduledDeliveryDate(e.target.value)}
-                        className="w-full bg-card border border-amber-500/40 rounded px-2.5 py-1.5 text-foreground text-xs font-mono focus:outline-none focus:border-amber-400 font-bold"
+                        className="w-full bg-card border border-amber-500/40 hover:border-amber-400 rounded px-2.5 py-1.5 text-foreground text-xs font-mono focus:outline-none focus:border-amber-400 font-bold transition-colors"
                       />
                     </div>
                     <div>

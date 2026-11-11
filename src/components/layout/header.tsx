@@ -3,8 +3,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   Bell,
-  Activity,
-  Database,
   Clock,
   Landmark,
   CheckCircle2,
@@ -119,13 +117,6 @@ export function Header() {
             </button>
           )}
 
-          {/* Indicador de conexión Neon Postgres */}
-          <div className="hidden md:flex items-center gap-2 px-2.5 py-1 rounded bg-[#0d121c] border border-card-border text-[11px] font-mono text-muted-foreground">
-            <Database className="w-3.5 h-3.5 text-accent" />
-            <span>Neon Postgres: Conectado</span>
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          </div>
-
           {/* Notificaciones del sistema con Dropdown interactivo */}
           <div className="relative" ref={notifDropdownRef}>
             <button
@@ -221,18 +212,15 @@ export function Header() {
             <button
               type="button"
               onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
-              className="flex items-center gap-2.5 p-1.5 pr-2.5 rounded-lg border border-card-border hover:border-primary/40 bg-[#0d121c] transition-colors"
+              className="flex items-center gap-2.5 px-3 py-1.5 rounded-lg border border-card-border hover:border-primary/40 bg-[#0d121c] transition-colors"
             >
               <div className="w-7 h-7 rounded-full bg-primary/20 border border-primary/30 flex items-center justify-center text-primary font-bold text-xs">
                 {user ? user.name.charAt(0) : <User className="w-3.5 h-3.5" />}
               </div>
               <div className="text-left hidden sm:block">
-                <div className="text-xs font-semibold text-foreground leading-none flex items-center gap-1.5">
-                  <span className="truncate max-w-[130px]">{user?.name || 'Administrador'}</span>
-                </div>
-                <div className="text-[10px] font-mono text-muted-foreground mt-0.5">
-                  {roleConfig?.label.split(' ')[0] || user?.role || 'Operador'}
-                </div>
+                <span className="text-xs font-semibold text-foreground whitespace-nowrap">
+                  {user?.name || 'Administrador'}
+                </span>
               </div>
               <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
             </button>
@@ -304,12 +292,6 @@ export function Header() {
                 </div>
               </div>
             )}
-          </div>
-
-          {/* Estado operativo general */}
-          <div className="hidden lg:flex items-center gap-2 pl-2 border-l border-card-border text-xs text-muted-foreground">
-            <Activity className="w-4 h-4 text-emerald-400" />
-            <span className="font-mono text-[11px]">Sistemas Operativos</span>
           </div>
         </div>
       </header>

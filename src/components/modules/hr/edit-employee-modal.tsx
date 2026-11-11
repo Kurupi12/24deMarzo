@@ -254,3 +254,4 @@ export function EditEmployeeModal({ employee, isOpen, onClose, onEmployeeUpdated
     </div>
   );
 }
+

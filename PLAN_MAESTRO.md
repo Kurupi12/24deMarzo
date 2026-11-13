@@ -56,7 +56,7 @@ Cualquier requerimiento no contemplado originalmente debe ser clasificado e inco
   - Visualización completa de los 7 colaboradores de "Depósito 4 de Marzo".
   - Desglose de Salario Semanal Bruto, Retención Legal IPS (9%) y Salario Neto a cobrar.
 - [x] **Gestión Automatizada de Adelantos**:
-  - Modal interactivo con control estricto de tope máximo (70% del salario semanal).
+  - Modal interactivo con control de tope estándar (100% del salario semanal) y soporte para sobregiros financiables.
   - Rechazo de solicitudes excedentes y registro del período fiscal de descuento (`YYYY-MM`).
 - [x] **Monitor de Marcaciones Biométricas & IA**:
   - Panel en tiempo real que consume los eventos del webhook de cámaras con IA (`/api/v1/hr/biometrics/webhook`).

@@ -72,17 +72,8 @@ export async function POST(req: NextRequest) {
     }
 
     const weeklySalary = Number(employee.salaryStructure?.weeklySalary || 0);
-    const maxAllowed = weeklySalary * 0.7; // Tope máximo del 70% del salario semanal
-
-    if (weeklySalary > 0 && data.amount > maxAllowed) {
-      return NextResponse.json(
-        createErrorResponse(
-          `El adelanto solicitado supera el tope permitido del 70% del salario semanal (Máx: ₲ ${maxAllowed.toLocaleString('es-PY')})`,
-          'ADVANCE_LIMIT_EXCEEDED'
-        ),
-        { status: 400 }
-      );
-    }
+    // Se quitó la restricción del 70%: el funcionario puede solicitar vales hasta el 100% de su salario semanal,
+    // e incluso generar sobregiro autorizado para que luego Osvaldo financie la diferencia en cuotas sin afectar la caja.
 
     // Resolver fecha del adelanto (retroactiva o del día) y periodo fiscal
     const requestDate = data.requestDate ? new Date(`${data.requestDate}T12:00:00Z`) : new Date();

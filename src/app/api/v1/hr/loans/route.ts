@@ -121,14 +121,18 @@ export async function POST(req: NextRequest) {
     const loanIssueDate = issueDate ? new Date(issueDate) : new Date();
     
     // Si no se especifica primer sábado, buscar el próximo sábado
+    // Para financiación de sobregiros (disbursedFromCash = false), la deducción inicia indefectiblemente el SÁBADO DE LA PRÓXIMA SEMANA
     let firstSatDate: Date;
     if (firstDeductionDate) {
-      firstSatDate = new Date(firstDeductionDate);
+      firstSatDate = String(firstDeductionDate).includes('T')
+        ? new Date(firstDeductionDate)
+        : new Date(`${firstDeductionDate}T12:00:00Z`);
     } else {
       const today = new Date(loanIssueDate);
       const dayOfWeek = today.getDay(); // 0 domingo, 6 sabado
-      const daysUntilNextSat = (6 - dayOfWeek + 7) % 7 || 7;
-      firstSatDate = addDays(today, daysUntilNextSat);
+      const daysUntilThisSat = (6 - dayOfWeek + 7) % 7;
+      const daysOffset = !disbursedFromCash ? (daysUntilThisSat === 0 ? 7 : daysUntilThisSat + 7) : (daysUntilThisSat || 7);
+      firstSatDate = addDays(today, daysOffset);
     }
 
     // Generar consecutivo de préstamo: PREST-0001

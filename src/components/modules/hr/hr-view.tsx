@@ -22,10 +22,27 @@ export function HrView() {
   const [selectedEmpForAdvance, setSelectedEmpForAdvance] = useState<any>(null);
   const [selectedEmpForEdit, setSelectedEmpForEdit] = useState<any>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [loanPrefill, setLoanPrefill] = useState<{ employeeId: string; amount: number; isOverdraft: boolean } | null>(null);
+  const [loanPrefill, setLoanPrefill] = useState<{
+    employeeId: string;
+    amount: number;
+    isOverdraft: boolean;
+    firstDeductionDate?: string;
+  } | null>(null);
 
-  const handleFinanceOverdraft = (employeeId: string, overdraftAmount: number) => {
-    setLoanPrefill({ employeeId, amount: overdraftAmount, isOverdraft: true });
+  const handleFinanceOverdraft = (employeeId: string, overdraftAmount: number, periodEndDate?: string) => {
+    let targetFirstDate: string | undefined;
+    if (periodEndDate) {
+      // Sábado de la SIGUIENTE semana (+7 días del cierre de esta semana)
+      const pEnd = new Date(`${periodEndDate}T12:00:00Z`);
+      pEnd.setDate(pEnd.getDate() + 7);
+      targetFirstDate = pEnd.toISOString().slice(0, 10);
+    }
+    setLoanPrefill({
+      employeeId,
+      amount: overdraftAmount,
+      isOverdraft: true,
+      firstDeductionDate: targetFirstDate,
+    });
     setActiveTab('loans');
   };
 
@@ -216,6 +233,7 @@ export function HrView() {
           initialEmployeeId={loanPrefill?.employeeId}
           initialAmount={loanPrefill?.amount}
           initialIsOverdraft={loanPrefill?.isOverdraft}
+          initialFirstDeductionDate={loanPrefill?.firstDeductionDate}
         />
       ) : (
         <AttendanceMonitor />

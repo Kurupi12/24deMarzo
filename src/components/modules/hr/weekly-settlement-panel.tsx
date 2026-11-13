@@ -15,6 +15,7 @@ import {
   ChevronDown,
   ChevronUp,
   Coins,
+  CheckCircle2,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { SettlementEmployeeData } from './weekly-receipt-a4';
@@ -22,7 +23,7 @@ import { WeeklyReceiptModal } from './weekly-receipt-modal';
 import { AdvanceModal } from './advance-modal';
 
 interface WeeklySettlementPanelProps {
-  onFinanceOverdraft?: (employeeId: string, overdraftAmount: number) => void;
+  onFinanceOverdraft?: (employeeId: string, overdraftAmount: number, periodEndDate?: string) => void;
 }
 
 export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPanelProps = {}) {
@@ -355,6 +356,15 @@ export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPa
                               Sobregiro: -{formatCurrencyPYG(emp.overdraftAmount)}
                             </div>
                           )}
+                          {emp.hasFinancedOverdraft && emp.financedOverdraftAmount && emp.financedOverdraftAmount > 0 && (
+                            <div
+                              className="text-[10px] font-mono text-purple-400 font-semibold whitespace-nowrap mt-0.5 flex items-center justify-end gap-1"
+                              title="El excedente de vales ya fue financiado en cuotas para descontarse a partir de la próxima semana"
+                            >
+                              <CheckCircle2 className="w-3 h-3 text-purple-400" />
+                              <span>Financiado: {formatCurrencyPYG(emp.financedOverdraftAmount)} {emp.financedLoans?.[0]?.loanNumber ? `(${emp.financedLoans[0].loanNumber})` : ''}</span>
+                            </div>
+                          )}
                         </td>
                         <td className="py-2.5 px-3 text-center">
                           <div className="flex items-center justify-center gap-1.5 flex-wrap">
@@ -371,7 +381,7 @@ export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPa
                             {emp.isOverdrawn && onFinanceOverdraft && (
                               <button
                                 type="button"
-                                onClick={() => onFinanceOverdraft(emp.id, emp.overdraftAmount || 0)}
+                                onClick={() => onFinanceOverdraft(emp.id, emp.overdraftAmount || 0, endDate)}
                                 className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-500/20 border border-purple-500/40 hover:bg-purple-500/30 text-purple-300 text-[11px] font-semibold transition-colors shadow-sm"
                                 title="Financiar sobregiro en cuotas (sin egreso de caja)"
                               >
@@ -464,6 +474,21 @@ export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPa
                                     </div>
                                   ))}
                                 </div>
+                              </div>
+                            )}
+
+                            {emp.hasFinancedOverdraft && emp.financedOverdraftAmount && emp.financedOverdraftAmount > 0 && (
+                              <div className="p-2.5 rounded bg-purple-500/10 border border-purple-500/30 text-[11px] font-mono flex items-center justify-between text-purple-300">
+                                <div className="flex items-center gap-1.5">
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-purple-400 shrink-0" />
+                                  <span>
+                                    <strong>Sobregiro Refinanciado a Cuotas:</strong> {formatCurrencyPYG(emp.financedOverdraftAmount)}
+                                    {emp.financedLoans?.[0]?.loanNumber ? ` (${emp.financedLoans[0].loanNumber} - ${emp.financedLoans[0].totalInstallments} cuotas)` : ''}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] text-purple-200">
+                                  Primer descuento: Siguiente período semanal
+                                </span>
                               </div>
                             )}
                           </td>

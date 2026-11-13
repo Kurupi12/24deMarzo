@@ -37,6 +37,16 @@ export interface SettlementEmployeeData {
   netPayable: number;
   isOverdrawn?: boolean;
   overdraftAmount?: number;
+  hasFinancedOverdraft?: boolean;
+  financedOverdraftAmount?: number;
+  financedLoans?: Array<{
+    loanId: string;
+    loanNumber: string;
+    amount: number;
+    totalInstallments: number;
+    installmentAmount: number;
+    firstDeductionDate?: string | Date;
+  }>;
 }
 
 interface WeeklyReceiptA4Props {
@@ -205,12 +215,30 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
               ))
             )}
 
+            {/* Fila: Refinanciación de Sobregiro a Cuotas en este período */}
+            {settlement.hasFinancedOverdraft && settlement.financedOverdraftAmount && settlement.financedOverdraftAmount > 0 && (
+              <div className="grid grid-cols-12 text-[8px] font-mono py-0.5 px-2 border-b border-neutral-200 items-center bg-purple-50/50">
+                <div className="col-span-6 text-purple-900">
+                  &bull; <strong>Refinanciación de Sobregiro a Cuotas:</strong> {settlement.financedLoans?.[0]?.loanNumber ? `(${settlement.financedLoans[0].loanNumber}) ` : ''}A amortizar desde la prox. semana
+                </div>
+                <div className="col-span-2 text-center font-bold text-purple-800">
+                  Refinanciado
+                </div>
+                <div className="col-span-2 text-right font-bold text-purple-700">
+                  +{formatCurrencyPYG(settlement.financedOverdraftAmount)}
+                </div>
+                <div className="col-span-2 text-right text-neutral-400">0</div>
+              </div>
+            )}
+
             {/* Fila de Totales de Haberes y Vales / Deducciones */}
             <div className="bg-neutral-50 grid grid-cols-12 text-[8.5px] font-mono font-bold py-1 px-2 border-t border-black">
               <div className="col-span-8 text-right uppercase">Subtotales / Total Deducciones:</div>
-              <div className="col-span-2 text-right text-black">{formatCurrencyPYG(settlement.weeklySalary)}</div>
+              <div className="col-span-2 text-right text-black">
+                {formatCurrencyPYG(settlement.weeklySalary + (settlement.hasFinancedOverdraft ? (settlement.financedOverdraftAmount || 0) : 0))}
+              </div>
               <div className="col-span-2 text-right text-red-700">
-                -{formatCurrencyPYG(settlement.totalDeductions !== undefined ? settlement.totalDeductions : (settlement.totalAdvances + (settlement.totalLoans || 0)))}
+                -{formatCurrencyPYG((settlement.totalAdvances || 0) + (settlement.totalLoans || 0))}
               </div>
             </div>
           </div>

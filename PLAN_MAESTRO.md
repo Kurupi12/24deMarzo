@@ -55,9 +55,10 @@ Cualquier requerimiento no contemplado originalmente debe ser clasificado e inco
 - [x] **Fichas Técnicas & Legajos Digitales**:
   - Visualización completa de los 7 colaboradores de "Depósito 4 de Marzo".
   - Desglose de Salario Semanal Bruto, Retención Legal IPS (9%) y Salario Neto a cobrar.
-- [x] **Gestión Automatizada de Adelantos**:
+- [x] **Gestión Automatizada de Adelantos & Financiación de Sobregiros**:
   - Modal interactivo con control de tope estándar (100% del salario semanal) y soporte para sobregiros financiables.
-  - Rechazo de solicitudes excedentes y registro del período fiscal de descuento (`YYYY-MM`).
+  - Conversión de saldos deudores en Préstamos en Cuotas (`disbursedFromCash: false`) con inicio de deducción a partir de la próxima semana (+7 días).
+  - Reconocimiento automático de sobregiros ya financiados en la Liquidación Semanal: balance a 0 Gs., ocultación del botón redundante de financiación y emisión de Recibo A4 equilibrado.
 - [x] **Monitor de Marcaciones Biométricas & IA**:
   - Panel en tiempo real que consume los eventos del webhook de cámaras con IA (`/api/v1/hr/biometrics/webhook`).
   - Muestra porcentaje de confianza del modelo de reconocimiento facial, cámara de captura y marca temporal.

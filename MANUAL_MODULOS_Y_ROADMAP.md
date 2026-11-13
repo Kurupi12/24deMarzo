@@ -125,7 +125,7 @@ Este documento consolida el estado funcional de cada uno de los 8 módulos del s
 ### Funcionalidades Actuales
 * **Legajos Digitales de Colaboradores:** Fichas de los 7 funcionarios con legajo, cédula, cargo, fecha de ingreso y departamento.
 * **Nómina de Salario Semanal:** Cálculo automático de retención legal IPS Obrero (9%) y salario neto semanal a cobrar.
-* **Gestión de Adelantos Salariales:** Solicitud y aprobación con tope base de hasta el 100% del salario semanal y soporte para sobregiros financiables en cuotas.
+* **Gestión de Adelantos Salariales & Financiación de Sobregiros:** Solicitud y aprobación con tope base de hasta el 100% del salario semanal y soporte para sobregiros financiables en cuotas sin salida física de caja (`disbursedFromCash: false`). Las cuotas inician indefectiblemente el siguiente período semanal y la liquidación reconoce el sobregiro como cubierto.
 * **Monitor Biométrico con IA:** Eventos en tiempo real del webhook de visión artificial con porcentaje de confianza de reconocimiento facial.
 
 ### Roadmap de Mejoras

@@ -48,9 +48,6 @@ export async function GET(req: NextRequest) {
               where: {
                 isDeducted: false,
                 isSkipped: false,
-                scheduledDate: {
-                  lte: endDate,
-                },
               },
               orderBy: { installmentNumber: 'asc' },
             },
@@ -73,9 +70,9 @@ export async function GET(req: NextRequest) {
       }));
       const totalAdvances = advances.reduce((sum, a) => sum + a.amount, 0);
 
-      // 2. Cuotas de préstamos activas correspondientes a esta semana
+      // 2. Cuotas de préstamos activas correspondientes a esta semana (vencimiento <= endDate)
       const loanDeductions = emp.loans.flatMap((loan) => {
-        const dueInstallment = loan.installments[0];
+        const dueInstallment = loan.installments.find((inst) => new Date(inst.scheduledDate) <= endDate);
         if (!dueInstallment) return [];
 
         const instAmount = Number(dueInstallment.amount);
@@ -95,11 +92,37 @@ export async function GET(req: NextRequest) {
       });
       const totalLoans = loanDeductions.reduce((sum, l) => sum + l.amount, 0);
 
-      // Total deducciones y líquido a cobrar
-      const totalDeductions = totalAdvances + totalLoans;
+      // 3. Préstamos de financiación de sobregiros registrados para este periodo o personal
+      // Detecta préstamos que no movieron caja física (disbursedFromCash = false) o creados para sobregiro
+      const endDateExtended = new Date(endDate.getTime() + 2 * 24 * 60 * 60 * 1000); // margen de 48h fin de semana
+      const overdraftLoans = emp.loans.filter((loan) => {
+        const isNonCash = !loan.disbursedFromCash;
+        const hasReason = loan.reason?.toLowerCase().includes('sobregiro');
+        const isRecent = new Date(loan.issueDate) >= startDate && new Date(loan.issueDate) <= endDateExtended;
+        return (isNonCash || hasReason) && isRecent;
+      });
+
+      const financedOverdraftAmount = overdraftLoans.reduce((sum, l) => sum + Number(l.totalAmount), 0);
+      const financedLoans = overdraftLoans.map((l) => ({
+        loanId: l.id,
+        loanNumber: l.loanNumber,
+        amount: Number(l.totalAmount),
+        totalInstallments: l.totalInstallments,
+        installmentAmount: Number(l.installmentAmount),
+        firstDeductionDate: l.firstDeductionDate,
+      }));
+
+      // Total de deducciones brutas y cálculo de sobregiros
+      const rawTotalDeductions = totalAdvances + totalLoans;
+      const rawOverdraft = Math.max(0, rawTotalDeductions - weeklySalary);
+      const pendingOverdraftAmount = Math.max(0, rawOverdraft - financedOverdraftAmount);
+      const isOverdrawn = pendingOverdraftAmount > 0;
+      const hasFinancedOverdraft = financedOverdraftAmount > 0;
+
+      // Deducción efectiva contra el salario semanal (el monto ya financiado en cuotas no se descuenta de nuevo aquí)
+      const effectiveAdvances = Math.max(0, totalAdvances - financedOverdraftAmount);
+      const totalDeductions = effectiveAdvances + totalLoans;
       const netPayable = Math.max(0, weeklySalary - totalDeductions);
-      const isOverdrawn = totalDeductions > weeklySalary;
-      const overdraftAmount = isOverdrawn ? totalDeductions - weeklySalary : 0;
 
       return {
         id: emp.id,
@@ -115,9 +138,13 @@ export async function GET(req: NextRequest) {
         loanDeductions,
         totalLoans,
         totalDeductions,
+        rawTotalDeductions,
         netPayable,
         isOverdrawn,
-        overdraftAmount,
+        overdraftAmount: pendingOverdraftAmount,
+        hasFinancedOverdraft,
+        financedOverdraftAmount,
+        financedLoans,
       };
     });
 

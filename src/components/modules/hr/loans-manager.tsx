@@ -69,12 +69,14 @@ interface LoansManagerProps {
   initialEmployeeId?: string;
   initialAmount?: number;
   initialIsOverdraft?: boolean;
+  initialFirstDeductionDate?: string;
 }
 
 export function LoansManager({
   initialEmployeeId,
   initialAmount,
   initialIsOverdraft,
+  initialFirstDeductionDate,
 }: LoansManagerProps = {}) {
   const [loans, setLoans] = useState<EmployeeLoan[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
@@ -157,10 +159,22 @@ export function LoansManager({
       if (initialIsOverdraft) {
         setDisbursedFromCash(false);
         setReason('Financiación de sobregiro de vales semanales');
+        if (initialFirstDeductionDate) {
+          setFirstDeductionDate(initialFirstDeductionDate);
+        } else {
+          // Próximo sábado después de la semana en curso (+7 días del sábado de esta semana)
+          const today = new Date();
+          const day = today.getDay();
+          const daysUntilThisSat = (6 - day + 7) % 7;
+          const nextWeekSatDays = daysUntilThisSat === 0 ? 7 : daysUntilThisSat + 7;
+          const nextSat = new Date(today);
+          nextSat.setDate(today.getDate() + nextWeekSatDays);
+          setFirstDeductionDate(nextSat.toISOString().slice(0, 10));
+        }
       }
       setIsCreateModalOpen(true);
     }
-  }, [initialEmployeeId, initialAmount, initialIsOverdraft]);
+  }, [initialEmployeeId, initialAmount, initialIsOverdraft, initialFirstDeductionDate]);
 
   // Cantidad total de cuotas calculada
   const totalInstallmentsCount =
@@ -938,6 +952,11 @@ export function LoansManager({
                     required
                     className="w-full bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-lg px-3 py-2 text-xs text-foreground font-mono focus:outline-none focus:border-sky-400 transition-colors"
                   />
+                  {!disbursedFromCash && (
+                    <p className="text-[10px] text-purple-300 font-mono mt-0.5">
+                      • Inicia a descontarse a partir del siguiente período semanal.
+                    </p>
+                  )}
                 </div>
               </div>
 

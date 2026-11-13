@@ -327,14 +327,14 @@ export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPa
                               <span>-{formatCurrencyPYG(totalDeductions)}</span>
                               <div className="flex items-center gap-1">
                                 {hasAdvances && (
-                                  <span className="text-[10px] px-1 py-0.2 rounded bg-red-500/20 text-red-300 font-mono">
-                                    V:{emp.advances.length}
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-red-500/20 text-red-300 font-mono whitespace-nowrap">
+                                    {emp.advances.length === 1 ? '1 Vale' : `${emp.advances.length} Vales`}
                                   </span>
                                 )}
                                 {hasLoans && (
-                                  <span className="text-[10px] px-1 py-0.2 rounded bg-amber-500/20 text-amber-300 font-mono flex items-center gap-0.5">
+                                  <span className="text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-300 font-mono flex items-center gap-1 whitespace-nowrap">
                                     <Coins className="w-2.5 h-2.5" />
-                                    <span>P:{emp.loanDeductions!.length}</span>
+                                    <span>{emp.loanDeductions!.length === 1 ? '1 Cuota' : `${emp.loanDeductions!.length} Cuotas`}</span>
                                   </span>
                                 )}
                               </div>

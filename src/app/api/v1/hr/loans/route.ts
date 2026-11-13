@@ -184,6 +184,40 @@ export async function POST(req: NextRequest) {
         data: installmentsData,
       });
 
+      // Si el préstamo se desembolsa con dinero físico de Caja Chica, registrar automáticamente el egreso en el turno abierto
+      if (Boolean(disbursedFromCash)) {
+        const activeShift = await tx.cashShift.findFirst({
+          where: { closedAt: null },
+          orderBy: { openedAt: 'desc' },
+        });
+
+        if (activeShift) {
+          const emp = await tx.employee.findUnique({
+            where: { id: employeeId },
+            select: { firstName: true, lastName: true },
+          });
+          const beneficiaryName = emp ? `${emp.firstName} ${emp.lastName}` : null;
+
+          await tx.cashMovement.create({
+            data: {
+              cashShiftId: activeShift.id,
+              type: 'EXPENSE_ADVANCE',
+              category: 'PRESTAMO_PERSONAL',
+              amount: tAmount,
+              description: `Desembolso físico de efectivo por Préstamo ${loanNumber}${reason ? `: ${reason}` : ''}`,
+              beneficiary: beneficiaryName,
+            },
+          });
+
+          await tx.cashShift.update({
+            where: { id: activeShift.id },
+            data: {
+              totalExpenses: { increment: tAmount },
+            },
+          });
+        }
+      }
+
       return tx.employeeLoan.findUnique({
         where: { id: loan.id },
         include: {

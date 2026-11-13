@@ -8,6 +8,7 @@ import {
   Boxes,
   ReceiptText,
   Truck,
+  ShoppingBag,
   FileBarChart,
   Users,
   Settings,
@@ -30,12 +31,13 @@ interface NavItem {
 const navigationItems: NavItem[] = [
   { name: 'Dashboard Central', href: '/', icon: LayoutDashboard, module: 'dashboard' },
   { name: 'Catálogo & Inventario', href: '/inventory', icon: Boxes, module: 'inventory' },
-  { name: 'Compras a Proveedores', href: '/purchases', icon: Truck, module: 'purchases' },
+  { name: 'Compras a Proveedores', href: '/purchases', icon: ShoppingBag, module: 'purchases' },
   { name: 'Ventas & Facturación SIFEN', href: '/billing', icon: ReceiptText, module: 'billing' },
   { name: 'Caja & Tesorería', href: '/billing?tab=shifts', icon: Landmark, module: 'shifts' },
   { name: 'Reportes & Obras', href: '/reports', icon: FileBarChart, module: 'reports' },
   { name: 'Recursos Humanos', href: '/hr', icon: Users, module: 'hr' },
-  { name: 'Configuración & Flota', href: '/settings', icon: Settings, module: 'settings' },
+  { name: 'Control de Flota & Camiones', href: '/fleet', icon: Truck, module: 'fleet' },
+  { name: 'Configuración del Sistema', href: '/settings', icon: Settings, module: 'settings' },
 ];
 
 export function Sidebar() {

@@ -817,6 +817,23 @@ model PurchaseItem {
 // DOMINIO: LOGÍSTICA & FLOTA DE VEHÍCULOS
 // ------------------------------------------------------------------------------
 
+enum VehicleExpenseCategory {
+  COMBUSTIBLE       // Carga de combustible semanal o diaria
+  MANTENIMIENTO     // Mantenimiento preventivo (aceites, filtros, etc.)
+  REPARACION        // Reparación mecánica o eléctrica
+  CUBIERTAS         // Cubiertas, llantas, parches, recape, gomero
+  DOCUMENTACION     // Habilitación, seguro, inspección técnica
+  VARIOS            // Lavado, engrase, otros
+}
+
+enum VehicleMaintenanceType {
+  ACEITE_MOTOR              // Cambio de aceite de motor
+  ACEITE_CAJA_DIFERENCIAL   // Aceite de caja o diferencial
+  FILTROS                   // Filtros (aceite, combustible, aire)
+  MANTENIMIENTO_COMPLETO    // Service general completo
+  OTRO                      // Otro
+}
+
 model Vehicle {
   id           String   @id @default(uuid())
   code         String?  @unique // Ej: CAM-01, FUR-02
@@ -827,9 +844,37 @@ model Vehicle {
   notes        String?
   isActive     Boolean  @default(true)
 
+  expenses     VehicleExpense[]
+
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
   @@map("vehicles")
+}
+
+model VehicleExpense {
+  id                   String                  @id @default(uuid())
+  vehicleId            String
+  vehicle              Vehicle                 @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  date                 DateTime
+  category             VehicleExpenseCategory
+  maintenanceType      VehicleMaintenanceType?
+  description          String                  // Ej: "Cambio de filtro de aceite y aceite 15w40 en taller Don Ramón"
+  partsCost            Decimal                 @default(0) @db.Decimal(12, 2) // Gasto en repuestos / insumos
+  laborCost            Decimal                 @default(0) @db.Decimal(12, 2) // Gasto en mano de obra
+  totalCost            Decimal                 @db.Decimal(12, 2)            // partsCost + laborCost
+  fuelLiters           Decimal?                @db.Decimal(8, 2)             // Litros cargados (si es combustible)
+  fuelPricePerLiter    Decimal?                @db.Decimal(10, 2)            // Precio x litro
+  supplierOrWorkshop   String?                                               // Taller mecánico, gomero o estación (Petropar, etc.)
+  receiptNumber        String?                                               // N° Comprobante / Factura
+  notes                String?
+
+  createdAt            DateTime                @default(now())
+  updatedAt            DateTime                @updatedAt
+
+  @@index([vehicleId])
+  @@index([date])
+  @@index([category])
+  @@map("vehicle_expenses")
 }
 

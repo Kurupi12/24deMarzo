@@ -9,6 +9,7 @@ export type AppModule =
   | 'scheduled'
   | 'reports'
   | 'hr'
+  | 'fleet'
   | 'settings';
 
 export interface RoleConfig {
@@ -25,28 +26,28 @@ export const ROLE_DEFINITIONS: Record<SystemRole, RoleConfig> = {
     badgeColor: 'text-amber-400 border-amber-500/30',
     badgeBg: 'bg-amber-500/10',
     description: 'Control total irrestricto de todos los módulos, nóminas confidenciales y configuraciones.',
-    allowedModules: ['dashboard', 'inventory', 'purchases', 'billing', 'shifts', 'scheduled', 'reports', 'hr', 'settings'],
+    allowedModules: ['dashboard', 'inventory', 'purchases', 'billing', 'shifts', 'scheduled', 'reports', 'hr', 'fleet', 'settings'],
   },
   ADMIN: {
     label: 'Administrador General',
     badgeColor: 'text-amber-400 border-amber-500/30',
     badgeBg: 'bg-amber-500/10',
     description: 'Gestión operativa, financiera y de personal completa.',
-    allowedModules: ['dashboard', 'inventory', 'purchases', 'billing', 'shifts', 'scheduled', 'reports', 'hr', 'settings'],
+    allowedModules: ['dashboard', 'inventory', 'purchases', 'billing', 'shifts', 'scheduled', 'reports', 'hr', 'fleet', 'settings'],
   },
   GENERAL_MANAGER: {
     label: 'Gerente General',
     badgeColor: 'text-emerald-400 border-emerald-500/30',
     badgeBg: 'bg-emerald-500/10',
     description: 'Supervisión de ventas, caja, compras y reportes gerenciales.',
-    allowedModules: ['dashboard', 'inventory', 'purchases', 'billing', 'shifts', 'scheduled', 'reports', 'hr', 'settings'],
+    allowedModules: ['dashboard', 'inventory', 'purchases', 'billing', 'shifts', 'scheduled', 'reports', 'hr', 'fleet', 'settings'],
   },
   OPERATIONAL_ADMIN: {
     label: 'Administración Operativa (Fátima)',
     badgeColor: 'text-teal-400 border-teal-500/30',
     badgeBg: 'bg-teal-500/10',
     description: 'Carga de productos, facturas, notas de pedido, recibos y nómina de personal. Precios protegidos por código.',
-    allowedModules: ['dashboard', 'inventory', 'billing', 'shifts', 'scheduled', 'hr'],
+    allowedModules: ['dashboard', 'inventory', 'billing', 'shifts', 'scheduled', 'hr', 'fleet'],
   },
   CASHIER: {
     label: 'Cajero de Mostrador',
@@ -60,7 +61,7 @@ export const ROLE_DEFINITIONS: Record<SystemRole, RoleConfig> = {
     badgeColor: 'text-blue-400 border-blue-500/30',
     badgeBg: 'bg-blue-500/10',
     description: 'Control de inventario físico, recepción de compras, despacho de pedidos y flota.',
-    allowedModules: ['dashboard', 'inventory', 'purchases', 'scheduled', 'settings'],
+    allowedModules: ['dashboard', 'inventory', 'purchases', 'scheduled', 'fleet', 'settings'],
   },
   ACCOUNTANT: {
     label: 'Contador / Auditor',

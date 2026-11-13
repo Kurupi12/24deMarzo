@@ -6,13 +6,10 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
-    let vehicles = await prisma.vehicle.findMany({
-      where: { isActive: true },
-      orderBy: { code: 'asc' },
-    });
+    const totalExistingVehicles = await prisma.vehicle.count();
 
-    // Si la tabla está vacía, pre-sembrar la flota base del depósito
-    if (vehicles.length === 0) {
+    // Solo pre-sembrar si la base de datos está totalmente vacía de vehículos
+    if (totalExistingVehicles === 0) {
       const initialVehicles = [
         { code: 'CAM-01', plateNumber: 'ABC-101', brand: 'Scania', model: '113H Volquete', capacityTons: 15, notes: 'Camión pesado para fletes de arena y piedra' },
         { code: 'CAM-02', plateNumber: 'DEF-202', brand: 'Mercedes-Benz', model: '1114 Volquete', capacityTons: 8, notes: 'Camión mediano para reparto de ladrillos y cemento' },
@@ -23,12 +20,12 @@ export async function GET(req: NextRequest) {
       for (const v of initialVehicles) {
         await prisma.vehicle.create({ data: v });
       }
-
-      vehicles = await prisma.vehicle.findMany({
-        where: { isActive: true },
-        orderBy: { code: 'asc' },
-      });
     }
+
+    const vehicles = await prisma.vehicle.findMany({
+      where: { isActive: true },
+      orderBy: { code: 'asc' },
+    });
 
     return NextResponse.json(createSuccessResponse(vehicles));
   } catch (error: any) {
@@ -125,11 +122,19 @@ export async function DELETE(req: NextRequest) {
       );
     }
 
-    // Soft delete para preservar integridad histórica
-    const deleted = await prisma.vehicle.update({
-      where: { id },
-      data: { isActive: false },
-    });
+    // Intentar eliminación definitiva
+    let deleted;
+    try {
+      deleted = await prisma.vehicle.delete({
+        where: { id },
+      });
+    } catch {
+      // Fallback a soft-delete si hubiese alguna restricción
+      deleted = await prisma.vehicle.update({
+        where: { id },
+        data: { isActive: false },
+      });
+    }
 
     return NextResponse.json(createSuccessResponse(deleted));
   } catch (error: any) {

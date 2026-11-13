@@ -22,11 +22,13 @@ import {
   RefreshCw,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 import { NewExpenseModal } from './new-expense-modal';
 import { VehicleDetailModal } from './vehicle-detail-modal';
 import { NewVehicleModal } from './new-vehicle-modal';
 
 export function FleetView() {
+  const { confirm, alert } = useCustomDialog();
   const [activeTab, setActiveTab] = useState<'vehicles' | 'history' | 'preventive'>('vehicles');
   const [vehicles, setVehicles] = useState<any[]>([]);
   const [globalTotals, setGlobalTotals] = useState<any>({});
@@ -102,22 +104,47 @@ export function FleetView() {
   }, [filterVehicleId, filterCategory, filterSearch, filterStartDate, filterEndDate, activeTab]);
 
   const handleDeleteExpense = async (id: string) => {
-    if (!confirm('¿Está seguro de eliminar este registro de gasto?')) return;
+    const ok = await confirm({
+      title: 'Eliminar Registro de Gasto',
+      message: '¿Está seguro de que desea eliminar este registro de gasto / mantenimiento? Esta acción no se puede deshacer.',
+      confirmText: 'Sí, Eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+    if (!ok) return;
+
     try {
       const res = await fetch(`/api/v1/fleet/expenses/${id}`, { method: 'DELETE' });
       const json = await res.json();
       if (json.success) {
         fetchExpenses();
         fetchSummary();
+      } else {
+        await alert({
+          title: 'Error',
+          message: json.error?.message || 'Error al eliminar el gasto',
+          variant: 'danger',
+        });
       }
     } catch (err) {
       console.error('Error deleting expense:', err);
+      await alert({
+        title: 'Error de Red',
+        message: 'No se pudo conectar con el servidor',
+        variant: 'danger',
+      });
     }
   };
 
   const handleDeleteVehicle = async (v: any) => {
-    const confirmMsg = `¿Está seguro de eliminar el vehículo ${v.brand} ${v.model} (Chapa: ${v.plateNumber}) de la flota?\n\nEsta acción lo quitará del listado activo y de los selectores de carga.`;
-    if (!confirm(confirmMsg)) return;
+    const ok = await confirm({
+      title: 'Eliminar Camión de la Flota',
+      message: `¿Está seguro de que desea eliminar el vehículo ${v.brand} ${v.model} (Chapa: ${v.plateNumber}) de la flota?\n\nEsta acción lo quitará del inventario activo y de los selectores de carga.`,
+      confirmText: 'Sí, Eliminar',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+    if (!ok) return;
 
     try {
       const res = await fetch(`/api/v1/logistics/vehicles?id=${v.id}`, {
@@ -125,13 +152,26 @@ export function FleetView() {
       });
       const json = await res.json();
       if (json.success) {
+        await alert({
+          title: 'Vehículo Eliminado',
+          message: `El vehículo ${v.brand} ${v.model} (${v.plateNumber}) fue eliminado correctamente.`,
+          variant: 'success',
+        });
         loadAllData();
       } else {
-        alert(json.error?.message || 'Error al eliminar el vehículo');
+        await alert({
+          title: 'Error al Eliminar',
+          message: json.error?.message || 'No se pudo eliminar el vehículo',
+          variant: 'danger',
+        });
       }
     } catch (err: any) {
       console.error('Error deleting vehicle:', err);
-      alert('Error de conexión al eliminar el vehículo');
+      await alert({
+        title: 'Error de Red',
+        message: 'No se pudo conectar con el servidor para eliminar el vehículo',
+        variant: 'danger',
+      });
     }
   };
 

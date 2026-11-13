@@ -376,7 +376,7 @@ export function FleetView() {
                       </div>
                       <p className="text-xs font-mono text-muted-foreground mt-0.5">
                         Chapa: <strong className="text-foreground">{v.plateNumber}</strong>
-                        {v.capacityTons ? ` &bull; ${v.capacityTons} Tn` : ''}
+                        {v.capacityTons ? ` • ${v.capacityTons} Tn` : ''}
                       </p>
                     </div>
                   </div>

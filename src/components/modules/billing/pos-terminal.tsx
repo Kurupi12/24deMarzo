@@ -1108,7 +1108,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                           <option value="">(Sin vehículo oficial)</option>
                           {vehicles.map((v) => (
                             <option key={v.id} value={v.plateNumber}>
-                              {v.plateNumber} &bull; {v.brand} {v.model} ({v.capacityTons || 0} Tn)
+                              {v.plateNumber} • {v.brand} {v.model} ({v.capacityTons || 0} Tn)
                             </option>
                           ))}
                         </select>
@@ -1198,7 +1198,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                             <option value="">(Seleccionar Camión 2)</option>
                             {vehicles.map((v) => (
                               <option key={v.id} value={v.plateNumber}>
-                                {v.plateNumber} &bull; {v.brand} {v.model} ({v.capacityTons || 0} Tn)
+                                {v.plateNumber} • {v.brand} {v.model} ({v.capacityTons || 0} Tn)
                               </option>
                             ))}
                           </select>

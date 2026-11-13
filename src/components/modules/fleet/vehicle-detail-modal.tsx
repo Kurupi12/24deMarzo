@@ -176,7 +176,7 @@ export function VehicleDetailModal({
               </div>
               <p className="text-xs font-mono text-muted-foreground mt-0.5">
                 Chapa: <strong className="text-foreground">{vehicle.plateNumber}</strong>
-                {vehicle.capacityTons ? ` &bull; Capacidad: ${vehicle.capacityTons} Tn.` : ''}
+                {vehicle.capacityTons ? ` • Capacidad: ${vehicle.capacityTons} Tn.` : ''}
               </p>
             </div>
           </div>

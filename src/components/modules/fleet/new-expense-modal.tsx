@@ -215,7 +215,7 @@ export function NewExpenseModal({
                 <option value="" className="bg-[#0d121c] text-muted-foreground">Seleccione un camión...</option>
                 {vehicles.map((v) => (
                   <option key={v.id} value={v.id} className="bg-[#0d121c] text-foreground">
-                    {v.code ? `[${v.code}] ` : ''}{v.brand} {v.model} &bull; Chapa: {v.plateNumber}
+                    {v.code ? `[${v.code}] ` : ''}{v.brand} {v.model} • Chapa: {v.plateNumber}
                   </option>
                 ))}
               </select>

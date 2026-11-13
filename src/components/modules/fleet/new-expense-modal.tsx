@@ -71,20 +71,35 @@ export function NewExpenseModal({
   const numLabor = Number(laborCost) || 0;
   const totalCost = numParts + numLabor;
 
-  // Manejo de cambio en combustible para sugerir total
-  const handleLitersChange = (liters: string) => {
-    setFuelLiters(liters);
-    const l = parseFloat(liters) || 0;
+  // Manejador cuando cambia el Monto Cargado en Combustible (Gs.)
+  const handleFuelAmountChange = (amount: string) => {
+    setPartsCost(amount);
+    const m = parseFloat(amount) || 0;
     const p = parseFloat(fuelPricePerLiter) || 0;
-    if (l > 0 && p > 0) {
-      setPartsCost(Math.round(l * p).toString());
+    if (m > 0 && p > 0) {
+      const calculatedLiters = (m / p).toFixed(2);
+      setFuelLiters(calculatedLiters);
+    } else if (m <= 0) {
+      setFuelLiters('');
     }
   };
 
-  const handlePricePerLiterChange = (price: string) => {
+  // Manejador cuando cambia el Precio por Litro en Combustible (Gs.)
+  const handleFuelPriceChange = (price: string) => {
     setFuelPricePerLiter(price);
-    const l = parseFloat(fuelLiters) || 0;
+    const m = parseFloat(partsCost) || 0;
     const p = parseFloat(price) || 0;
+    if (m > 0 && p > 0) {
+      const calculatedLiters = (m / p).toFixed(2);
+      setFuelLiters(calculatedLiters);
+    }
+  };
+
+  // Manejador si el usuario ajusta o tipea directamente los Litros Cargados
+  const handleFuelLitersDirectChange = (liters: string) => {
+    setFuelLiters(liters);
+    const l = parseFloat(liters) || 0;
+    const p = parseFloat(fuelPricePerLiter) || 0;
     if (l > 0 && p > 0) {
       setPartsCost(Math.round(l * p).toString());
     }
@@ -303,34 +318,86 @@ export function NewExpenseModal({
             </div>
           )}
 
-          {/* Si es Combustible: Litros y Precio x Litro */}
+          {/* Si es Combustible: Monto Cargado + Precio por Litro -> Litros calculados automáticamente */}
           {category === 'COMBUSTIBLE' && (
-            <div className="p-3 rounded-lg bg-amber-500/5 border border-amber-500/20 grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-semibold text-amber-300 mb-1">
-                  Litros Cargados (opcional):
-                </label>
-                <input
-                  type="number"
-                  step="0.1"
-                  placeholder="Ej: 50.0"
-                  value={fuelLiters}
-                  onChange={(e) => handleLitersChange(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-amber-400 font-mono"
-                />
+            <div className="p-3.5 rounded-xl bg-amber-500/5 border border-amber-500/30 space-y-3">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 text-xs">
+                <span className="flex items-center gap-1.5 font-bold text-amber-300">
+                  <Fuel className="w-4 h-4 text-amber-400" />
+                  Carga de Combustible (Cálculo Invertido Automático)
+                </span>
+                <span className="text-[11px] text-muted-foreground">
+                  Ingresá el monto y el precio; los litros se calculan solos
+                </span>
               </div>
-              <div>
-                <label className="block text-[11px] font-semibold text-amber-300 mb-1">
-                  Precio por Litro Gs. (opcional):
-                </label>
-                <input
-                  type="number"
-                  step="10"
-                  placeholder="Ej: 8500"
-                  value={fuelPricePerLiter}
-                  onChange={(e) => handlePricePerLiterChange(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-amber-400 font-mono"
-                />
+
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-start">
+                {/* 1. Monto Cargado */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-foreground mb-1">
+                    1. Monto Cargado Gs. *
+                  </label>
+                  <input
+                    type="number"
+                    step="1000"
+                    placeholder="Ej: 300000"
+                    value={partsCost}
+                    onChange={(e) => handleFuelAmountChange(e.target.value)}
+                    required={category === 'COMBUSTIBLE'}
+                    className="w-full px-3 py-2 bg-[#0d121c] border border-amber-500/50 rounded-lg text-xs font-mono font-bold text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-amber-400 text-right"
+                  />
+                  {numParts > 0 && (
+                    <div className="text-[10px] text-amber-300 font-mono mt-1 text-right">
+                      {formatCurrencyPYG(numParts)}
+                    </div>
+                  )}
+                </div>
+
+                {/* 2. Precio por Litro */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-foreground mb-1">
+                    2. Precio por Litro Gs. *
+                  </label>
+                  <input
+                    type="number"
+                    step="10"
+                    placeholder="Ej: 8500"
+                    value={fuelPricePerLiter}
+                    onChange={(e) => handleFuelPriceChange(e.target.value)}
+                    className="w-full px-3 py-2 bg-[#0d121c] border border-amber-500/50 rounded-lg text-xs font-mono font-bold text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-amber-400 text-right"
+                  />
+                  {Number(fuelPricePerLiter) > 0 && (
+                    <div className="text-[10px] text-muted-foreground font-mono mt-1 text-right">
+                      {formatCurrencyPYG(Number(fuelPricePerLiter))} / L
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Litros que entraron (Calculado automático) */}
+                <div>
+                  <label className="block text-[11px] font-semibold text-amber-300 mb-1">
+                    3. Litros que entraron:
+                  </label>
+                  <div className="relative">
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="0.00"
+                      value={fuelLiters}
+                      onChange={(e) => handleFuelLitersDirectChange(e.target.value)}
+                      className="w-full pl-3 pr-10 py-2 bg-[#0d121c] border border-amber-500/40 rounded-lg text-xs font-mono font-bold text-amber-400 focus:outline-none focus:border-amber-400 text-right"
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground pointer-events-none">
+                      Lts
+                    </span>
+                  </div>
+                  {numParts > 0 && Number(fuelPricePerLiter) > 0 && (
+                    <div className="text-[10px] text-emerald-400 font-mono mt-1 text-right flex items-center justify-end gap-1">
+                      <CheckCircle2 className="w-3 h-3 text-emerald-400" />
+                      <span>{fuelLiters} Lts calculados</span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           )}
@@ -367,13 +434,19 @@ export function NewExpenseModal({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
               <div>
                 <label className="block text-[11px] font-medium text-muted-foreground mb-1">
-                  Repuestos / Insumos:
+                  {category === 'COMBUSTIBLE' ? 'Combustible (Gs.):' : 'Repuestos / Insumos:'}
                 </label>
                 <input
                   type="number"
                   placeholder="0"
                   value={partsCost}
-                  onChange={(e) => setPartsCost(e.target.value)}
+                  onChange={(e) => {
+                    if (category === 'COMBUSTIBLE') {
+                      handleFuelAmountChange(e.target.value);
+                    } else {
+                      setPartsCost(e.target.value);
+                    }
+                  }}
                   className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary font-mono text-right"
                 />
               </div>

@@ -18,10 +18,16 @@ export function HrView() {
   const [employees, setEmployees] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Modales
+  // Modales y navegación contextual
   const [selectedEmpForAdvance, setSelectedEmpForAdvance] = useState<any>(null);
   const [selectedEmpForEdit, setSelectedEmpForEdit] = useState<any>(null);
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [loanPrefill, setLoanPrefill] = useState<{ employeeId: string; amount: number; isOverdraft: boolean } | null>(null);
+
+  const handleFinanceOverdraft = (employeeId: string, overdraftAmount: number) => {
+    setLoanPrefill({ employeeId, amount: overdraftAmount, isOverdraft: true });
+    setActiveTab('loans');
+  };
 
   const fetchEmployees = useCallback(async () => {
     setLoading(true);
@@ -202,9 +208,13 @@ export function HrView() {
           onDeleteEmployee={handleDeleteEmployee}
         />
       ) : activeTab === 'settlement' ? (
-        <WeeklySettlementPanel />
+        <WeeklySettlementPanel onFinanceOverdraft={handleFinanceOverdraft} />
       ) : activeTab === 'loans' ? (
-        <LoansManager />
+        <LoansManager
+          initialEmployeeId={loanPrefill?.employeeId}
+          initialAmount={loanPrefill?.amount}
+          initialIsOverdraft={loanPrefill?.isOverdraft}
+        />
       ) : (
         <AttendanceMonitor />
       )}

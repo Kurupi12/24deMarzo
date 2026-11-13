@@ -98,6 +98,8 @@ export async function GET(req: NextRequest) {
       // Total deducciones y líquido a cobrar
       const totalDeductions = totalAdvances + totalLoans;
       const netPayable = Math.max(0, weeklySalary - totalDeductions);
+      const isOverdrawn = totalDeductions > weeklySalary;
+      const overdraftAmount = isOverdrawn ? totalDeductions - weeklySalary : 0;
 
       return {
         id: emp.id,
@@ -114,6 +116,8 @@ export async function GET(req: NextRequest) {
         totalLoans,
         totalDeductions,
         netPayable,
+        isOverdrawn,
+        overdraftAmount,
       };
     });
 

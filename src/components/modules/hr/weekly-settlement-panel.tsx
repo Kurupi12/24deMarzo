@@ -21,7 +21,11 @@ import { SettlementEmployeeData } from './weekly-receipt-a4';
 import { WeeklyReceiptModal } from './weekly-receipt-modal';
 import { AdvanceModal } from './advance-modal';
 
-export function WeeklySettlementPanel() {
+interface WeeklySettlementPanelProps {
+  onFinanceOverdraft?: (employeeId: string, overdraftAmount: number) => void;
+}
+
+export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPanelProps = {}) {
   // Fechas por defecto: Semana actual (Lunes a Sábado)
   const getInitialDates = () => {
     const now = new Date();
@@ -341,12 +345,19 @@ export function WeeklySettlementPanel() {
                           )}
                         </td>
                         <td className="py-2.5 px-3 text-right">
-                          <span className="text-sm font-black text-emerald-400">
+                          <span className={`text-sm font-black ${
+                            emp.isOverdrawn ? 'text-amber-400' : 'text-emerald-400'
+                          }`}>
                             {formatCurrencyPYG(emp.netPayable)}
                           </span>
+                          {emp.isOverdrawn && emp.overdraftAmount && emp.overdraftAmount > 0 && (
+                            <div className="text-[10px] font-mono text-rose-400 font-bold whitespace-nowrap mt-0.5">
+                              Sobregiro: -{formatCurrencyPYG(emp.overdraftAmount)}
+                            </div>
+                          )}
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          <div className="flex items-center justify-center gap-1.5">
+                          <div className="flex items-center justify-center gap-1.5 flex-wrap">
                             <button
                               type="button"
                               onClick={() => setSelectedSettlementForReceipt(emp)}
@@ -356,6 +367,19 @@ export function WeeklySettlementPanel() {
                               <Printer className="w-3 h-3" />
                               <span>Recibo A4</span>
                             </button>
+
+                            {emp.isOverdrawn && onFinanceOverdraft && (
+                              <button
+                                type="button"
+                                onClick={() => onFinanceOverdraft(emp.id, emp.overdraftAmount || 0)}
+                                className="inline-flex items-center gap-1 px-2 py-1 rounded-md bg-purple-500/20 border border-purple-500/40 hover:bg-purple-500/30 text-purple-300 text-[11px] font-semibold transition-colors shadow-sm"
+                                title="Financiar sobregiro en cuotas (sin egreso de caja)"
+                              >
+                                <Coins className="w-3 h-3 text-purple-400" />
+                                <span>Financiar Sobregiro</span>
+                              </button>
+                            )}
+
                             <button
                               type="button"
                               onClick={() => setSelectedEmployeeForAdvance({

@@ -35,6 +35,8 @@ export interface SettlementEmployeeData {
   totalLoans?: number;
   totalDeductions?: number;
   netPayable: number;
+  isOverdrawn?: boolean;
+  overdraftAmount?: number;
 }
 
 interface WeeklyReceiptA4Props {

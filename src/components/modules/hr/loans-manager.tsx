@@ -24,6 +24,7 @@ import {
   FileText,
   BadgePercent,
   Check,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 
@@ -64,7 +65,17 @@ interface EmployeeLoan {
   installments: LoanInstallment[];
 }
 
-export function LoansManager() {
+interface LoansManagerProps {
+  initialEmployeeId?: string;
+  initialAmount?: number;
+  initialIsOverdraft?: boolean;
+}
+
+export function LoansManager({
+  initialEmployeeId,
+  initialAmount,
+  initialIsOverdraft,
+}: LoansManagerProps = {}) {
   const [loans, setLoans] = useState<EmployeeLoan[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -76,6 +87,8 @@ export function LoansManager() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
   const [totalAmount, setTotalAmount] = useState('');
   const [installmentAmount, setInstallmentAmount] = useState('');
+  const [calculationMode, setCalculationMode] = useState<'BY_WEEKS' | 'BY_AMOUNT'>('BY_WEEKS');
+  const [weeksCount, setWeeksCount] = useState<string>('10');
   const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
   const [firstDeductionDate, setFirstDeductionDate] = useState(() => {
     const today = new Date();
@@ -132,11 +145,115 @@ export function LoansManager() {
     fetchEmployees();
   }, []);
 
-  // Calcular número de cuotas en vivo en el modal
-  const computedInstallments =
-    Number(totalAmount) > 0 && Number(installmentAmount) > 0
+  // Preselección si viene desde liquidación semanal (ej. sobregiro de vales)
+  useEffect(() => {
+    if (initialEmployeeId || initialAmount) {
+      if (initialEmployeeId) setSelectedEmployeeId(initialEmployeeId);
+      if (initialAmount && initialAmount > 0) {
+        setTotalAmount(initialAmount.toString());
+        setWeeksCount('10');
+        setInstallmentAmount(Math.ceil(initialAmount / 10).toString());
+      }
+      if (initialIsOverdraft) {
+        setDisbursedFromCash(false);
+        setReason('Financiación de sobregiro de vales semanales');
+      }
+      setIsCreateModalOpen(true);
+    }
+  }, [initialEmployeeId, initialAmount, initialIsOverdraft]);
+
+  // Cantidad total de cuotas calculada
+  const totalInstallmentsCount =
+    calculationMode === 'BY_WEEKS'
+      ? Number(weeksCount) || 0
+      : Number(totalAmount) > 0 && Number(installmentAmount) > 0
       ? Math.ceil(Number(totalAmount) / Number(installmentAmount))
       : 0;
+
+  // Resumen de amortización exacto
+  const getAmortizationSummary = () => {
+    const t = Number(totalAmount) || 0;
+    const n = totalInstallmentsCount;
+    const regular = Number(installmentAmount) || 0;
+    if (t <= 0 || n <= 0 || regular <= 0) return null;
+
+    if (n === 1) {
+      return {
+        totalWeeks: 1,
+        regularAmount: t,
+        regularCount: 1,
+        lastAmount: t,
+        hasAdjustment: false,
+        totalExact: t,
+      };
+    }
+
+    const firstCount = n - 1;
+    const sumFirst = firstCount * regular;
+    const lastAmount = t - sumFirst;
+    const hasAdjustment = lastAmount !== regular;
+
+    return {
+      totalWeeks: n,
+      regularAmount: regular,
+      regularCount: firstCount,
+      lastAmount: lastAmount > 0 ? lastAmount : regular,
+      hasAdjustment,
+      totalExact: t,
+    };
+  };
+
+  const amortSummary = getAmortizationSummary();
+
+  const handleTotalAmountChange = (val: string) => {
+    setTotalAmount(val);
+    const t = Number(val) || 0;
+    if (t > 0) {
+      if (calculationMode === 'BY_WEEKS') {
+        const w = Number(weeksCount) || 1;
+        setInstallmentAmount(Math.ceil(t / w).toString());
+      } else {
+        const inst = Number(installmentAmount) || 0;
+        if (inst > 0) {
+          setWeeksCount(Math.ceil(t / inst).toString());
+        }
+      }
+    }
+  };
+
+  const handleWeeksCountChange = (val: string) => {
+    setWeeksCount(val);
+    const w = Number(val) || 0;
+    const t = Number(totalAmount) || 0;
+    if (t > 0 && w > 0) {
+      setInstallmentAmount(Math.ceil(t / w).toString());
+    }
+  };
+
+  const handleInstallmentAmountChange = (val: string) => {
+    setInstallmentAmount(val);
+    const inst = Number(val) || 0;
+    const t = Number(totalAmount) || 0;
+    if (t > 0 && inst > 0) {
+      setWeeksCount(Math.ceil(t / inst).toString());
+    }
+  };
+
+  const switchCalculationMode = (mode: 'BY_WEEKS' | 'BY_AMOUNT') => {
+    setCalculationMode(mode);
+    const t = Number(totalAmount) || 0;
+    if (mode === 'BY_WEEKS') {
+      const w = Number(weeksCount) || 10;
+      if (t > 0 && w > 0) {
+        setInstallmentAmount(Math.ceil(t / w).toString());
+      }
+    } else {
+      const inst = Number(installmentAmount) || 0;
+      if (t > 0 && inst > 0) {
+        setWeeksCount(Math.ceil(t / inst).toString());
+      }
+    }
+  };
 
   const handleCreateSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -153,6 +270,7 @@ export function LoansManager() {
           employeeId: selectedEmployeeId,
           totalAmount: Number(totalAmount),
           installmentAmount: Number(installmentAmount),
+          totalInstallments: totalInstallmentsCount,
           issueDate,
           firstDeductionDate,
           reason,
@@ -170,8 +288,10 @@ export function LoansManager() {
           setSelectedEmployeeId('');
           setTotalAmount('');
           setInstallmentAmount('');
+          setWeeksCount('10');
           setReason('');
           setNotes('');
+          setDisbursedFromCash(true);
           setCreateFeedback(null);
         }, 900);
       } else {
@@ -429,14 +549,23 @@ export function LoansManager() {
                             {loan.employee.firstName.charAt(0)}
                           </div>
                           <div>
-                            <div className="font-semibold text-foreground text-xs flex items-center gap-1.5">
+                            <div className="font-semibold text-foreground text-xs flex items-center gap-1.5 flex-wrap">
                               <span>{loan.employee.firstName} {loan.employee.lastName}</span>
                               <span className="text-[9px] font-mono bg-neutral-800 text-neutral-300 px-1.5 py-0.2 rounded border border-neutral-700">
                                 {loan.loanNumber}
                               </span>
+                              {loan.disbursedFromCash ? (
+                                <span className="text-[9px] font-mono bg-emerald-500/10 text-emerald-400 px-1.5 py-0.2 rounded border border-emerald-500/20">
+                                  Efectivo Caja
+                                </span>
+                              ) : (
+                                <span className="text-[9px] font-mono bg-purple-500/10 text-purple-400 px-1.5 py-0.2 rounded border border-purple-500/20" title="Consolidación de sobregiro de vales - sin egreso de caja">
+                                  Sobregiro Vales
+                                </span>
+                              )}
                             </div>
                             <div className="text-[10px] text-muted-foreground font-mono">
-                              {loan.employee.jobTitle} &bull; Otorgado: {new Date(loan.issueDate).toLocaleDateString('es-PY')}
+                              {loan.employee.jobTitle} • Otorgado: {new Date(loan.issueDate).toLocaleDateString('es-PY')}
                             </div>
                           </div>
                         </div>
@@ -571,65 +700,215 @@ export function LoansManager() {
                 </select>
               </div>
 
-              {/* Monto Total y Cuota Semanal */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <DollarSign className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Monto Total a Prestar:</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="10000"
-                      step="10000"
-                      value={totalAmount}
-                      onChange={(e) => setTotalAmount(e.target.value)}
-                      placeholder="ej. 600000"
-                      required
-                      className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-3 pr-10 py-2 text-xs font-mono font-bold text-foreground focus:outline-none focus:border-primary text-right"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground">
-                      Gs.
-                    </span>
-                  </div>
+              {/* Modalidad / Origen del Préstamo */}
+              <div className="space-y-1.5">
+                <label className="text-xs font-semibold text-muted-foreground block">
+                  Modalidad / Origen del Préstamo:
+                </label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDisbursedFromCash(true);
+                      if (reason === 'Financiación de sobregiro de vales semanales') {
+                        setReason('');
+                      }
+                    }}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      disbursedFromCash
+                        ? 'bg-emerald-500/10 border-emerald-500/40 ring-1 ring-emerald-500/40 text-foreground'
+                        : 'bg-[#0d121c] border-card-border text-muted-foreground hover:bg-[#131b28]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-semibold text-xs text-emerald-400 mb-1">
+                      <DollarSign className="w-4 h-4" />
+                      <span>Préstamo en Efectivo</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      Desembolso nuevo desde la Caja Central del depósito.
+                    </p>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setDisbursedFromCash(false);
+                      if (!reason.trim()) {
+                        setReason('Financiación de sobregiro de vales semanales');
+                      }
+                    }}
+                    className={`p-3 rounded-lg border text-left transition-all ${
+                      !disbursedFromCash
+                        ? 'bg-purple-500/10 border-purple-500/40 ring-1 ring-purple-500/40 text-foreground'
+                        : 'bg-[#0d121c] border-card-border text-muted-foreground hover:bg-[#131b28]'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2 font-semibold text-xs text-purple-400 mb-1">
+                      <FileSpreadsheet className="w-4 h-4" />
+                      <span>Financiación de Sobregiro</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      Financia vales ya retirados. <strong>Sin egreso de caja hoy</strong>.
+                    </p>
+                  </button>
                 </div>
 
-                <div className="space-y-1">
-                  <label className="text-xs font-semibold text-muted-foreground flex items-center gap-1.5">
-                    <CalendarDays className="w-3.5 h-3.5 text-primary" />
-                    <span>Cuota Semanal Fija:</span>
-                  </label>
-                  <div className="relative">
-                    <input
-                      type="number"
-                      min="5000"
-                      step="5000"
-                      value={installmentAmount}
-                      onChange={(e) => setInstallmentAmount(e.target.value)}
-                      placeholder="ej. 100000"
-                      required
-                      className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-3 pr-10 py-2 text-xs font-mono font-bold text-foreground focus:outline-none focus:border-primary text-right"
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground">
-                      Gs.
+                {!disbursedFromCash && (
+                  <div className="p-2.5 bg-purple-500/10 border border-purple-500/20 rounded-lg text-[11px] text-purple-300 flex items-start gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-purple-400 shrink-0 mt-0.5" />
+                    <span>
+                      <strong>Sin salida de caja hoy:</strong> El dinero ya fue retirado por el empleado mediante vales durante la semana. Este préstamo NO saca efectivo de caja, solo establece el plan de cuotas para no dejarlo sin sueldo en una sola liquidación.
                     </span>
                   </div>
+                )}
+              </div>
+
+              {/* Monto Total a Prestar / Financiar */}
+              <div className="space-y-1">
+                <label className="text-xs font-semibold text-muted-foreground flex items-center justify-between">
+                  <span className="flex items-center gap-1.5">
+                    <DollarSign className="w-3.5 h-3.5 text-amber-400" />
+                    <span>Monto Total a Financiar / Prestar:</span>
+                  </span>
+                  {Number(totalAmount) > 0 && (
+                    <span className="text-amber-400 font-mono font-bold">
+                      {formatCurrencyPYG(Number(totalAmount))}
+                    </span>
+                  )}
+                </label>
+                <div className="relative">
+                  <input
+                    type="number"
+                    min="1000"
+                    step="1"
+                    value={totalAmount}
+                    onChange={(e) => handleTotalAmountChange(e.target.value)}
+                    placeholder="ej. 812000"
+                    required
+                    className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-3 pr-10 py-2 text-xs font-mono font-bold text-foreground focus:outline-none focus:border-primary text-right"
+                  />
+                  <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground">
+                    Gs.
+                  </span>
                 </div>
               </div>
 
-              {/* Tarjeta de Resumen Automático de Cuotas */}
-              {computedInstallments > 0 && (
-                <div className="p-3 bg-primary/10 border border-primary/30 rounded-lg text-xs space-y-1">
-                  <div className="flex items-center justify-between font-mono font-bold text-primary">
-                    <span>Plan de Amortización Automático:</span>
-                    <span>{computedInstallments} semanas consecutivas</span>
+              {/* Selector de Modo de Plan de Pago */}
+              <div className="space-y-2 p-3 bg-[#0a0f18] border border-card-border rounded-xl">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 text-xs">
+                  <span className="font-semibold text-foreground flex items-center gap-1.5">
+                    <CalendarDays className="w-3.5 h-3.5 text-primary" />
+                    <span>Definición del Plan de Cuotas:</span>
+                  </span>
+                  <div className="flex p-0.5 bg-[#0d121c] border border-card-border rounded-lg text-[11px] self-start sm:self-auto">
+                    <button
+                      type="button"
+                      onClick={() => switchCalculationMode('BY_WEEKS')}
+                      className={`px-2.5 py-1 rounded transition-colors ${
+                        calculationMode === 'BY_WEEKS'
+                          ? 'bg-primary text-white font-semibold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Por N° de Cuotas (Semanas)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => switchCalculationMode('BY_AMOUNT')}
+                      className={`px-2.5 py-1 rounded transition-colors ${
+                        calculationMode === 'BY_AMOUNT'
+                          ? 'bg-primary text-white font-semibold'
+                          : 'text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      Por Cuota Semanal Fija
+                    </button>
                   </div>
-                  <p className="text-[11px] text-muted-foreground">
-                    Se descontará de forma fija <strong className="text-foreground">{formatCurrencyPYG(Number(installmentAmount))}</strong> cada sábado hasta completar los <strong className="text-foreground">{formatCurrencyPYG(Number(totalAmount))}</strong>. Tasa de interés: 0%.
-                  </p>
                 </div>
-              )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+                  {/* Campo N° de Semanas / Cuotas */}
+                  <div className="space-y-1">
+                    <label className={`text-[11px] font-semibold flex items-center gap-1.5 ${
+                      calculationMode === 'BY_WEEKS' ? 'text-primary' : 'text-muted-foreground'
+                    }`}>
+                      <span>Cantidad de Cuotas (Semanas):</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="1"
+                        max="104"
+                        step="1"
+                        value={weeksCount}
+                        onChange={(e) => handleWeeksCountChange(e.target.value)}
+                        placeholder="ej. 11 o 13"
+                        required
+                        className={`w-full bg-[#0d121c] border rounded-lg pl-3 pr-16 py-2 text-xs font-mono font-bold text-foreground focus:outline-none text-right ${
+                          calculationMode === 'BY_WEEKS'
+                            ? 'border-primary ring-1 ring-primary/30'
+                            : 'border-card-border'
+                        }`}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground">
+                        semanas
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Campo Monto Cuota Semanal */}
+                  <div className="space-y-1">
+                    <label className={`text-[11px] font-semibold flex items-center gap-1.5 ${
+                      calculationMode === 'BY_AMOUNT' ? 'text-primary' : 'text-muted-foreground'
+                    }`}>
+                      <span>Cuota Semanal {calculationMode === 'BY_WEEKS' ? '(Calculada)' : 'Fija'}:</span>
+                    </label>
+                    <div className="relative">
+                      <input
+                        type="number"
+                        min="1000"
+                        step="1"
+                        value={installmentAmount}
+                        onChange={(e) => handleInstallmentAmountChange(e.target.value)}
+                        placeholder="ej. 73819"
+                        required
+                        className={`w-full bg-[#0d121c] border rounded-lg pl-3 pr-10 py-2 text-xs font-mono font-bold text-foreground focus:outline-none text-right ${
+                          calculationMode === 'BY_AMOUNT'
+                            ? 'border-primary ring-1 ring-primary/30'
+                            : 'border-card-border'
+                        }`}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-[10px] font-mono text-muted-foreground">
+                        Gs.
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Tarjeta de Resumen Automático de Cuotas */}
+                {amortSummary && (
+                  <div className="p-2.5 bg-primary/10 border border-primary/20 rounded-lg text-xs space-y-1 mt-2">
+                    <div className="flex items-center justify-between font-mono font-bold text-primary text-[11px]">
+                      <span className="flex items-center gap-1">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-primary" />
+                        Plan de Amortización Automático:
+                      </span>
+                      <span>{amortSummary.totalWeeks} semanas consecutivas</span>
+                    </div>
+                    <p className="text-[11px] text-muted-foreground leading-relaxed">
+                      {amortSummary.hasAdjustment ? (
+                        <>
+                          Se descontarán <strong className="text-foreground">{amortSummary.regularCount} cuotas de {formatCurrencyPYG(amortSummary.regularAmount)}</strong> y 1 cuota final de ajuste de <strong className="text-foreground">{formatCurrencyPYG(amortSummary.lastAmount)}</strong> cada sábado, completando los <strong className="text-foreground">{formatCurrencyPYG(amortSummary.totalExact)}</strong>. Tasa: 0%.
+                        </>
+                      ) : (
+                        <>
+                          Se descontará de forma fija <strong className="text-foreground">{formatCurrencyPYG(amortSummary.regularAmount)}</strong> cada sábado durante <strong className="text-foreground">{amortSummary.totalWeeks} semanas</strong> hasta completar los <strong className="text-foreground">{formatCurrencyPYG(amortSummary.totalExact)}</strong>. Tasa: 0%.
+                        </>
+                      )}
+                    </p>
+                  </div>
+                )}
+              </div>
 
               {/* Fechas de Entrega y Primer Descuento */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -676,20 +955,6 @@ export function LoansManager() {
                 />
               </div>
 
-              {/* Registro en Caja */}
-              <div className="flex items-center gap-2 p-2.5 bg-[#0d121c] border border-card-border rounded-lg">
-                <input
-                  type="checkbox"
-                  id="disbursedCashCheck"
-                  checked={disbursedFromCash}
-                  onChange={(e) => setDisbursedFromCash(e.target.checked)}
-                  className="rounded border-card-border bg-[#07090e] text-primary focus:ring-0"
-                />
-                <label htmlFor="disbursedCashCheck" className="text-xs text-foreground cursor-pointer select-none">
-                  El dinero se entrega en efectivo desde la Caja Central del depósito
-                </label>
-              </div>
-
               {/* Botones */}
               <div className="flex gap-2 pt-2 border-t border-card-border">
                 <button
@@ -726,8 +991,8 @@ export function LoansManager() {
             {/* Cabecera */}
             <div className="p-4 bg-[#0b0e14] border-b border-card-border flex items-center justify-between">
               <div>
-                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2">
-                  <span>Cronograma & Cuotas &bull; {selectedLoan.loanNumber}</span>
+                <h3 className="text-sm font-semibold text-foreground flex items-center gap-2 flex-wrap">
+                  <span>Cronograma & Cuotas • {selectedLoan.loanNumber}</span>
                   <span className={`text-[10px] font-mono font-bold px-2 py-0.5 rounded border ${
                     selectedLoan.status === 'ACTIVE'
                       ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-400'
@@ -737,6 +1002,15 @@ export function LoansManager() {
                   }`}>
                     {selectedLoan.status}
                   </span>
+                  {selectedLoan.disbursedFromCash ? (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-emerald-500/30 bg-emerald-500/10 text-emerald-400">
+                      Efectivo Caja
+                    </span>
+                  ) : (
+                    <span className="text-[10px] font-mono px-2 py-0.5 rounded border border-purple-500/30 bg-purple-500/10 text-purple-400" title="Consolidación de sobregiro de vales">
+                      Sobregiro Vales
+                    </span>
+                  )}
                 </h3>
                 <p className="text-xs text-muted-foreground font-mono mt-0.5">
                   Funcionario: <strong className="text-foreground">{selectedLoan.employee.firstName} {selectedLoan.employee.lastName}</strong> ({selectedLoan.employee.code})

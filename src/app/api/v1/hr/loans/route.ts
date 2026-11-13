@@ -78,6 +78,7 @@ export async function POST(req: NextRequest) {
       employeeId,
       totalAmount,
       installmentAmount,
+      totalInstallments: requestedInstallments,
       issueDate,
       firstDeductionDate,
       reason,
@@ -85,19 +86,26 @@ export async function POST(req: NextRequest) {
       disbursedFromCash,
     } = body;
 
-    if (!employeeId || !totalAmount || !installmentAmount) {
+    if (!employeeId || !totalAmount) {
       return NextResponse.json(
-        { success: false, error: 'Empleado, monto total y cuota semanal son obligatorios' },
+        { success: false, error: 'Empleado y monto total son obligatorios' },
         { status: 400 }
       );
     }
 
     const tAmount = Number(totalAmount);
-    const instAmount = Number(installmentAmount);
+    let instAmount = Number(installmentAmount) || 0;
+    let totalInstallments = Number(requestedInstallments) || 0;
 
-    if (tAmount <= 0 || instAmount <= 0) {
+    if (totalInstallments > 0 && instAmount <= 0) {
+      instAmount = Math.ceil(tAmount / totalInstallments);
+    } else if (instAmount > 0 && totalInstallments <= 0) {
+      totalInstallments = Math.ceil(tAmount / instAmount);
+    }
+
+    if (tAmount <= 0 || instAmount <= 0 || totalInstallments <= 0) {
       return NextResponse.json(
-        { success: false, error: 'Los montos deben ser mayores a cero' },
+        { success: false, error: 'El monto total y el plan de cuotas deben ser mayores a cero' },
         { status: 400 }
       );
     }
@@ -108,9 +116,6 @@ export async function POST(req: NextRequest) {
         { status: 400 }
       );
     }
-
-    // Calcular cantidad de cuotas
-    const totalInstallments = Math.ceil(tAmount / instAmount);
 
     // Fechas
     const loanIssueDate = issueDate ? new Date(issueDate) : new Date();

@@ -39,6 +39,7 @@ export function VehicleDetailModal({
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [deletingVehicle, setDeletingVehicle] = useState(false);
 
   const fetchExpenses = async () => {
     if (!vehicle) return;
@@ -79,6 +80,30 @@ export function VehicleDetailModal({
       console.error('Error deleting expense:', err);
     } finally {
       setDeletingId(null);
+    }
+  };
+
+  const handleDeleteVehicle = async () => {
+    const confirmMsg = `¿Está seguro de eliminar el vehículo ${vehicle.brand} ${vehicle.model} (Chapa: ${vehicle.plateNumber}) de la flota?\n\nEsta acción lo quitará del listado activo y de los selectores de carga.`;
+    if (!confirm(confirmMsg)) return;
+
+    setDeletingVehicle(true);
+    try {
+      const res = await fetch(`/api/v1/logistics/vehicles?id=${vehicle.id}`, {
+        method: 'DELETE',
+      });
+      const json = await res.json();
+      if (json.success) {
+        onRefresh();
+        onClose();
+      } else {
+        alert(json.error?.message || 'Error al eliminar el vehículo');
+      }
+    } catch (err: any) {
+      console.error('Error deleting vehicle:', err);
+      alert('Error de conexión al eliminar el vehículo');
+    } finally {
+      setDeletingVehicle(false);
     }
   };
 
@@ -157,6 +182,16 @@ export function VehicleDetailModal({
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={handleDeleteVehicle}
+              disabled={deletingVehicle}
+              className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50"
+              title="Eliminar este camión de la flota"
+            >
+              <Trash2 className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Eliminar Camión</span>
+            </button>
             <button
               type="button"
               onClick={() => {

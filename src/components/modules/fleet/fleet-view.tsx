@@ -115,6 +115,26 @@ export function FleetView() {
     }
   };
 
+  const handleDeleteVehicle = async (v: any) => {
+    const confirmMsg = `¿Está seguro de eliminar el vehículo ${v.brand} ${v.model} (Chapa: ${v.plateNumber}) de la flota?\n\nEsta acción lo quitará del listado activo y de los selectores de carga.`;
+    if (!confirm(confirmMsg)) return;
+
+    try {
+      const res = await fetch(`/api/v1/logistics/vehicles?id=${v.id}`, {
+        method: 'DELETE',
+      });
+      const json = await res.json();
+      if (json.success) {
+        loadAllData();
+      } else {
+        alert(json.error?.message || 'Error al eliminar el vehículo');
+      }
+    } catch (err: any) {
+      console.error('Error deleting vehicle:', err);
+      alert('Error de conexión al eliminar el vehículo');
+    }
+  };
+
   const openNewExpenseForVehicle = (vehicleId: string) => {
     setSelectedVehicleForExpense(vehicleId);
     setIsExpenseModalOpen(true);
@@ -360,6 +380,16 @@ export function FleetView() {
                       </p>
                     </div>
                   </div>
+
+                  {/* Botón para eliminar camión de la flota */}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteVehicle(v)}
+                    title="Eliminar este camión de la flota"
+                    className="p-1.5 rounded-lg border border-card-border text-muted-foreground hover:text-red-400 hover:bg-red-500/10 hover:border-red-500/30 transition-colors"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
                 </div>
 
                 {/* Resumen de Costos del Camión */}

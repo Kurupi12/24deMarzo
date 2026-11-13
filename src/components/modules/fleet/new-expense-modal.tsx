@@ -367,7 +367,7 @@ export function NewExpenseModal({
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 items-end">
               <div>
                 <label className="block text-[11px] font-medium text-muted-foreground mb-1">
-                  Repuestos / Insumos Gs.:
+                  Repuestos / Insumos:
                 </label>
                 <input
                   type="number"
@@ -380,7 +380,7 @@ export function NewExpenseModal({
 
               <div>
                 <label className="block text-[11px] font-medium text-muted-foreground mb-1">
-                  Mano de Obra Gs.:
+                  Mano de Obra:
                 </label>
                 <input
                   type="number"
@@ -391,11 +391,11 @@ export function NewExpenseModal({
                 />
               </div>
 
-              <div className="p-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-right">
-                <span className="block text-[10px] font-bold text-emerald-400 uppercase tracking-wider">
-                  Total Gs.
+              <div className="px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-2 h-[38px]">
+                <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider whitespace-nowrap">
+                  Total:
                 </span>
-                <span className="text-base font-black text-emerald-400 font-mono">
+                <span className="text-sm sm:text-base font-black text-emerald-400 font-mono tracking-tight whitespace-nowrap">
                   {formatCurrencyPYG(totalCost)}
                 </span>
               </div>

@@ -43,6 +43,10 @@ const config: Config = {
           DEFAULT: '#f59e0b',
           foreground: '#ffffff',
         },
+        input: {
+          bg: '#0d121c',
+          border: '#1e2638',
+        },
       },
       fontFamily: {
         sans: ['Inter', 'sans-serif'],

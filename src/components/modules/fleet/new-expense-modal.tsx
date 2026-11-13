@@ -210,11 +210,11 @@ export function NewExpenseModal({
                 value={vehicleId}
                 onChange={(e) => setVehicleId(e.target.value)}
                 required
-                className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
+                className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
               >
-                <option value="">Seleccione un camión...</option>
+                <option value="" className="bg-[#0d121c] text-muted-foreground">Seleccione un camión...</option>
                 {vehicles.map((v) => (
-                  <option key={v.id} value={v.id}>
+                  <option key={v.id} value={v.id} className="bg-[#0d121c] text-foreground">
                     {v.code ? `[${v.code}] ` : ''}{v.brand} {v.model} &bull; Chapa: {v.plateNumber}
                   </option>
                 ))}
@@ -230,7 +230,7 @@ export function NewExpenseModal({
                 value={date}
                 onChange={(e) => setDate(e.target.value)}
                 required
-                className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary transition-colors font-mono"
+                className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary transition-colors font-mono"
               />
             </div>
           </div>
@@ -316,7 +316,7 @@ export function NewExpenseModal({
                   placeholder="Ej: 50.0"
                   value={fuelLiters}
                   onChange={(e) => handleLitersChange(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-amber-400 font-mono"
+                  className="w-full px-3 py-1.5 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-amber-400 font-mono"
                 />
               </div>
               <div>
@@ -329,7 +329,7 @@ export function NewExpenseModal({
                   placeholder="Ej: 8500"
                   value={fuelPricePerLiter}
                   onChange={(e) => handlePricePerLiterChange(e.target.value)}
-                  className="w-full px-3 py-1.5 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-amber-400 font-mono"
+                  className="w-full px-3 py-1.5 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-amber-400 font-mono"
                 />
               </div>
             </div>
@@ -354,7 +354,7 @@ export function NewExpenseModal({
               }
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
+              className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary transition-colors"
             />
           </div>
 
@@ -374,7 +374,7 @@ export function NewExpenseModal({
                   placeholder="0"
                   value={partsCost}
                   onChange={(e) => setPartsCost(e.target.value)}
-                  className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary font-mono text-right"
+                  className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary font-mono text-right"
                 />
               </div>
 
@@ -387,7 +387,7 @@ export function NewExpenseModal({
                   placeholder="0"
                   value={laborCost}
                   onChange={(e) => setLaborCost(e.target.value)}
-                  className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary font-mono text-right"
+                  className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary font-mono text-right"
                 />
               </div>
 
@@ -413,7 +413,7 @@ export function NewExpenseModal({
                 placeholder="Ej: Taller Don Ramón / Petropar"
                 value={supplierOrWorkshop}
                 onChange={(e) => setSupplierOrWorkshop(e.target.value)}
-                className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
+                className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary transition-colors"
               />
             </div>
 
@@ -426,7 +426,7 @@ export function NewExpenseModal({
                 placeholder="Ej: 001-001-0004521"
                 value={receiptNumber}
                 onChange={(e) => setReceiptNumber(e.target.value)}
-                className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary transition-colors font-mono"
+                className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary transition-colors font-mono"
               />
             </div>
           </div>
@@ -441,7 +441,7 @@ export function NewExpenseModal({
               placeholder="Ej: Se guardó factura física en la carpeta de taller"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
+              className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary transition-colors"
             />
           </div>
 

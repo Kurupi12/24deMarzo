@@ -459,7 +459,7 @@ export function FleetView() {
                   placeholder="Buscar repuestos, taller, comprobante..."
                   value={filterSearch}
                   onChange={(e) => setFilterSearch(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary"
+                  className="w-full pl-8 pr-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary"
                 />
               </div>
 
@@ -468,11 +468,11 @@ export function FleetView() {
                 <select
                   value={filterVehicleId}
                   onChange={(e) => setFilterVehicleId(e.target.value)}
-                  className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary"
                 >
-                  <option value="">Todos los vehículos</option>
+                  <option value="" className="bg-[#0d121c] text-muted-foreground">Todos los vehículos</option>
                   {vehicles.map((v) => (
-                    <option key={v.id} value={v.id}>
+                    <option key={v.id} value={v.id} className="bg-[#0d121c] text-foreground">
                       {v.code ? `[${v.code}] ` : ''}{v.brand} {v.model} ({v.plateNumber})
                     </option>
                   ))}
@@ -484,15 +484,15 @@ export function FleetView() {
                 <select
                   value={filterCategory}
                   onChange={(e) => setFilterCategory(e.target.value)}
-                  className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary"
+                  className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary"
                 >
-                  <option value="">Todas las categorías</option>
-                  <option value="COMBUSTIBLE">Combustible</option>
-                  <option value="MANTENIMIENTO">Mantenimiento Preventivo</option>
-                  <option value="REPARACION">Reparación Mecánica</option>
-                  <option value="CUBIERTAS">Cubiertas & Gomería</option>
-                  <option value="DOCUMENTACION">Documentos / Dinatran</option>
-                  <option value="VARIOS">Varios / Lavado</option>
+                  <option value="" className="bg-[#0d121c] text-muted-foreground">Todas las categorías</option>
+                  <option value="COMBUSTIBLE" className="bg-[#0d121c] text-foreground">Combustible</option>
+                  <option value="MANTENIMIENTO" className="bg-[#0d121c] text-foreground">Mantenimiento Preventivo</option>
+                  <option value="REPARACION" className="bg-[#0d121c] text-foreground">Reparación Mecánica</option>
+                  <option value="CUBIERTAS" className="bg-[#0d121c] text-foreground">Cubiertas & Gomería</option>
+                  <option value="DOCUMENTACION" className="bg-[#0d121c] text-foreground">Documentos / Dinatran</option>
+                  <option value="VARIOS" className="bg-[#0d121c] text-foreground">Varios / Lavado</option>
                 </select>
               </div>
 

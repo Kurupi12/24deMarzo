@@ -112,7 +112,7 @@ export function NewVehicleModal({ isOpen, onClose, onSuccess }: NewVehicleModalP
                 placeholder="Ej: ABC-123"
                 value={plateNumber}
                 onChange={(e) => setPlateNumber(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary font-mono font-bold uppercase"
+                className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary font-mono font-bold uppercase"
               />
             </div>
 
@@ -125,7 +125,7 @@ export function NewVehicleModal({ isOpen, onClose, onSuccess }: NewVehicleModalP
                 placeholder="Ej: CAM-04 / FUR-02"
                 value={code}
                 onChange={(e) => setCode(e.target.value.toUpperCase())}
-                className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary font-mono uppercase"
+                className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary font-mono uppercase"
               />
             </div>
           </div>
@@ -141,7 +141,7 @@ export function NewVehicleModal({ isOpen, onClose, onSuccess }: NewVehicleModalP
                 placeholder="Ej: Scania, Mercedes-Benz, Kia"
                 value={brand}
                 onChange={(e) => setBrand(e.target.value)}
-                className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary"
               />
             </div>
 
@@ -155,7 +155,7 @@ export function NewVehicleModal({ isOpen, onClose, onSuccess }: NewVehicleModalP
                 placeholder="Ej: 113H Volquete, K2700"
                 value={model}
                 onChange={(e) => setModel(e.target.value)}
-                className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary"
+                className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary"
               />
             </div>
           </div>
@@ -170,7 +170,7 @@ export function NewVehicleModal({ isOpen, onClose, onSuccess }: NewVehicleModalP
               placeholder="Ej: 15.0"
               value={capacityTons}
               onChange={(e) => setCapacityTons(e.target.value)}
-              className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary font-mono"
+              className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary font-mono"
             />
           </div>
 
@@ -183,7 +183,7 @@ export function NewVehicleModal({ isOpen, onClose, onSuccess }: NewVehicleModalP
               placeholder="Ej: Camión pesado para fletes de arena y triturada"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
-              className="w-full px-3 py-2 bg-input-bg border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary"
+              className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary"
             />
           </div>
 

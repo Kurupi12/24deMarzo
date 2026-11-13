@@ -262,7 +262,7 @@ export function VehicleDetailModal({
               placeholder="Buscar en historial: ej. filtro, aceite, taller..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-8 pr-3 py-1.5 bg-input-bg border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-sans"
+              className="w-full pl-8 pr-3 py-1.5 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground placeholder:text-muted-foreground/60 focus:outline-none focus:border-primary font-sans"
             />
           </div>
           <div className="text-xs text-muted-foreground font-mono">

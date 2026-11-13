@@ -103,14 +103,16 @@ export function HrView() {
           </p>
         </div>
 
-        <button
-          type="button"
-          onClick={() => setIsCreateModalOpen(true)}
-          className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors shadow-sm self-start sm:self-auto"
-        >
-          <UserPlus className="w-3.5 h-3.5" />
-          <span>Nuevo Funcionario</span>
-        </button>
+        {activeTab === 'employees' && (
+          <button
+            type="button"
+            onClick={() => setIsCreateModalOpen(true)}
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary hover:bg-primary-hover text-white text-xs font-medium transition-colors shadow-sm self-start sm:self-auto"
+          >
+            <UserPlus className="w-3.5 h-3.5" />
+            <span>Nuevo Funcionario</span>
+          </button>
+        )}
       </div>
 
       {/* Tarjetas KPI de Nómina Semanal */}

@@ -10,10 +10,11 @@
 export interface PrintOptions {
   paperSize?: 'A4' | 'ticket';
   title?: string;
+  pageMargin?: string;
 }
 
 export function printElementById(elementId: string, options: PrintOptions = {}) {
-  const { paperSize = 'A4', title = 'Documento' } = options;
+  const { paperSize = 'A4', title = 'Documento', pageMargin } = options;
 
   if (typeof window === 'undefined') return;
 
@@ -60,15 +61,18 @@ export function printElementById(elementId: string, options: PrintOptions = {}) 
     headStyles.push(styleTag.outerHTML);
   });
 
+  const a4Margin = pageMargin !== undefined ? pageMargin : '0';
   const pageCss = paperSize === 'A4'
     ? `
       @page {
         size: A4 portrait;
-        margin: 4mm 5mm;
+        margin: ${a4Margin};
       }
       .print-sandbox-container {
-        width: 196mm !important;
-        max-width: 196mm !important;
+        width: 210mm !important;
+        max-width: 210mm !important;
+        height: 297mm !important;
+        max-height: 297mm !important;
         margin: 0 auto !important;
         padding: 0 !important;
         box-sizing: border-box !important;
@@ -76,6 +80,7 @@ export function printElementById(elementId: string, options: PrintOptions = {}) 
         break-inside: avoid !important;
         page-break-after: avoid !important;
         break-after: avoid !important;
+        overflow: hidden !important;
       }
     `
     : `

@@ -22,6 +22,7 @@ export function WeeklyReceiptModal({ settlement, period, isOpen, onClose }: Week
     printElementById('printable-weekly-receipt', {
       paperSize: 'A4',
       title: `Recibo_Semanal_${settlement.firstName}_${settlement.lastName}`,
+      pageMargin: '0',
     });
   };
 

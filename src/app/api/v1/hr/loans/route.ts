@@ -227,6 +227,9 @@ export async function POST(req: NextRequest) {
           installments: true,
         },
       });
+    }, {
+      maxWait: 10000,
+      timeout: 30000,
     });
 
     return NextResponse.json({

@@ -95,6 +95,9 @@ export async function PATCH(
           },
           include: { installments: true },
         });
+      }, {
+        maxWait: 10000,
+        timeout: 30000,
       });
 
       return NextResponse.json({
@@ -129,6 +132,9 @@ export async function PATCH(
             },
           });
         }
+      }, {
+        maxWait: 10000,
+        timeout: 30000,
       });
 
       return NextResponse.json({

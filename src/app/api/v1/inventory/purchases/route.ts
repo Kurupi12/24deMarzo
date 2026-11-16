@@ -119,124 +119,140 @@ export async function POST(req: NextRequest) {
     const purchaseNumber = `COM-${seq.toString().padStart(5, '0')}`;
 
     // Transacción atómica en Neon
-    const result = await prisma.$transaction(async (tx) => {
-      const mainWarehouse = await tx.warehouse.findFirst({ where: { isMain: true } });
-      const warehouseId = mainWarehouse ? mainWarehouse.id : (await tx.warehouse.findFirst())?.id;
+    const result = await prisma.$transaction(
+      async (tx) => {
+        const mainWarehouse = await tx.warehouse.findFirst({ where: { isMain: true } });
+        const warehouseId = mainWarehouse ? mainWarehouse.id : (await tx.warehouse.findFirst())?.id;
 
-      if (!warehouseId) {
-        throw new Error('No se encontró un depósito activo para ingresar mercadería.');
-      }
+        if (!warehouseId) {
+          throw new Error('No se encontró un depósito activo para ingresar mercadería.');
+        }
 
-      // Upsert o vincular proveedor en el maestro
-      const supplierRecord = await tx.supplier.upsert({
-        where: { ruc: supplierRuc.trim() },
-        update: { name: supplierName.trim() },
-        create: {
-          ruc: supplierRuc.trim(),
-          name: supplierName.trim(),
-        },
-      });
-
-      // 1. Crear comprobante de compra
-      const purchase = await tx.purchase.create({
-        data: {
-          purchaseNumber,
-          invoiceNumber: invoiceNumber.trim(),
-          supplierId: supplierRecord.id,
-          supplierRuc: supplierRuc.trim(),
-          supplierName: supplierName.trim(),
-          paymentCondition: paymentCondition as any,
-          subtotal: grandTotal - vatAmount,
-          vatAmount,
-          grandTotal,
-          notes: notes ? notes.trim() : null,
-          userId,
-          status: 'COMPLETED',
-          items: {
-            create: validatedItems.map((i) => ({
-              productId: i.productId,
-              quantity: i.quantity,
-              unitCost: i.unitCost,
-              subtotal: i.subtotal,
-              vatRate: i.vatRate as any,
-            })),
+        // Upsert o vincular proveedor en el maestro
+        const supplierRecord = await tx.supplier.upsert({
+          where: { ruc: supplierRuc.trim() },
+          update: { name: supplierName.trim() },
+          create: {
+            ruc: supplierRuc.trim(),
+            name: supplierName.trim(),
           },
-        },
-        include: {
-          items: true,
-        },
-      });
-
-      // 2. Incrementar stock en almacén, actualizar costo y registrar Kardex
-      for (const item of validatedItems) {
-        let stockItem = await tx.stockItem.findUnique({
-          where: { productId_warehouseId: { productId: item.productId, warehouseId } },
         });
 
-        const prevStock = Number(stockItem?.currentStock || 0);
-        const newStock = prevStock + item.quantity;
+        // 1. Crear comprobante de compra
+        const purchase = await tx.purchase.create({
+          data: {
+            purchaseNumber,
+            invoiceNumber: invoiceNumber.trim(),
+            supplierId: supplierRecord.id,
+            supplierRuc: supplierRuc.trim(),
+            supplierName: supplierName.trim(),
+            paymentCondition: paymentCondition as any,
+            subtotal: grandTotal - vatAmount,
+            vatAmount,
+            grandTotal,
+            notes: notes ? notes.trim() : null,
+            userId,
+            status: 'COMPLETED',
+            items: {
+              create: validatedItems.map((i) => ({
+                productId: i.productId,
+                quantity: i.quantity,
+                unitCost: i.unitCost,
+                subtotal: i.subtotal,
+                vatRate: i.vatRate as any,
+              })),
+            },
+          },
+          include: {
+            items: true,
+          },
+        });
 
-        if (stockItem) {
-          await tx.stockItem.update({
-            where: { id: stockItem.id },
-            data: { currentStock: newStock },
+        // 2. Incrementar stock en almacén, actualizar costo y registrar Kardex en lote
+        const productIds = validatedItems.map((i) => i.productId);
+        const [stockItems, currentProducts] = await Promise.all([
+          tx.stockItem.findMany({
+            where: {
+              warehouseId,
+              productId: { in: productIds },
+            },
+          }),
+          tx.product.findMany({
+            where: { id: { in: productIds } },
+            select: { id: true, costPrice: true, name: true },
+          }),
+        ]);
+
+        const stockMap = new Map(stockItems.map((si) => [si.productId, si]));
+        const productMap = new Map(currentProducts.map((p) => [p.id, p]));
+
+        for (const item of validatedItems) {
+          const stockItem = stockMap.get(item.productId);
+          const prevStock = Number(stockItem?.currentStock || 0);
+          const newStock = prevStock + item.quantity;
+
+          if (stockItem) {
+            await tx.stockItem.update({
+              where: { id: stockItem.id },
+              data: { currentStock: newStock },
+            });
+          } else {
+            await tx.stockItem.create({
+              data: {
+                productId: item.productId,
+                warehouseId,
+                currentStock: newStock,
+                reservedStock: 0,
+              },
+            });
+          }
+
+          // Obtener costo actual del producto antes de la compra para cálculo de PPP
+          const currentProduct = productMap.get(item.productId);
+          const prevCost = Number(currentProduct?.costPrice || 0);
+          let weightedCost = item.unitCost;
+
+          if (prevStock > 0 && prevCost > 0) {
+            // Fórmula oficial de Precio Promedio Ponderado (PPP):
+            // [(Stock_Previo * Costo_Previo) + (Cantidad_Comprada * Costo_Nuevo)] / (Stock_Previo + Cantidad_Comprada)
+            const totalPrevValue = prevStock * prevCost;
+            const totalNewValue = item.quantity * item.unitCost;
+            const totalUnits = prevStock + item.quantity;
+            weightedCost = Math.round((totalPrevValue + totalNewValue) / totalUnits);
+          }
+
+          // Actualizar costo del producto con el Precio Promedio Ponderado (PPP)
+          await tx.product.update({
+            where: { id: item.productId },
+            data: { costPrice: weightedCost },
           });
-        } else {
-          await tx.stockItem.create({
+
+          // Kardex Entrada con detalle del lote y nuevo PPP
+          await tx.stockMovement.create({
             data: {
+              movementType: 'IN_PURCHASE',
               productId: item.productId,
               warehouseId,
-              currentStock: newStock,
-              reservedStock: 0,
+              quantity: item.quantity,
+              unitCost: item.unitCost,
+              totalCost: item.subtotal,
+              previousStock: prevStock,
+              newStock,
+              referenceType: 'FACTURA_COMPRA',
+              referenceId: purchase.invoiceNumber,
+              notes: `Entrada compra a ${purchase.supplierName} (${purchase.purchaseNumber}) - Costo lote: Gs. ${item.unitCost.toLocaleString('es-PY')} | Nuevo PPP: Gs. ${weightedCost.toLocaleString('es-PY')}`,
+              userId,
             },
           });
         }
 
-        // Obtener costo actual del producto antes de la compra para cálculo de PPP
-        const currentProduct = await tx.product.findUnique({
-          where: { id: item.productId },
-          select: { costPrice: true, name: true },
-        });
-
-        const prevCost = Number(currentProduct?.costPrice || 0);
-        let weightedCost = item.unitCost;
-
-        if (prevStock > 0 && prevCost > 0) {
-          // Fórmula oficial de Precio Promedio Ponderado (PPP):
-          // [(Stock_Previo * Costo_Previo) + (Cantidad_Comprada * Costo_Nuevo)] / (Stock_Previo + Cantidad_Comprada)
-          const totalPrevValue = prevStock * prevCost;
-          const totalNewValue = item.quantity * item.unitCost;
-          const totalUnits = prevStock + item.quantity;
-          weightedCost = Math.round((totalPrevValue + totalNewValue) / totalUnits);
-        }
-
-        // Actualizar costo del producto con el Precio Promedio Ponderado (PPP)
-        await tx.product.update({
-          where: { id: item.productId },
-          data: { costPrice: weightedCost },
-        });
-
-        // Kardex Entrada con detalle del lote y nuevo PPP
-        await tx.stockMovement.create({
-          data: {
-            movementType: 'IN_PURCHASE',
-            productId: item.productId,
-            warehouseId,
-            quantity: item.quantity,
-            unitCost: item.unitCost,
-            totalCost: item.subtotal,
-            previousStock: prevStock,
-            newStock,
-            referenceType: 'FACTURA_COMPRA',
-            referenceId: purchase.invoiceNumber,
-            notes: `Entrada compra a ${purchase.supplierName} (${purchase.purchaseNumber}) - Costo lote: Gs. ${item.unitCost.toLocaleString('es-PY')} | Nuevo PPP: Gs. ${weightedCost.toLocaleString('es-PY')}`,
-            userId,
-          },
-        });
+        return purchase;
+      },
+      {
+        maxWait: 10000,
+        timeout: 30000,
       }
-
-      return purchase;
-    });
+    );
 
     return NextResponse.json(createSuccessResponse(result), { status: 201 });
   } catch (error: any) {

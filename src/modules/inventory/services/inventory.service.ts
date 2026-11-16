@@ -23,6 +23,49 @@ export class InventoryService {
     return product;
   }
 
+  async generateNextSku(productName?: string): Promise<{ sku: string; prefix: string; nextNumber: number }> {
+    const rawName = (productName || '').trim();
+    const clean = rawName.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+    const match = clean.match(/[A-ZÑ]/);
+    const firstLetter = match ? match[0] : 'C';
+
+    const letterPrefixMap: Record<string, string> = {
+      A: 'A1', B: 'B1', C: 'C3', D: 'D4', E: 'E5', F: 'F6', G: 'G7', H: 'H8',
+      I: 'I9', J: 'J10', K: 'K11', L: 'L12', M: 'M13', N: 'N14', Ñ: 'N14',
+      O: 'O15', P: 'P17', Q: 'Q18', R: 'R19', S: 'S20', T: 'T21', U: 'U22',
+      V: 'V23', W: 'W24', X: 'X25', Y: 'Y26', Z: 'Z27'
+    };
+
+    const prefix = letterPrefixMap[firstLetter] || `${firstLetter}1`;
+
+    const existing = await prisma.product.findMany({
+      where: { sku: { startsWith: prefix } },
+      select: { sku: true },
+    });
+
+    const numbers = existing
+      .map((p) => {
+        const suffix = p.sku.slice(prefix.length);
+        return parseInt(suffix, 10);
+      })
+      .filter((n) => !isNaN(n));
+
+    const maxNum = numbers.length > 0 ? Math.max(...numbers) : 0;
+    let nextNum = maxNum + 1;
+
+    let formattedNum = nextNum < 10 ? `0${nextNum}` : String(nextNum);
+    let candidateSku = `${prefix}${formattedNum}`;
+
+    const existingSkusSet = new Set(existing.map((e) => e.sku.toUpperCase()));
+    while (existingSkusSet.has(candidateSku.toUpperCase())) {
+      nextNum++;
+      formattedNum = nextNum < 10 ? `0${nextNum}` : String(nextNum);
+      candidateSku = `${prefix}${formattedNum}`;
+    }
+
+    return { sku: candidateSku, prefix, nextNumber: nextNum };
+  }
+
   async createNewProduct(dto: CreateProductDto) {
     const cleanSku = dto.sku.trim();
     const existingSku = await prisma.product.findUnique({

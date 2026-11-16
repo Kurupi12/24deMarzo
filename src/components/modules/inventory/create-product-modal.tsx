@@ -23,8 +23,24 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
     minStockAlert: '5',
   });
   const [loading, setLoading] = useState(false);
+  const [generatingSku, setGeneratingSku] = useState(false);
 
   if (!isOpen) return null;
+
+  const fetchNextSku = async (name: string) => {
+    try {
+      setGeneratingSku(true);
+      const res = await fetch(`/api/v1/inventory/products/next-sku?name=${encodeURIComponent(name.trim())}`);
+      const data = await res.json();
+      if (data.success && data.data?.sku) {
+        setForm((prev) => ({ ...prev, sku: data.data.sku }));
+      }
+    } catch (err) {
+      console.error('Error al generar SKU:', err);
+    } finally {
+      setGeneratingSku(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,15 +96,13 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
                 <label className="text-[11px] font-mono text-muted-foreground">SKU / Código Interno *</label>
                 <button
                   type="button"
-                  onClick={() => {
-                    const suffix = Math.floor(1000 + Math.random() * 9000);
-                    setForm((prev) => ({ ...prev, sku: `PRD-${suffix}` }));
-                  }}
-                  className="flex items-center gap-1 text-[10px] text-primary hover:underline font-mono"
-                  title="Generar código SKU automático disponible"
+                  disabled={generatingSku}
+                  onClick={() => fetchNextSku(form.name)}
+                  className="flex items-center gap-1 text-[10px] text-primary hover:underline font-mono disabled:opacity-50"
+                  title="Generar código correlativo según regla de letra y abecedario"
                 >
-                  <Sparkles className="w-3 h-3 text-primary" />
-                  Auto-generar
+                  <Sparkles className={`w-3 h-3 text-primary ${generatingSku ? 'animate-spin' : ''}`} />
+                  {generatingSku ? 'Generando...' : 'Auto-generar'}
                 </button>
               </div>
               <input
@@ -96,7 +110,7 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
                 required
                 value={form.sku}
                 onChange={(e) => setForm({ ...form, sku: e.target.value })}
-                placeholder="Ej: PRD-099"
+                placeholder="Ej: C383, A166, L1298 (se autogenera)"
                 className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary"
               />
             </div>
@@ -119,7 +133,12 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
               required
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              placeholder="Ej: Adhesivo Poliuretánico 500ml"
+              onBlur={() => {
+                if (!form.sku.trim() && form.name.trim().length > 0) {
+                  fetchNextSku(form.name);
+                }
+              }}
+              placeholder="Ej: Cemento Yguazú 50kg, Arena Lavada..."
               className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 text-foreground focus:outline-none focus:border-primary"
             />
           </div>

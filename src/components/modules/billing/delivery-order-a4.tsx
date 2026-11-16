@@ -160,11 +160,11 @@ export function DeliveryOrderA4({ sale }: DeliveryOrderA4Props) {
           <table className="w-full border-collapse text-[8px]">
             <thead>
               <tr className="border-b border-black bg-neutral-100 font-bold uppercase text-[7.5px] leading-tight text-black">
-                <th className="py-1 px-1 text-left w-16 border-r border-black">CÓDIGO</th>
-                <th className="py-1 px-1 text-center w-16 border-r border-black">CANTIDAD</th>
-                <th className="py-1 px-1 text-left border-r border-black">DESCRIPCIÓN</th>
-                <th className="py-1 px-1 text-right w-20 border-r border-black">P. UNITARIO</th>
-                <th className="py-1 px-0 text-center w-40" colSpan={3}>
+                <th className="py-0.5 px-1 text-left w-16 border-r border-black">CÓDIGO</th>
+                <th className="py-0.5 px-1 text-center w-16 border-r border-black">CANTIDAD</th>
+                <th className="py-0.5 px-1 text-left border-r border-black">DESCRIPCIÓN</th>
+                <th className="py-0.5 px-1 text-right w-20 border-r border-black">P. UNITARIO</th>
+                <th className="py-0.5 px-0 text-center w-40" colSpan={3}>
                   VALOR DE VENTAS
                   <div className="grid grid-cols-3 border-t border-black text-[6.5px] font-normal mt-0.5">
                     <span className="border-r border-black">EXENTAS</span>
@@ -175,41 +175,44 @@ export function DeliveryOrderA4({ sale }: DeliveryOrderA4Props) {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-300 font-mono text-[8px]">
-              {sale.items?.slice(0, 5).map((item: any, idx: number) => {
+              {sale.items?.map((item: any, idx: number) => {
                 const isVat10 = item.vatRate === 'IVA_10';
                 const isVat5 = item.vatRate === 'IVA_5';
                 const isExempt = item.vatRate === 'EXEMPT';
+                const isCompact = (sale.items?.length || 0) > 5;
+                const rowPadding = isCompact ? 'py-0.5 px-1' : 'py-1 px-1';
+                const fontSize = isCompact ? 'text-[7.5px]' : 'text-[8px]';
 
                 return (
-                  <tr key={item.id || idx} className="leading-tight">
-                    <td className="py-1 px-1 border-r border-black font-semibold">
+                  <tr key={item.id || idx} className={`leading-tight ${fontSize}`}>
+                    <td className={`${rowPadding} border-r border-black font-semibold`}>
                       {item.product?.sku || item.product?.code || 'ART'}
                     </td>
-                    <td className="py-1 px-1 border-r border-black text-center font-bold">
+                    <td className={`${rowPadding} border-r border-black text-center font-bold`}>
                       {item.quantity} {item.product?.unitOfMeasure || item.product?.unit || 'UN'}
                     </td>
-                    <td className="py-1 px-1 border-r border-black font-sans font-medium truncate max-w-[200px]">
+                    <td className={`${rowPadding} border-r border-black font-sans font-medium truncate max-w-[210px]`}>
                       {item.product?.name || item.product?.description || 'Material de Construcción'}
                     </td>
-                    <td className="py-1 px-1 border-r border-black text-right">
+                    <td className={`${rowPadding} border-r border-black text-right`}>
                       {formatCurrencyPYG(Number(item.unitPrice))}
                     </td>
-                    <td className="py-1 px-1 border-r border-black text-right text-[7.5px]">
+                    <td className={`${rowPadding} border-r border-black text-right text-[7px]`}>
                       {isExempt ? formatCurrencyPYG(Number(item.subtotal)) : '-'}
                     </td>
-                    <td className="py-1 px-1 border-r border-black text-right text-[7.5px]">
+                    <td className={`${rowPadding} border-r border-black text-right text-[7px]`}>
                       {isVat5 ? formatCurrencyPYG(Number(item.subtotal)) : '-'}
                     </td>
-                    <td className="py-1 px-1 text-right font-bold text-[7.5px]">
+                    <td className={`${rowPadding} text-right font-bold text-[7px]`}>
                       {isVat10 ? formatCurrencyPYG(Number(item.subtotal)) : '-'}
                     </td>
                   </tr>
                 );
               })}
 
-              {/* Relleno visual si hay pocos artículos para mantener altura */}
+              {/* Relleno visual si hay menos de 3 artículos */}
               {(sale.items?.length || 0) < 3 && (
-                <tr className="h-6">
+                <tr className="h-5">
                   <td className="border-r border-black"></td>
                   <td className="border-r border-black"></td>
                   <td className="border-r border-black text-center italic text-neutral-400 font-sans text-[7.5px]">

@@ -127,7 +127,7 @@ export function PurchasesView() {
   // Buscar productos mientras tipea en la compra
   useEffect(() => {
     if (productSearch.trim().length >= 2) {
-      fetch(`/api/v1/inventory/products?search=${encodeURIComponent(productSearch.trim())}&limit=5`)
+      fetch(`/api/v1/inventory/products?search=${encodeURIComponent(productSearch.trim())}&limit=100`)
         .then((res) => res.json())
         .then((json) => {
           if (json.success) setProductResults(json.data || []);
@@ -743,7 +743,11 @@ export function PurchasesView() {
                     className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
                   />
                   {productResults.length > 0 && (
-                    <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-border rounded-lg shadow-2xl z-30 max-h-48 overflow-y-auto divide-y divide-card-border">
+                    <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-border rounded-lg shadow-2xl z-30 max-h-80 overflow-y-auto divide-y divide-card-border">
+                      <div className="sticky top-0 bg-[#0d121c] px-3 py-1.5 border-b border-card-border flex items-center justify-between text-[10px] font-mono text-muted-foreground z-10">
+                        <span>Resultados encontrados ({productResults.length})</span>
+                        <span className="text-[9px] text-primary">Haz clic para agregar a la compra</span>
+                      </div>
                       {productResults.map((p) => (
                         <div
                           key={p.id}

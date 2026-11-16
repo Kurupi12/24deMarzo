@@ -196,7 +196,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
   // Buscar productos mientras escribe
   useEffect(() => {
     if (productSearch.trim().length >= 2) {
-      fetch(`/api/v1/inventory/products?search=${encodeURIComponent(productSearch.trim())}&limit=5`)
+      fetch(`/api/v1/inventory/products?search=${encodeURIComponent(productSearch.trim())}&limit=100`)
         .then((res) => res.json())
         .then((json) => {
           if (json.success) setSearchResults(json.data || []);
@@ -429,18 +429,22 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
             className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
           />
           {searchResults.length > 0 && (
-            <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-border rounded-lg shadow-xl z-20 max-h-56 overflow-y-auto divide-y divide-card-border">
+            <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-border rounded-lg shadow-2xl z-30 max-h-80 overflow-y-auto divide-y divide-card-border">
+              <div className="sticky top-0 bg-[#0d121c] px-3 py-1.5 border-b border-card-border flex items-center justify-between text-[10px] font-mono text-muted-foreground z-10">
+                <span>Resultados encontrados ({searchResults.length})</span>
+                <span className="text-[9px] text-primary">Haz clic para agregar al carrito</span>
+              </div>
               {searchResults.map((p) => (
                 <div
                   key={p.id}
                   onClick={() => addToCart(p)}
-                  className="p-2.5 hover:bg-muted/30 cursor-pointer flex items-center justify-between text-xs"
+                  className="p-2.5 hover:bg-muted/40 cursor-pointer flex items-center justify-between text-xs transition-colors"
                 >
-                  <div>
-                    <span className="font-mono font-bold text-foreground mr-2">{p.sku}</span>
-                    <span className="text-foreground">{p.name}</span>
+                  <div className="flex-1 pr-3">
+                    <span className="font-mono font-bold text-primary mr-2 px-1.5 py-0.5 bg-primary/10 rounded text-[11px]">{p.sku}</span>
+                    <span className="text-foreground font-medium">{p.name}</span>
                   </div>
-                  <span className="font-mono text-primary font-bold">{formatCurrencyPYG(Number(p.salePrice))}</span>
+                  <span className="font-mono text-emerald-400 font-bold whitespace-nowrap">{formatCurrencyPYG(Number(p.salePrice))}</span>
                 </div>
               ))}
             </div>

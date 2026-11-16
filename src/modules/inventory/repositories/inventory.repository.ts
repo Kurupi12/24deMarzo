@@ -10,11 +10,22 @@ export class InventoryRepository {
     const where: any = { isActive };
 
     if (search) {
-      where.OR = [
-        { name: { contains: search, mode: 'insensitive' } },
-        { sku: { contains: search, mode: 'insensitive' } },
-        { barcode: { contains: search, mode: 'insensitive' } },
-      ];
+      const words = search.trim().split(/\s+/).filter(Boolean);
+      if (words.length <= 1) {
+        where.OR = [
+          { name: { contains: search.trim(), mode: 'insensitive' } },
+          { sku: { contains: search.trim(), mode: 'insensitive' } },
+          { barcode: { contains: search.trim(), mode: 'insensitive' } },
+        ];
+      } else {
+        where.AND = words.map((w) => ({
+          OR: [
+            { name: { contains: w, mode: 'insensitive' } },
+            { sku: { contains: w, mode: 'insensitive' } },
+            { barcode: { contains: w, mode: 'insensitive' } },
+          ],
+        }));
+      }
     }
 
     if (vatRate) {

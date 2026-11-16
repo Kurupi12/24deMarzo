@@ -45,16 +45,13 @@ export function DeliveryOrderA4({ sale }: DeliveryOrderA4Props) {
           {/* Datos de la Empresa (Izquierda) */}
           <div className="flex-1">
             <h1 className="text-sm font-extrabold tracking-wider uppercase leading-none font-serif text-black">
-              Depósito 4 de Marzo S.A.
+              Depósito 4 de Marzo
             </h1>
             <p className="text-[8px] font-semibold text-neutral-800 tracking-tight mt-0.5">
               MATERIALES DE CONSTRUCCIÓN &bull; FERRETERÍA INDUSTRIAL &bull; VENTA DE HIERROS EN GENERAL
             </p>
             <p className="text-[7.5px] text-neutral-700 mt-0.5">
-              Casa Central: Avda. Principal esq. Las Piedras &bull; Tel: (021) 505-222 / (0971) 505-222
-            </p>
-            <p className="text-[7.5px] text-neutral-700">
-              Sucursales: San Lorenzo &bull; Capiatá &bull; Luque &bull; Mariano R. Alonso &bull; RUC: 80092345-1
+              Avda. Defensores del Chaco casi 1ro de Mayo &bull; Tel: 0972 465511 &bull; RUC: 80134022-5
             </p>
           </div>
 

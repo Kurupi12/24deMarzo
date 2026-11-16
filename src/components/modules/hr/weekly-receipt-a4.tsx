@@ -95,13 +95,13 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
         <div className="border-b border-black pb-2 flex items-start justify-between gap-3">
           <div className="flex-1">
             <h1 className="text-sm font-extrabold tracking-wider uppercase font-serif text-black leading-none">
-              Depósito 4 de Marzo S.A.
+              Depósito 4 de Marzo
             </h1>
             <p className="text-[8px] font-semibold text-neutral-800 tracking-tight mt-0.5">
               MATERIALES DE CONSTRUCCIÓN &bull; FERRETERÍA &bull; HIERROS EN GENERAL
             </p>
             <p className="text-[7.5px] text-neutral-700 mt-0.5">
-              Avda. Principal esq. Las Piedras &bull; Tel: (021) 505-222 / (0971) 505-222 &bull; RUC: 80092345-1
+              Avda. Defensores del Chaco casi 1ro de Mayo &bull; Tel: 0972 465511 &bull; RUC: 80134022-5
             </p>
           </div>
 
@@ -262,7 +262,7 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
         {/* ================= BLOQUE 5: CLÁUSULA DE CONFORMIDAD Y FIRMAS ================= */}
         <div className="border-t border-black pt-1 mt-1 text-[7.5px] text-neutral-800 leading-tight">
           <p className="italic text-justify">
-            Recibí de <strong>DEPÓSITO 4 DE MARZO S.A.</strong> la cantidad neta indicada de <strong>{formatCurrencyPYG(settlement.netPayable)}</strong> en concepto de pago de mis haberes de la semana correspondiente, manifestando mi expresa conformidad con los descuentos de adelantos y vales precedentemente detallados, no teniendo reclamo alguno que formular.
+            Recibí de <strong>DEPÓSITO 4 DE MARZO</strong> la cantidad neta indicada de <strong>{formatCurrencyPYG(settlement.netPayable)}</strong> en concepto de pago de mis haberes de la semana correspondiente, manifestando mi expresa conformidad con los descuentos de adelantos y vales precedentemente detallados, no teniendo reclamo alguno que formular.
           </p>
 
           <div className="grid grid-cols-2 gap-8 pt-6 pb-1 text-center font-mono text-[8px]">
@@ -277,7 +277,7 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
 
             <div>
               <div className="border-t border-black pt-0.5">
-                <span className="font-bold block uppercase">Depósito 4 de Marzo S.A.</span>
+                <span className="font-bold block uppercase">Depósito 4 de Marzo</span>
                 <span className="text-[7.5px] text-neutral-700 font-sans">
                   Administración / Pagaduría
                 </span>

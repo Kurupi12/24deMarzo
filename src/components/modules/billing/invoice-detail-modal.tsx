@@ -179,16 +179,16 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
               {/* Cabecera Depósito 4 de Marzo */}
               <div className="text-center space-y-1 pb-3 border-b border-dashed border-card-border">
                 <h2 className="text-base font-bold tracking-wider text-foreground uppercase">
-                  Depósito 4 de Marzo S.A.
+                  Depósito 4 de Marzo
                 </h2>
                 <p className="text-[10px] text-muted-foreground font-sans">
                   Materiales de Construcción & Ferretería Industrial
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  RUC: 80092345-1 &bull; Cel: +595 971 505222
+                  RUC: 80134022-5 &bull; Tel: 0972 465511
                 </p>
                 <p className="text-[10px] text-muted-foreground">
-                  Avda. Principal esq. Las Piedras - Planta Central
+                  Avda. Defensores del Chaco casi 1ro de Mayo
                 </p>
               </div>
 

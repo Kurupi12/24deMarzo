@@ -53,6 +53,14 @@ export async function POST(req: NextRequest) {
         { status: 422 }
       );
     }
+    if (error.code === 'P2002') {
+      const target = (error.meta?.target as string[]) || [];
+      const field = target.includes('sku') ? 'código SKU' : target.includes('barcode') ? 'código de barras' : 'código identificador';
+      return NextResponse.json(
+        createErrorResponse(`El ${field} ingresado ya está en uso por otro producto. Por favor elija un código diferente.`, 'DUPLICATE_ENTRY'),
+        { status: 409 }
+      );
+    }
     const statusCode = error instanceof AppError ? error.statusCode : 500;
     return NextResponse.json(
       createErrorResponse(error.message, error.code || 'PRODUCT_CREATE_ERROR'),
@@ -72,6 +80,14 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json(
         createErrorResponse('Datos de producto inválidos', 'VALIDATION_ERROR', error.errors),
         { status: 422 }
+      );
+    }
+    if (error.code === 'P2002') {
+      const target = (error.meta?.target as string[]) || [];
+      const field = target.includes('sku') ? 'código SKU' : target.includes('barcode') ? 'código de barras' : 'código identificador';
+      return NextResponse.json(
+        createErrorResponse(`El ${field} ingresado ya está en uso por otro producto. Por favor elija un código diferente.`, 'DUPLICATE_ENTRY'),
+        { status: 409 }
       );
     }
     const statusCode = error instanceof AppError ? error.statusCode : 500;

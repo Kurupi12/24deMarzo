@@ -24,6 +24,36 @@ export class InventoryService {
   }
 
   async createNewProduct(dto: CreateProductDto) {
+    const cleanSku = dto.sku.trim();
+    const existingSku = await prisma.product.findUnique({
+      where: { sku: cleanSku },
+      select: { id: true, name: true, sku: true },
+    });
+
+    if (existingSku) {
+      throw new AppError(
+        `El código SKU "${cleanSku}" ya existe en el sistema y pertenece al producto: "${existingSku.name}". Por favor, utilice un código diferente.`,
+        409,
+        'SKU_ALREADY_EXISTS'
+      );
+    }
+
+    if (dto.barcode?.trim()) {
+      const cleanBarcode = dto.barcode.trim();
+      const existingBarcode = await prisma.product.findUnique({
+        where: { barcode: cleanBarcode },
+        select: { id: true, name: true, barcode: true },
+      });
+
+      if (existingBarcode) {
+        throw new AppError(
+          `El código de barras "${cleanBarcode}" ya está registrado en el producto: "${existingBarcode.name}".`,
+          409,
+          'BARCODE_ALREADY_EXISTS'
+        );
+      }
+    }
+
     return this.repo.createProduct(dto);
   }
 

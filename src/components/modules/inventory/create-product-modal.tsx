@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Plus, PackagePlus } from 'lucide-react';
+import { X, Plus, PackagePlus, Sparkles } from 'lucide-react';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 interface CreateProductModalProps {
@@ -76,7 +76,21 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
         <form onSubmit={handleSubmit} className="space-y-3 font-sans text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-[11px] font-mono text-muted-foreground mb-1">SKU / Código Interno *</label>
+              <div className="flex items-center justify-between mb-1">
+                <label className="text-[11px] font-mono text-muted-foreground">SKU / Código Interno *</label>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const suffix = Math.floor(1000 + Math.random() * 9000);
+                    setForm((prev) => ({ ...prev, sku: `PRD-${suffix}` }));
+                  }}
+                  className="flex items-center gap-1 text-[10px] text-primary hover:underline font-mono"
+                  title="Generar código SKU automático disponible"
+                >
+                  <Sparkles className="w-3 h-3 text-primary" />
+                  Auto-generar
+                </button>
+              </div>
               <input
                 type="text"
                 required

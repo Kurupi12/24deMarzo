@@ -120,18 +120,22 @@ export function ReservationReceiptA4({ sale }: ReservationReceiptA4Props) {
             </div>
 
             <div className="divide-y divide-neutral-200">
-              {sale.items?.map((item: any, idx: number) => (
-                <div key={idx} className="grid grid-cols-12 text-[8px] font-mono py-0.5 px-2 items-center">
-                  <div className="col-span-2 text-neutral-600 font-bold">{item.product?.sku || 'SKU'}</div>
-                  <div className="col-span-6 font-semibold uppercase">{item.product?.name || 'Material'}</div>
-                  <div className="col-span-2 text-center font-bold">
-                    {item.quantity} {item.product?.unitOfMeasure || 'UN'}
+              {sale.items?.map((item: any, idx: number) => {
+                const isCompact = (sale.items?.length || 0) > 5;
+                const rowPadding = isCompact ? 'py-0.5 px-2 text-[7.5px]' : 'py-1 px-2 text-[8px]';
+                return (
+                  <div key={idx} className={`grid grid-cols-12 font-mono items-center ${rowPadding}`}>
+                    <div className="col-span-2 text-neutral-600 font-bold">{item.product?.sku || 'SKU'}</div>
+                    <div className="col-span-6 font-semibold uppercase">{item.product?.name || 'Material'}</div>
+                    <div className="col-span-2 text-center font-bold">
+                      {item.quantity} {item.product?.unitOfMeasure || 'UN'}
+                    </div>
+                    <div className="col-span-2 text-right font-bold text-black">
+                      {formatCurrencyPYG(Number(item.quantity) * Number(item.unitPrice))}
+                    </div>
                   </div>
-                  <div className="col-span-2 text-right font-bold text-black">
-                    {formatCurrencyPYG(Number(item.quantity) * Number(item.unitPrice))}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 

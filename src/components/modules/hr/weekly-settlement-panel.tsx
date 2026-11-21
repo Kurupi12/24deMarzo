@@ -16,17 +16,24 @@ import {
   ChevronUp,
   Coins,
   CheckCircle2,
+  Trash2,
+  PauseCircle,
+  Loader2,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { SettlementEmployeeData } from './weekly-receipt-a4';
 import { WeeklyReceiptModal } from './weekly-receipt-modal';
 import { AdvanceModal } from './advance-modal';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 interface WeeklySettlementPanelProps {
   onFinanceOverdraft?: (employeeId: string, overdraftAmount: number, periodEndDate?: string) => void;
 }
 
 export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPanelProps = {}) {
+  const { confirm: customConfirm, alert: customAlert } = useCustomDialog();
+  const [deletingAdvanceId, setDeletingAdvanceId] = useState<string | null>(null);
+  const [pausingInstallmentId, setPausingInstallmentId] = useState<string | null>(null);
   // Fechas por defecto: Semana actual (Lunes a Sábado)
   const getInitialDates = () => {
     const now = new Date();
@@ -429,15 +436,55 @@ export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPa
                                     return (
                                       <div
                                         key={adv.id}
-                                        className="p-2 rounded bg-card border border-card-border text-[11px] font-mono flex items-center justify-between"
+                                        className="p-2 rounded bg-card border border-card-border text-[11px] font-mono flex items-center justify-between gap-2"
                                       >
-                                        <div>
+                                        <div className="min-w-0 flex-1">
                                           <span className="font-bold text-foreground capitalize">{dFmt}: </span>
-                                          <span className="text-muted-foreground font-sans text-[10px]">{adv.reason}</span>
+                                          <span className="text-muted-foreground font-sans text-[11px]">{adv.reason}</span>
                                         </div>
-                                        <span className="font-bold text-red-400 ml-2">
-                                          -{formatCurrencyPYG(adv.amount)}
-                                        </span>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                          <span className="font-bold text-red-400">
+                                            -{formatCurrencyPYG(adv.amount)}
+                                          </span>
+                                          <button
+                                            type="button"
+                                            disabled={deletingAdvanceId === adv.id}
+                                            onClick={async () => {
+                                              const ok = await customConfirm({
+                                                title: 'Eliminar Vale / Adelanto',
+                                                message: `¿Confirmás eliminar el vale de ${formatCurrencyPYG(adv.amount)} (${adv.reason}) de ${emp.firstName} ${emp.lastName}? Se recalculará su liquidación semanal.`,
+                                                confirmText: 'Sí, Eliminar',
+                                                cancelText: 'Cancelar',
+                                                variant: 'danger',
+                                              });
+                                              if (!ok) return;
+                                              setDeletingAdvanceId(adv.id);
+                                              try {
+                                                const res = await fetch(`/api/v1/hr/advances/${adv.id}`, { method: 'DELETE' });
+                                                const json = await res.json();
+                                                if (json.success) {
+                                                  await fetchSettlements();
+                                                } else {
+                                                  await customAlert({
+                                                    title: 'Error',
+                                                    message: json.error?.message || 'No se pudo eliminar el adelanto.',
+                                                    variant: 'danger',
+                                                  });
+                                                }
+                                              } finally {
+                                                setDeletingAdvanceId(null);
+                                              }
+                                            }}
+                                            title="Eliminar este adelanto / vale"
+                                            className="p-1 rounded text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-50"
+                                          >
+                                            {deletingAdvanceId === adv.id ? (
+                                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                                            ) : (
+                                              <Trash2 className="w-3.5 h-3.5" />
+                                            )}
+                                          </button>
+                                        </div>
                                       </div>
                                     );
                                   })}
@@ -455,7 +502,7 @@ export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPa
                                   {emp.loanDeductions!.map((loan) => (
                                     <div
                                       key={loan.installmentId}
-                                      className="p-2.5 rounded bg-card border border-amber-500/30 text-[11px] font-mono flex flex-col justify-between space-y-1"
+                                      className="p-2.5 rounded bg-card border border-amber-500/30 text-[11px] font-mono flex flex-col justify-between space-y-1.5"
                                     >
                                       <div className="flex items-center justify-between">
                                         <span className="font-bold text-amber-300">
@@ -471,6 +518,56 @@ export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPa
                                           {formatCurrencyPYG(loan.remainingBalance)}
                                         </span>
                                       </div>
+                                      <button
+                                        type="button"
+                                        disabled={pausingInstallmentId === loan.installmentId}
+                                        onClick={async () => {
+                                          const ok = await customConfirm({
+                                            title: 'Pausar Cuota Esta Semana',
+                                            message: `¿Confirmás pausar la cuota ${loan.installmentNumber} de ${loan.loanNumber} (${formatCurrencyPYG(loan.amount)}) para ${emp.firstName}? Todas las cuotas pendientes de este préstamo se correrán 7 días hacia adelante.`,
+                                            confirmText: 'Sí, Pausar Cuota',
+                                            cancelText: 'Cancelar',
+                                            variant: 'warning',
+                                          });
+                                          if (!ok) return;
+                                          setPausingInstallmentId(loan.installmentId);
+                                          try {
+                                            const res = await fetch(`/api/v1/hr/loans/${loan.loanId}`, {
+                                              method: 'PATCH',
+                                              headers: { 'Content-Type': 'application/json' },
+                                              body: JSON.stringify({
+                                                action: 'skip_installment',
+                                                installmentId: loan.installmentId,
+                                              }),
+                                            });
+                                            const json = await res.json();
+                                            if (json.success) {
+                                              await fetchSettlements();
+                                            } else {
+                                              await customAlert({
+                                                title: 'Error',
+                                                message: json.error || 'No se pudo pausar la cuota.',
+                                                variant: 'danger',
+                                              });
+                                            }
+                                          } finally {
+                                            setPausingInstallmentId(null);
+                                          }
+                                        }}
+                                        className="w-full py-1 px-2 rounded bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 text-amber-300 text-[10px] font-mono flex items-center justify-center gap-1 transition-colors disabled:opacity-50"
+                                      >
+                                        {pausingInstallmentId === loan.installmentId ? (
+                                          <>
+                                            <Loader2 className="w-3 h-3 animate-spin" />
+                                            <span>Pausando...</span>
+                                          </>
+                                        ) : (
+                                          <>
+                                            <PauseCircle className="w-3 h-3" />
+                                            <span>Pausar esta semana (+7 días)</span>
+                                          </>
+                                        )}
+                                      </button>
                                     </div>
                                   ))}
                                 </div>

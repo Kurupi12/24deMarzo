@@ -42,6 +42,11 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
       return;
     }
 
+    if (!reason.trim()) {
+      setErrorMsg('Por favor indique el motivo del adelanto / vale.');
+      return;
+    }
+
     setLoading(true);
     setErrorMsg('');
     try {
@@ -184,6 +189,37 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
           </div>
 
           <div>
+            <label className="block text-xs font-mono font-semibold text-foreground mb-1">
+              Motivo del Adelanto / Vale *
+            </label>
+            <input
+              type="text"
+              required
+              value={reason}
+              onChange={(e) => setReason(e.target.value)}
+              placeholder="Indique por qué retira el vale (ej: Combustible, Médico, Despensa...)"
+              className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-2 text-foreground focus:outline-none focus:border-accent text-xs"
+            />
+            <div className="flex items-center gap-1.5 mt-2 flex-wrap">
+              <span className="text-[10px] font-mono text-muted-foreground">Motivos rápidos:</span>
+              {['Gastos personales', 'Combustible', 'Despensa / Comida', 'Salud / Médico', 'Pasaje', 'Urgencia familiar'].map((preset) => (
+                <button
+                  key={preset}
+                  type="button"
+                  onClick={() => setReason(preset)}
+                  className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors ${
+                    reason === preset
+                      ? 'bg-accent/20 border-accent text-accent font-bold'
+                      : 'bg-[#0d121c] hover:bg-card border-card-border text-muted-foreground hover:text-foreground'
+                  }`}
+                >
+                  {preset}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
             <label className="block text-[11px] font-mono text-muted-foreground mb-1">Período Fiscal de Deducción *</label>
             <input
               type="month"
@@ -191,17 +227,6 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
               value={deductionPeriod}
               onChange={(e) => setDeductionPeriod(e.target.value)}
               className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-accent"
-            />
-          </div>
-
-          <div>
-            <label className="block text-[11px] font-mono text-muted-foreground mb-1">Motivo / Concepto</label>
-            <input
-              type="text"
-              value={reason}
-              onChange={(e) => setReason(e.target.value)}
-              placeholder="Ej: Gastos personales / médicos..."
-              className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 text-foreground focus:outline-none focus:border-accent"
             />
           </div>
 

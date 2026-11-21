@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { addDays } from 'date-fns';
+import { getSessionUser } from '@/lib/auth/session';
 
 export async function PATCH(
   req: NextRequest,
@@ -117,29 +118,90 @@ export async function PATCH(
         );
       }
 
-      await prisma.$transaction(async (tx) => {
-        // Desplazar esta cuota y todas las posteriores 7 días
+      if (inst.isDeducted) {
+        return NextResponse.json(
+          { success: false, error: 'Esta cuota ya fue cobrada y no puede pausarse.' },
+          { status: 400 }
+        );
+      }
+
+      const updatedLoan = await prisma.$transaction(async (tx) => {
+        // Desplazar esta cuota y todas las posteriores pendientes 7 días en paralelo
         const laterInstallments = loan.installments.filter(
           (i) => i.installmentNumber >= inst.installmentNumber && !i.isDeducted
         );
 
-        for (const item of laterInstallments) {
-          await tx.loanInstallment.update({
-            where: { id: item.id },
-            data: {
-              scheduledDate: addDays(new Date(item.scheduledDate), 7),
-              notes: item.id === inst.id ? 'Pausado por solicitud del funcionario' : item.notes,
+        await Promise.all(
+          laterInstallments.map((item) =>
+            tx.loanInstallment.update({
+              where: { id: item.id },
+              data: {
+                scheduledDate: addDays(new Date(item.scheduledDate), 7),
+                notes:
+                  item.id === inst.id
+                    ? 'Pausado por solicitud del funcionario (+7 días)'
+                    : item.notes,
+              },
+            })
+          )
+        );
+
+        return tx.employeeLoan.findUnique({
+          where: { id: loanId },
+          include: {
+            employee: {
+              select: {
+                id: true,
+                code: true,
+                firstName: true,
+                lastName: true,
+                documentNumber: true,
+                jobTitle: true,
+              },
             },
-          });
-        }
+            installments: { orderBy: { installmentNumber: 'asc' } },
+          },
+        });
       }, {
         maxWait: 10000,
         timeout: 30000,
       });
 
+      const formattedLoan = updatedLoan
+        ? {
+            id: updatedLoan.id,
+            loanNumber: updatedLoan.loanNumber,
+            employee: updatedLoan.employee,
+            totalAmount: Number(updatedLoan.totalAmount),
+            installmentAmount: Number(updatedLoan.installmentAmount),
+            totalInstallments: updatedLoan.totalInstallments,
+            paidInstallments: updatedLoan.paidInstallments,
+            totalPaid: Number(updatedLoan.totalPaid),
+            remainingBalance: Number(updatedLoan.remainingBalance),
+            issueDate: updatedLoan.issueDate,
+            firstDeductionDate: updatedLoan.firstDeductionDate,
+            status: updatedLoan.status,
+            reason: updatedLoan.reason,
+            notes: updatedLoan.notes,
+            disbursedFromCash: updatedLoan.disbursedFromCash,
+            installments: updatedLoan.installments.map((i) => ({
+              id: i.id,
+              installmentNumber: i.installmentNumber,
+              amount: Number(i.amount),
+              scheduledDate: i.scheduledDate,
+              deductedDate: i.deductedDate,
+              isDeducted: i.isDeducted,
+              isSkipped: i.isSkipped,
+              settlementPeriod: i.settlementPeriod,
+              notes: i.notes,
+            })),
+          }
+        : null;
+
       return NextResponse.json({
         success: true,
-        message: 'Cuota pausada correctamente. Las cuotas pendientes se desplazaron 1 semana.',
+        data: formattedLoan,
+        message: 'Cuota pausada correctamente. Las cuotas pendientes se desplazaron 1 semana (+7 días).',
       });
     }
 
@@ -157,14 +219,26 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  req: NextRequest,
+  _req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
+    // Permiso exclusivo para Osvaldo / Dirección (SUPER_ADMIN)
+    const sessionUser = await getSessionUser();
+    if (!sessionUser || sessionUser.role !== 'SUPER_ADMIN') {
+      return NextResponse.json(
+        {
+          success: false,
+          error: 'Acceso denegado: Solo la Dirección (Osvaldo) tiene permiso exclusivo para eliminar un préstamo completo.',
+        },
+        { status: 403 }
+      );
+    }
+
     const loanId = params.id;
     const loan = await prisma.employeeLoan.findUnique({
       where: { id: loanId },
-      include: { installments: { where: { isDeducted: true } } },
+      include: { installments: true },
     });
 
     if (!loan) {
@@ -174,20 +248,58 @@ export async function DELETE(
       );
     }
 
-    if (loan.installments.length > 0) {
-      return NextResponse.json(
-        { success: false, error: 'No se puede eliminar un préstamo que ya tiene cuotas descontadas. Puede marcarlo como CANCELADO.' },
-        { status: 400 }
-      );
-    }
+    const deletedInstallmentsCount = loan.installments.length;
+    const deductedCount = loan.installments.filter((i) => i.isDeducted).length;
+    let cashReverted = false;
 
-    await prisma.employeeLoan.delete({
-      where: { id: loanId },
+    await prisma.$transaction(async (tx) => {
+      // Si el desembolso salió de un turno de caja que TODAVÍA está abierto hoy, revertir ese movimiento para no descuadrar el cierre
+      if (loan.disbursedFromCash) {
+        const openShift = await tx.cashShift.findFirst({
+          where: { closedAt: null },
+          orderBy: { openedAt: 'desc' },
+        });
+
+        if (openShift) {
+          const matchingMovement = await tx.cashMovement.findFirst({
+            where: {
+              cashShiftId: openShift.id,
+              category: 'PRESTAMO_PERSONAL',
+              description: { contains: loan.loanNumber },
+            },
+          });
+
+          if (matchingMovement) {
+            await tx.cashMovement.delete({ where: { id: matchingMovement.id } });
+            await tx.cashShift.update({
+              where: { id: openShift.id },
+              data: {
+                totalExpenses: { decrement: Number(matchingMovement.amount) },
+              },
+            });
+            cashReverted = true;
+          }
+        }
+      }
+
+      // Al eliminar EmployeeLoan, todas sus LoanInstallment se eliminan en cascada (onDelete: Cascade)
+      await tx.employeeLoan.delete({
+        where: { id: loanId },
+      });
+    }, {
+      maxWait: 10000,
+      timeout: 30000,
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Préstamo eliminado correctamente',
+      data: {
+        deletedLoanNumber: loan.loanNumber,
+        deletedInstallmentsCount,
+        deductedCount,
+        cashReverted,
+      },
+      message: `Préstamo ${loan.loanNumber} eliminado completamente (${deletedInstallmentsCount} cuota(s) removidas${cashReverted ? ' y egreso revertido en caja abierta' : ''}).`,
     });
   } catch (error: any) {
     console.error('Error al eliminar préstamo:', error);

@@ -25,8 +25,11 @@ import {
   BadgePercent,
   Check,
   FileSpreadsheet,
+  Trash2,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
+import { useAuth } from '@/lib/auth/auth-context';
+import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 interface LoanInstallment {
   id: string;
@@ -37,6 +40,7 @@ interface LoanInstallment {
   isDeducted: boolean;
   isSkipped: boolean;
   settlementPeriod: string | null;
+  notes?: string | null;
 }
 
 interface EmployeeLoan {
@@ -78,11 +82,18 @@ export function LoansManager({
   initialIsOverdraft,
   initialFirstDeductionDate,
 }: LoansManagerProps = {}) {
+  const { user } = useAuth();
+  const { confirm: customConfirm, alert: customAlert } = useCustomDialog();
+  const isOsvaldoSuperAdmin = user?.role === 'SUPER_ADMIN';
+
   const [loans, setLoans] = useState<EmployeeLoan[]>([]);
   const [employees, setEmployees] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
+  const [skippingInstallmentId, setSkippingInstallmentId] = useState<string | null>(null);
+  const [togglingLoanId, setTogglingLoanId] = useState<string | null>(null);
+  const [deletingLoanId, setDeletingLoanId] = useState<string | null>(null);
 
   // Modal Nuevo Préstamo
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
@@ -320,6 +331,7 @@ export function LoansManager({
 
   const handleToggleStatus = async (loan: EmployeeLoan) => {
     const newStatus = loan.status === 'ACTIVE' ? 'PAUSED' : 'ACTIVE';
+    setTogglingLoanId(loan.id);
     try {
       const res = await fetch(`/api/v1/hr/loans/${loan.id}`, {
         method: 'PATCH',
@@ -332,14 +344,27 @@ export function LoansManager({
         if (selectedLoan && selectedLoan.id === loan.id) {
           setSelectedLoan({ ...selectedLoan, status: newStatus });
         }
+      } else {
+        await customAlert({
+          title: 'Error al cambiar estado',
+          message: json.error || 'No se pudo actualizar el estado del préstamo.',
+          variant: 'danger',
+        });
       }
-    } catch (err) {
-      console.error('Error toggling loan status:', err);
+    } catch (err: any) {
+      await customAlert({
+        title: 'Error de Red',
+        message: err.message || 'Error al contactar con el servidor.',
+        variant: 'danger',
+      });
+    } finally {
+      setTogglingLoanId(null);
     }
   };
 
   const handleSkipInstallment = async (installmentId: string) => {
     if (!selectedLoan) return;
+    setSkippingInstallmentId(installmentId);
     try {
       const res = await fetch(`/api/v1/hr/loans/${selectedLoan.id}`, {
         method: 'PATCH',
@@ -348,17 +373,74 @@ export function LoansManager({
       });
       const json = await res.json();
       if (json.success) {
-        await fetchLoans();
-        // refrescar modal
-        const refreshedRes = await fetch(`/api/v1/hr/loans?employeeId=${selectedLoan.employee.id}`);
-        const refJson = await refreshedRes.json();
-        if (refJson.success && refJson.data) {
-          const updated = refJson.data.find((l: any) => l.id === selectedLoan.id);
-          if (updated) setSelectedLoan(updated);
+        if (json.data) {
+          setSelectedLoan(json.data);
+          setLoans((prev) => prev.map((l) => (l.id === json.data.id ? json.data : l)));
+        } else {
+          await fetchLoans();
         }
+      } else {
+        await customAlert({
+          title: 'No se pudo pausar la cuota',
+          message: json.error || 'Ocurrió un error al intentar pausar esta cuota.',
+          variant: 'danger',
+        });
       }
-    } catch (err) {
-      console.error('Error skipping installment:', err);
+    } catch (err: any) {
+      await customAlert({
+        title: 'Error de Red',
+        message: err.message || 'No se pudo contactar al servidor para pausar la cuota.',
+        variant: 'danger',
+      });
+    } finally {
+      setSkippingInstallmentId(null);
+    }
+  };
+
+  const handleDeleteLoan = async (loan: EmployeeLoan) => {
+    if (!isOsvaldoSuperAdmin) return;
+    const deductedCount = loan.installments.filter((i) => i.isDeducted).length;
+    const ok = await customConfirm({
+      title: `Eliminar Préstamo ${loan.loanNumber}`,
+      message: `¿Confirmás eliminar permanentemente el préstamo ${loan.loanNumber} de ${loan.employee.firstName} ${loan.employee.lastName} por ${formatCurrencyPYG(loan.totalAmount)}? Se eliminará el préstamo completo y todas sus ${loan.totalInstallments} cuota(s)${deductedCount > 0 ? ` (incluyendo ${deductedCount} cuota(s) ya marcada(s) como cobradas)` : ''}.${loan.disbursedFromCash ? ' Si salió de la caja de hoy todavía abierta, también se revertirá el egreso.' : ''}`,
+      confirmText: 'Sí, Eliminar Préstamo',
+      cancelText: 'Cancelar',
+      variant: 'danger',
+    });
+
+    if (!ok) return;
+
+    setDeletingLoanId(loan.id);
+    try {
+      const res = await fetch(`/api/v1/hr/loans/${loan.id}`, {
+        method: 'DELETE',
+      });
+      const json = await res.json();
+      if (json.success) {
+        setLoans((prev) => prev.filter((l) => l.id !== loan.id));
+        if (selectedLoan?.id === loan.id) {
+          setSelectedLoan(null);
+        }
+        await customAlert({
+          title: 'Préstamo Eliminado',
+          message: json.message || `El préstamo ${loan.loanNumber} fue eliminado.`,
+          variant: 'success',
+        });
+      } else {
+        await customAlert({
+          title: 'No se pudo eliminar',
+          message: json.error || 'Error al eliminar el préstamo.',
+          variant: 'danger',
+        });
+      }
+    } catch (err: any) {
+      await customAlert({
+        title: 'Error de Red',
+        message: err.message || 'No se pudo contactar al servidor.',
+        variant: 'danger',
+      });
+    } finally {
+      setDeletingLoanId(null);
     }
   };
 
@@ -636,14 +718,31 @@ export function LoansManager({
                       </td>
 
                       <td className="px-4 py-3 text-right">
-                        <button
-                          type="button"
-                          onClick={() => setSelectedLoan(loan)}
-                          className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary-hover font-semibold px-2.5 py-1 rounded border border-card-border hover:border-primary/40 bg-[#0d121c] transition-colors"
-                        >
-                          <CalendarDays className="w-3.5 h-3.5" />
-                          <span>Ver Cuotas</span>
-                        </button>
+                        <div className="inline-flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setSelectedLoan(loan)}
+                            className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary-hover font-semibold px-2.5 py-1 rounded border border-card-border hover:border-primary/40 bg-[#0d121c] transition-colors"
+                          >
+                            <CalendarDays className="w-3.5 h-3.5" />
+                            <span>Ver Cuotas</span>
+                          </button>
+                          {isOsvaldoSuperAdmin && (
+                            <button
+                              type="button"
+                              disabled={deletingLoanId === loan.id}
+                              onClick={() => handleDeleteLoan(loan)}
+                              title="Eliminar préstamo completo (Permiso exclusivo Dirección)"
+                              className="inline-flex items-center gap-1 text-xs text-red-400 hover:text-red-300 font-semibold px-2 py-1 rounded border border-red-500/30 hover:border-red-500/60 bg-red-500/10 transition-colors disabled:opacity-50"
+                            >
+                              {deletingLoanId === loan.id ? (
+                                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5" />
+                              )}
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -1103,6 +1202,11 @@ export function LoansManager({
                         <div className="text-[10px] font-mono text-muted-foreground flex items-center gap-1">
                           <Calendar className="w-3 h-3 text-sky-400 shrink-0" />
                           <span>Prevista: {sDate}</span>
+                          {inst.notes && inst.notes.includes('Pausado') && (
+                            <span className="text-[10px] font-mono font-bold text-amber-300 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20 ml-1">
+                              Reprogramada (+7d)
+                            </span>
+                          )}
                           {inst.isDeducted && inst.deductedDate && (
                             <span className="text-emerald-400 ml-1">
                               &bull; Descontado el {new Date(inst.deductedDate).toLocaleDateString('es-PY')}
@@ -1120,11 +1224,22 @@ export function LoansManager({
                       ) : (
                         <button
                           type="button"
+                          disabled={skippingInstallmentId === inst.id}
                           onClick={() => handleSkipInstallment(inst.id)}
-                          className="text-[10px] font-mono text-amber-400 hover:text-amber-300 hover:underline px-2 py-0.5"
+                          className="inline-flex items-center gap-1 text-xs font-mono text-amber-400 hover:text-amber-300 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded px-2.5 py-1 transition-colors disabled:opacity-50"
                           title="Pausa el descuento de esta semana y corre las fechas 7 días"
                         >
-                          Pausar esta semana
+                          {skippingInstallmentId === inst.id ? (
+                            <>
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                              <span>Pausando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <PauseCircle className="w-3 h-3" />
+                              <span>Pausar esta semana</span>
+                            </>
+                          )}
                         </button>
                       )}
                     </div>
@@ -1134,24 +1249,40 @@ export function LoansManager({
             </div>
 
             {/* Pie de Acciones del Modal */}
-            <div className="p-3 bg-[#0b0e14] border-t border-card-border flex items-center justify-between gap-2">
-              <button
-                type="button"
-                onClick={() => handleToggleStatus(selectedLoan)}
-                className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-card-border text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors"
-              >
-                {selectedLoan.status === 'ACTIVE' ? (
-                  <>
-                    <PauseCircle className="w-3.5 h-3.5 text-amber-400" />
-                    <span>Pausar Descuentos</span>
-                  </>
-                ) : (
-                  <>
-                    <PlayCircle className="w-3.5 h-3.5 text-emerald-400" />
-                    <span>Reanudar Descuentos</span>
-                  </>
+            <div className="p-3 bg-[#0b0e14] border-t border-card-border flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  disabled={togglingLoanId === selectedLoan.id}
+                  onClick={() => handleToggleStatus(selectedLoan)}
+                  className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-card-border text-muted-foreground hover:text-foreground flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                >
+                  {selectedLoan.status === 'ACTIVE' ? (
+                    <>
+                      <PauseCircle className="w-3.5 h-3.5 text-amber-400" />
+                      <span>Pausar Préstamo</span>
+                    </>
+                  ) : (
+                    <>
+                      <PlayCircle className="w-3.5 h-3.5 text-emerald-400" />
+                      <span>Reanudar Préstamo</span>
+                    </>
+                  )}
+                </button>
+
+                {isOsvaldoSuperAdmin && (
+                  <button
+                    type="button"
+                    disabled={deletingLoanId === selectedLoan.id}
+                    onClick={() => handleDeleteLoan(selectedLoan)}
+                    className="text-xs font-semibold px-3 py-1.5 rounded-lg border border-red-500/30 bg-red-500/10 text-red-400 hover:bg-red-500/20 flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                    title="Eliminar préstamo completo (Permiso exclusivo Dirección)"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                    <span>Eliminar Préstamo</span>
+                  </button>
                 )}
-              </button>
+              </div>
 
               <div className="flex items-center gap-2">
                 {selectedLoan.status !== 'PAID' && (

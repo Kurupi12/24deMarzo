@@ -59,6 +59,7 @@ export async function GET(req: NextRequest) {
           isDeducted: inst.isDeducted,
           isSkipped: inst.isSkipped,
           settlementPeriod: inst.settlementPeriod,
+          notes: inst.notes,
         })),
       })),
     });

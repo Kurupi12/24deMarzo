@@ -1,7 +1,6 @@
 'use client';
 
 import React from 'react';
-import { Scissors } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { numberToWordsPYG } from '@/shared/utils/number-to-words';
 
@@ -88,7 +87,7 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
       <div className="relative border border-black p-3 bg-white text-black font-sans text-[10px] leading-tight flex flex-col justify-between h-[135mm] max-h-[135mm] box-border overflow-hidden">
         {/* Banda lateral para archivo */}
         <div className="absolute -left-3 top-1/2 -translate-y-1/2 -rotate-90 text-[7px] font-mono tracking-widest text-neutral-500 uppercase select-none pointer-events-none">
-          {isOriginal ? 'Original - Funcionario' : 'Duplicado - Archivo Administración Depósito'}
+          Original - Control Interno Administración Depósito
         </div>
 
         {/* ================= BLOQUE 1: CABECERA ================= */}
@@ -107,7 +106,7 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
 
           <div className="text-right flex flex-col items-end min-w-[210px]">
             <span className="text-[7.5px] font-mono font-bold tracking-widest px-2 py-0.5 border border-black uppercase bg-neutral-100">
-              {isOriginal ? 'ORIGINAL (PERSONAL)' : 'DUPLICADO (ADMINISTRACIÓN)'}
+              ORIGINAL (CONTROL INTERNO)
             </span>
             <div className="text-xs font-black uppercase tracking-wider text-black mt-1">
               RECIBO DE SALARIO SEMANAL
@@ -324,33 +323,9 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
         }
       `}} />
 
-      {/* Mitad Superior: EXACTAMENTE 148.5 mm (A5) */}
-      <div className="w-full h-[148.5mm] max-h-[148.5mm] box-border px-[8mm] pt-[5mm] pb-0 flex flex-col justify-between relative">
-        {/* Recibo Original */}
+      {/* Impresión Única: 1 Recibo Original (Control Interno) en la parte superior de la A4 */}
+      <div className="w-full h-[148.5mm] max-h-[148.5mm] box-border px-[8mm] pt-[6mm] pb-[4mm] flex flex-col justify-between relative">
         {renderSingleReceipt('ORIGINAL')}
-
-        {/* Línea de corte en el borde inferior exacto de la mitad superior (148.5 mm) */}
-        <div className="w-full h-[8.5mm] flex items-end pb-0.5 border-b border-dashed border-neutral-500">
-          <div className="w-full flex items-center justify-between text-[7.5px] font-mono text-neutral-600 font-bold select-none tracking-tight">
-            <span className="flex items-center gap-1">
-              <Scissors className="w-3 h-3 text-neutral-700 rotate-90" />
-              <span>TIJERA / CORTAR AQUÍ</span>
-            </span>
-            <span className="tracking-widest uppercase text-neutral-700">
-              - - - - - - - - LÍNEA DE CORTE (MITAD EXACTA A4 &bull; 148.5 mm) - - - - - - - -
-            </span>
-            <span className="flex items-center gap-1">
-              <span>ORIGINAL ARRIBA / DUPLICADO ABAJO</span>
-              <Scissors className="w-3 h-3 text-neutral-700 -rotate-90" />
-            </span>
-          </div>
-        </div>
-      </div>
-
-      {/* Mitad Inferior: EXACTAMENTE 148.5 mm (A5) */}
-      <div className="w-full h-[148.5mm] max-h-[148.5mm] box-border px-[8mm] pt-[8.5mm] pb-[5mm] flex flex-col justify-between relative">
-        {/* Recibo Duplicado */}
-        {renderSingleReceipt('DUPLICADO')}
       </div>
     </div>
   );

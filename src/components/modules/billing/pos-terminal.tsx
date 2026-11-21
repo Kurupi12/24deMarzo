@@ -42,11 +42,17 @@ import { PriceAuthModal } from './price-auth-modal';
 
 interface PosTerminalProps {
   onSaleCompleted: (sale?: any) => void;
+  onPreviewRequest?: (draftSale: any, onConfirm: () => Promise<void>) => void;
   initialQuotation?: any | null;
   onQuotationLoaded?: () => void;
 }
 
-export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoaded }: PosTerminalProps) {
+export function PosTerminal({
+  onSaleCompleted,
+  onPreviewRequest,
+  initialQuotation,
+  onQuotationLoaded,
+}: PosTerminalProps) {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
   const [unlockedProductIds, setUnlockedProductIds] = useState<string[]>([]);
@@ -63,10 +69,10 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
   const productAbortRef = useRef<AbortController | null>(null);
   const [cart, setCart] = useState<any[]>([]);
   
-  // Cliente & Facturación
+  // Cliente & Facturación (comienza limpio; si se deja vacío usa Consumidor Final o genera código interno OC-)
   const [docType, setDocType] = useState<'TICKET' | 'INVOICE' | 'QUOTATION'>('TICKET');
-  const [customerName, setCustomerName] = useState('Sin Nombre (Consumidor Final)');
-  const [customerRuc, setCustomerRuc] = useState('44444401-7');
+  const [customerName, setCustomerName] = useState('');
+  const [customerRuc, setCustomerRuc] = useState('');
   const [customerAddress, setCustomerAddress] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [lookingUpDnit, setLookingUpDnit] = useState(false);
@@ -162,9 +168,9 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
       .catch(() => {});
   }, []);
 
-  // Cargar lista de clientes para autocompletado SIFEN
-  useEffect(() => {
-    const query = customerSearch.trim();
+  // Cargar lista de clientes para autocompletado SIFEN / Ocasionales
+  const fetchCustomersList = useCallback((q?: string) => {
+    const query = (q !== undefined ? q : customerSearch).trim();
     fetch(`/api/v1/billing/customers?query=${encodeURIComponent(query)}`)
       .then((res) => res.json())
       .then((json) => {
@@ -174,6 +180,10 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
       })
       .catch(() => {});
   }, [customerSearch]);
+
+  useEffect(() => {
+    fetchCustomersList();
+  }, [fetchCustomersList]);
 
   // Cargar presupuesto convertido al carrito del POS
   useEffect(() => {
@@ -461,15 +471,51 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
 
   const rucValidation = validateParaguayRuc(customerRuc);
 
-  const handleCheckout = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Limpia por completo TODO el formulario (incluidos datos del cliente) tras procesar/facturar
+  const resetPosForm = useCallback(() => {
+    setCart([]);
+    setUnlockedProductIds([]);
+    setProductSearch('');
+    setSearchResults([]);
+    setShowProductDropdown(false);
+
+    // Limpiar todos los datos del cliente para la siguiente operación
+    setCustomerName('');
+    setCustomerRuc('');
+    setCustomerAddress('');
+    setGoogleMapsUrl('');
+    setDnitFeedback(null);
+    setCustomerSearch('');
+    setShowCustomerDropdown(false);
+    setSelectedProjectId('');
+    setCustomerProjects([]);
+
+    // Restablecer pago y logística
+    setDocType('TICKET');
+    setPaymentCondition('CONTADO');
+    setPaymentMethod('EFECTIVO');
+    setPaymentReference('');
+    setDriverId('');
+    setSelectedHelperIds([]);
+    setVehiclePlate(vehicles[0]?.plateNumber || '');
+    setDeliveryStatus('DELIVERED');
+    setDeliveryNotes('');
+    setIsScheduled(false);
+    setDownPayment('');
+    setEnableSecondaryDelivery(false);
+    setSecondaryDriverId('');
+    setSecondaryVehiclePlate('');
+    setSecondaryHelperIds([]);
+  }, [vehicles]);
+
+  const validateBeforeOrder = (): boolean => {
     if (cart.length === 0) {
       customAlert({
         title: 'Carrito Vacío',
-        message: 'Debe agregar al menos un producto al carrito para facturar.',
+        message: 'Debe agregar al menos un producto al carrito para continuar.',
         variant: 'warning',
       });
-      return;
+      return false;
     }
 
     const isQuotation = docType === 'QUOTATION';
@@ -480,20 +526,39 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
         message: 'Cuando el pago es por transferencia bancaria (SIPAP), es obligatorio cargar el número de comprobante para tener un registro.',
         variant: 'warning',
       });
-      return;
+      return false;
     }
 
-    if (docType === 'INVOICE' && !rucValidation.isValid && customerRuc.trim() !== '44444401-7') {
+    if (
+      docType === 'INVOICE' &&
+      !rucValidation.isValid &&
+      customerRuc.trim() !== '' &&
+      customerRuc.trim() !== '44444401-7'
+    ) {
       customAlert({
         title: 'RUC Inválido para Factura SIFEN',
-        message: 'Para emitir Factura Electrónica SIFEN, debe ingresar un RUC válido con su Dígito Verificador (ej: 80012345-6). Si el cliente no tiene RUC, seleccione "Comprobante / Ticket" o "Presupuesto".',
+        message: customerRuc.trim().startsWith('OC-')
+          ? 'Este cliente tiene un código interno ocasional (OC-). Para emitir Factura Electrónica SIFEN debe ingresar su RUC o C.I. con Dígito Verificador, o emitir un "Ticket / Acuse de Recibo".'
+          : 'Para emitir Factura Electrónica SIFEN, debe ingresar un RUC válido con su Dígito Verificador (ej: 80012345-6). Si el cliente no tiene RUC, seleccione "Ticket / Venta" o "Presupuesto".',
         variant: 'warning',
       });
-      return;
+      return false;
     }
 
-    const finalCustomerRuc = customerRuc.trim() || '44444401-7';
-    const finalCustomerName = customerName.trim() || (docType === 'TICKET' ? 'Cliente Ocasional / Mostrador' : 'Sin Nombre (Consumidor Final)');
+    return true;
+  };
+
+  const executeSaveOrder = async () => {
+    if (!validateBeforeOrder()) return;
+
+    const isQuotation = docType === 'QUOTATION';
+    const rawRuc = customerRuc.trim();
+    const rawName = customerName.trim();
+
+    // Si es Factura SIFEN innominada sin datos, usar 44444401-7
+    // Si es Ticket/Acuse o Presupuesto con nombre pero sin RUC, enviar '' para que backend asigne código interno OC-XXXXX
+    const finalCustomerRuc = rawRuc || (docType === 'INVOICE' || !rawName ? '44444401-7' : '');
+    const finalCustomerName = rawName || 'Sin Nombre (Consumidor Final)';
 
     const grandTotal = breakdown.grandTotal;
     const downPaymentNum = !isQuotation && isScheduled
@@ -521,13 +586,11 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
           vehiclePlate: vehiclePlate || null,
           deliveryStatus: isQuotation ? 'QUOTATION' : isScheduled ? 'PENDING_DELIVERY' : deliveryStatus,
           deliveryNotes: deliveryNotes || null,
-          // Programación a Futuro y Seña
           isScheduled: !isQuotation && isScheduled,
           scheduledDeliveryDate: !isQuotation && isScheduled ? scheduledDeliveryDate : null,
           deliveryTimeSlot: !isQuotation && isScheduled ? deliveryTimeSlot : null,
           downPayment: downPaymentNum,
           balanceDue: balanceDueNum,
-          // 2do Chofer y 2do Camión si está habilitado
           secondaryDriverId: enableSecondaryDelivery ? (secondaryDriverId || null) : null,
           secondaryVehiclePlate: enableSecondaryDelivery ? (secondaryVehiclePlate || null) : null,
           secondaryHelperIds: enableSecondaryDelivery ? secondaryHelperIds : [],
@@ -542,18 +605,9 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
       });
       const data = await res.json();
       if (data.success) {
-        setCart([]);
-        setPaymentReference('');
-        setSelectedProjectId('');
-        setDeliveryNotes('');
-        setGoogleMapsUrl('');
-        setIsScheduled(false);
-        setDownPayment('');
-        setEnableSecondaryDelivery(false);
-        setSecondaryDriverId('');
-        setSecondaryVehiclePlate('');
-        setSecondaryHelperIds([]);
-        // Disparar la apertura inmediata del comprobante fiscal, presupuesto o recibo de despacho
+        // Limpiar TODO el formulario (incluidos datos del cliente) al procesar la orden
+        resetPosForm();
+        fetchCustomersList('');
         onSaleCompleted(data.data);
       } else {
         customAlert({
@@ -565,6 +619,69 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
     } finally {
       setLoading(false);
     }
+  };
+
+  const handlePreviewOrder = () => {
+    if (!validateBeforeOrder() || !onPreviewRequest) return;
+
+    const isQuotation = docType === 'QUOTATION';
+    const rawRuc = customerRuc.trim();
+    const rawName = customerName.trim();
+    const selectedProj = customerProjects.find((p) => p.id === selectedProjectId) || null;
+    const selectedDrv = employees.find((e) => e.id === driverId) || null;
+    const grandTotal = breakdown.grandTotal;
+    const downPaymentNum = !isQuotation && isScheduled
+      ? Math.min(grandTotal, Math.max(0, parseFloat(downPayment) || 0))
+      : 0;
+
+    const draftSale = {
+      id: 'preview-draft',
+      saleNumber: isQuotation ? 'PRES-BORRADOR' : 'VISTA-PREVIA',
+      createdAt: new Date().toISOString(),
+      status: isQuotation ? 'QUOTATION' : 'PENDING',
+      isScheduled: !isQuotation && isScheduled,
+      scheduledDeliveryDate: !isQuotation && isScheduled ? scheduledDeliveryDate : null,
+      deliveryTimeSlot: !isQuotation && isScheduled ? deliveryTimeSlot : null,
+      downPayment: downPaymentNum,
+      balanceDue: !isQuotation && isScheduled ? Math.max(0, grandTotal - downPaymentNum) : 0,
+      customerName: rawName || 'Sin Nombre (Consumidor Final)',
+      customerRuc: rawRuc || (!rawName ? '44444401-7' : 'OC-PENDIENTE'),
+      customerAddress: customerAddress.trim() || null,
+      googleMapsUrl: googleMapsUrl.trim() || null,
+      paymentCondition,
+      paymentMethod,
+      paymentReference: paymentReference.trim() || null,
+      project: selectedProj,
+      driver: selectedDrv,
+      vehiclePlate: vehiclePlate || null,
+      grandTotal: breakdown.grandTotal,
+      totalExempt: breakdown.exempt,
+      totalVat5: breakdown.taxable5,
+      totalVat10: breakdown.taxable10,
+      vat5Amount: breakdown.vat5Amount,
+      vat10Amount: breakdown.vat10Amount,
+      invoice: null,
+      items: cart.map((i, idx) => ({
+        id: `preview-item-${idx}`,
+        productId: i.productId,
+        quantity: i.quantity,
+        unitPrice: i.unitPrice,
+        vatRate: i.vatRate,
+        subtotal: i.quantity * i.unitPrice,
+        product: {
+          sku: i.sku,
+          name: i.name,
+          unitOfMeasure: 'UN',
+        },
+      })),
+    };
+
+    onPreviewRequest(draftSale, executeSaveOrder);
+  };
+
+  const handleCheckout = async (e: React.FormEvent) => {
+    e.preventDefault();
+    await executeSaveOrder();
   };
 
   return (
@@ -896,9 +1013,6 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
                   type="button"
                   onClick={() => {
                     setDocType('TICKET');
-                    if (!customerRuc || customerRuc === '') {
-                      setCustomerRuc('44444401-7');
-                    }
                   }}
                   className={`py-2 px-2 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
                     docType === 'TICKET'
@@ -914,9 +1028,8 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
                   type="button"
                   onClick={() => {
                     setDocType('INVOICE');
-                    if (customerRuc === '44444401-7') {
+                    if (customerRuc === '44444401-7' || customerRuc.startsWith('OC-')) {
                       setCustomerRuc('');
-                      setCustomerName('');
                     }
                   }}
                   className={`py-2 px-2 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
@@ -1058,7 +1171,7 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
                           handleLookupDnit();
                         }
                       }}
-                      placeholder="Ej: 80134022-5 o 4776458"
+                      placeholder="Ej: 80134022-5 o dejar vacío"
                       className="w-full min-w-0 bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono font-bold text-foreground focus:outline-none focus:border-primary text-xs"
                     />
                     <button
@@ -1075,16 +1188,15 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
                 </div>
                 <div className="col-span-6">
                   <label className="block text-xs font-mono text-muted-foreground mb-1">
-                    {docType === 'INVOICE' ? 'Razón Social Oficial *' : 'Nombre del Cliente *'}
+                    {docType === 'INVOICE' ? 'Razón Social Oficial *' : 'Nombre del Cliente (solo nombre si no hay CI)'}
                   </label>
                   <input
                     type="text"
-                    required
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     onFocus={(e) => e.target.select()}
                     onClick={(e) => (e.target as HTMLInputElement).select()}
-                    placeholder={docType === 'TICKET' ? 'Nombre o Consumidor Final' : 'Nombre o Razón Social'}
+                    placeholder={docType === 'TICKET' ? 'Ej: Don Pedro (o dejar vacío)' : 'Nombre o Razón Social'}
                     className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground font-semibold focus:outline-none focus:border-primary text-xs truncate"
                   />
                 </div>
@@ -1588,10 +1700,23 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
             </div>
           </div>
 
-          <button
-            type="submit"
-            disabled={loading || cart.length === 0}
-            className={`w-full py-3 rounded-md text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors shadow-md ${
+          <div className="flex flex-col sm:flex-row gap-2">
+            {onPreviewRequest && (
+              <button
+                type="button"
+                disabled={loading || cart.length === 0}
+                onClick={handlePreviewOrder}
+                className="sm:w-44 py-3 px-3 rounded-md bg-[#0d121c] border border-card-border hover:border-primary text-foreground text-xs font-semibold flex items-center justify-center gap-1.5 disabled:opacity-50 transition-colors"
+                title="Ver el comprobante antes de confirmar (si cerrás con X se conserva todo)"
+              >
+                <FileText className="w-4 h-4 text-primary shrink-0" />
+                <span>Vista Previa</span>
+              </button>
+            )}
+            <button
+              type="submit"
+              disabled={loading || cart.length === 0}
+              className={`flex-1 py-3 rounded-md text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors shadow-md ${
               docType === 'QUOTATION'
                 ? 'bg-cyan-600 hover:bg-cyan-500'
                 : isScheduled
@@ -1645,7 +1770,8 @@ export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoad
                 <span>{loading ? 'Emitiendo DTE en DNIT...' : 'Emitir Factura Electrónica SIFEN'}</span>
               </>
             )}
-          </button>
+            </button>
+          </div>
         </form>
       </div>
 

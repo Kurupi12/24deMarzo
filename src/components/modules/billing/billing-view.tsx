@@ -21,6 +21,11 @@ export function BillingView() {
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSaleForDetail, setSelectedSaleForDetail] = useState<any>(null);
+  const [previewState, setPreviewState] = useState<{
+    sale: any;
+    onConfirm: () => Promise<void>;
+  } | null>(null);
+  const [confirmingPreview, setConfirmingPreview] = useState(false);
   const [saleToEditCustomer, setSaleToEditCustomer] = useState<any>(null);
   const [quotationForPos, setQuotationForPos] = useState<any>(null);
 
@@ -177,7 +182,11 @@ export function BillingView() {
         <PosTerminal
           initialQuotation={quotationForPos}
           onQuotationLoaded={() => setQuotationForPos(null)}
+          onPreviewRequest={(draftSale, onConfirm) => {
+            setPreviewState({ sale: draftSale, onConfirm });
+          }}
           onSaleCompleted={(sale) => {
+            setPreviewState(null);
             fetchSales();
             if (sale) {
               setSelectedSaleForDetail(sale);
@@ -207,11 +216,32 @@ export function BillingView() {
         <ScheduledOrdersPanel onOrderDispatched={fetchSales} />
       )}
 
-      {/* Modal de Detalle de DTE / Presupuesto */}
+      {/* Modal de Detalle de DTE / Presupuesto (o Vista Previa Pendiente) */}
       <InvoiceDetailModal
-        sale={selectedSaleForDetail}
-        isOpen={!!selectedSaleForDetail}
-        onClose={() => setSelectedSaleForDetail(null)}
+        sale={previewState ? previewState.sale : selectedSaleForDetail}
+        isOpen={!!(previewState || selectedSaleForDetail)}
+        isPreviewOnly={!!previewState}
+        confirmLoading={confirmingPreview}
+        onConfirmAndProcess={
+          previewState
+            ? async () => {
+                setConfirmingPreview(true);
+                try {
+                  await previewState.onConfirm();
+                } finally {
+                  setConfirmingPreview(false);
+                }
+              }
+            : undefined
+        }
+        onClose={() => {
+          if (previewState) {
+            // Al cerrar la vista previa con X sin procesar, se conserva todo en el POS
+            setPreviewState(null);
+          } else {
+            setSelectedSaleForDetail(null);
+          }
+        }}
         onEditCustomer={(sale) => {
           setSaleToEditCustomer(sale);
         }}

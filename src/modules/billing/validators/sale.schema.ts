@@ -17,8 +17,8 @@ export const CreateSaleSchema = z.object({
   customerRuc: z
     .string()
     .optional()
-    .default('44444401-7')
-    .transform((val) => (val && val.trim().length >= 3 ? val.trim() : '44444401-7')),
+    .default('')
+    .transform((val) => (val ? val.trim() : '')),
   customerEmail: z.string().email('Email inválido').optional().nullable(),
   customerAddress: z.string().optional().nullable(),
   googleMapsUrl: z.string().optional().nullable(),

@@ -52,13 +52,51 @@ export class BillingService {
           ? `RES-${saleNumber.replace(/\D/g, '').padStart(6, '0')}`
           : null;
 
+        const cleanName = input.customerName.trim();
+        let resolvedRuc = (input.customerRuc || '').trim();
+
+        // Si es cliente ocasional con nombre propio pero sin C.I. ni RUC (y no es Factura SIFEN innominada),
+        // asignar o reutilizar un código interno correlativo automático (OC-00001, OC-00002...)
+        const isGenericName =
+          !cleanName ||
+          cleanName.toLowerCase() === 'sin nombre (consumidor final)' ||
+          cleanName.toLowerCase() === 'consumidor final' ||
+          cleanName.toLowerCase() === 'cliente ocasional / mostrador';
+
+        if (!resolvedRuc) {
+          if (!isGenericName && !input.issueInvoiceImmediately) {
+            const existingOccasional = await tx.customer.findFirst({
+              where: {
+                name: { equals: cleanName, mode: 'insensitive' },
+                ruc: { startsWith: 'OC-' },
+              },
+              select: { ruc: true },
+            });
+
+            if (existingOccasional) {
+              resolvedRuc = existingOccasional.ruc;
+            } else {
+              const lastOccasional = await tx.customer.findFirst({
+                where: { ruc: { startsWith: 'OC-' } },
+                orderBy: { createdAt: 'desc' },
+                select: { ruc: true },
+              });
+              const lastSeq = lastOccasional?.ruc.match(/\d+$/)?.[0];
+              const nextSeq = lastSeq ? parseInt(lastSeq, 10) + 1 : 1;
+              resolvedRuc = `OC-${String(nextSeq).padStart(5, '0')}`;
+            }
+          } else {
+            resolvedRuc = '44444401-7';
+          }
+        }
+
         const sale = await tx.sale.create({
           data: {
             saleNumber,
             userId: input.userId,
             cashShiftId: isQuotation ? null : (input.cashShiftId || null),
-            customerName: input.customerName.trim(),
-            customerRuc: input.customerRuc.trim(),
+            customerName: cleanName || 'Sin Nombre (Consumidor Final)',
+            customerRuc: resolvedRuc,
             customerEmail: input.customerEmail?.trim() || null,
             customerAddress: input.customerAddress?.trim() || null,
             googleMapsUrl: input.googleMapsUrl?.trim() || null,
@@ -108,18 +146,18 @@ export class BillingService {
           include: { items: true },
         });
 
-        // 1.1 Registrar / Actualizar el cliente en el maestro de clientes para autocompletado SIFEN
-        if (input.customerRuc && input.customerName && input.customerRuc.trim() !== '44444401-7') {
+        // 1.1 Registrar / Actualizar el cliente en el maestro de clientes (incluidos clientes ocasionales con código OC-)
+        if (resolvedRuc && cleanName && resolvedRuc !== '44444401-7') {
           await tx.customer.upsert({
-            where: { ruc: input.customerRuc.trim() },
+            where: { ruc: resolvedRuc },
             update: {
-              name: input.customerName.trim(),
+              name: cleanName,
               address: input.customerAddress?.trim() || undefined,
               googleMapsUrl: input.googleMapsUrl?.trim() || undefined,
             },
             create: {
-              ruc: input.customerRuc.trim(),
-              name: input.customerName.trim(),
+              ruc: resolvedRuc,
+              name: cleanName,
               address: input.customerAddress?.trim() || undefined,
               googleMapsUrl: input.googleMapsUrl?.trim() || undefined,
             },

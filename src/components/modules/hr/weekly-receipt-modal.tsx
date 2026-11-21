@@ -35,7 +35,7 @@ export function WeeklyReceiptModal({ settlement, period, isOpen, onClose }: Week
             <FileText className="w-4 h-4 text-primary" />
             <div>
               <h3 className="text-sm font-semibold text-foreground">
-                Recibo Semanal de Salarios & Vales — Hoja A4 en Duplicado
+                Recibo Semanal de Salarios & Vales — Original Único (Control Interno)
               </h3>
               <p className="text-[11px] text-muted-foreground font-mono">
                 {settlement.firstName} {settlement.lastName} &bull; C.I.: {settlement.documentNumber}
@@ -50,7 +50,7 @@ export function WeeklyReceiptModal({ settlement, period, isOpen, onClose }: Week
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-primary hover:bg-primary-hover text-white text-xs font-semibold shadow-md transition-colors"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Imprimir Recibo (A4 Duplicado)</span>
+              <span>Imprimir Recibo Único</span>
             </button>
             <button
               type="button"

@@ -13,9 +13,20 @@ interface InvoiceDetailModalProps {
   isOpen: boolean;
   onClose: () => void;
   onEditCustomer?: (sale: any) => void;
+  isPreviewOnly?: boolean;
+  onConfirmAndProcess?: () => void;
+  confirmLoading?: boolean;
 }
 
-export function InvoiceDetailModal({ sale, isOpen, onClose, onEditCustomer }: InvoiceDetailModalProps) {
+export function InvoiceDetailModal({
+  sale,
+  isOpen,
+  onClose,
+  onEditCustomer,
+  isPreviewOnly = false,
+  onConfirmAndProcess,
+  confirmLoading = false,
+}: InvoiceDetailModalProps) {
   // Documento activo para previsualizar e imprimir: 'delivery_order' (A4 duplicado) o 'invoice' (fiscal SIFEN)
   const [activeDoc, setActiveDoc] = useState<'delivery_order' | 'invoice'>('delivery_order');
 
@@ -69,7 +80,11 @@ export function InvoiceDetailModal({ sale, isOpen, onClose, onEditCustomer }: In
             </div>
             <div>
               <h3 className="text-sm font-bold text-foreground">
-                {isQuotation ? `Presupuesto Cotizado • ${sale.saleNumber}` : `Documentos de Venta Emitidos • ${sale.saleNumber}`}
+                {isPreviewOnly
+                  ? 'Vista Previa Pendiente (Sin Guardar Todavía)'
+                  : isQuotation
+                  ? `Presupuesto Cotizado • ${sale.saleNumber}`
+                  : `Documentos de Venta Emitidos • ${sale.saleNumber}`}
               </h3>
               <p className="text-xs font-mono text-muted-foreground">
                 {sale.customerName} &bull; Total: <strong className="text-emerald-400">{formatCurrencyPYG(Number(sale.grandTotal))}</strong>
@@ -90,7 +105,7 @@ export function InvoiceDetailModal({ sale, isOpen, onClose, onEditCustomer }: In
                 <ExternalLink className="w-3 h-3" />
               </a>
             )}
-            {onEditCustomer && (
+            {!isPreviewOnly && onEditCustomer && (
               <button
                 type="button"
                 onClick={() => onEditCustomer(sale)}
@@ -110,6 +125,25 @@ export function InvoiceDetailModal({ sale, isOpen, onClose, onEditCustomer }: In
             </button>
           </div>
         </div>
+
+        {isPreviewOnly && (
+          <div className="px-4 py-2.5 bg-amber-500/15 border-b border-amber-500/30 flex flex-wrap items-center justify-between gap-2 text-xs text-amber-300 no-print">
+            <span>
+              <strong>Operación pendiente de confirmación:</strong> Si cerrás con la <strong>X</strong>, no se guarda nada y todos tus datos cargados se conservan intactos.
+            </span>
+            {onConfirmAndProcess && (
+              <button
+                type="button"
+                disabled={confirmLoading}
+                onClick={onConfirmAndProcess}
+                className="px-3.5 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white font-semibold flex items-center gap-1.5 shadow disabled:opacity-50"
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                <span>{confirmLoading ? 'Procesando...' : 'Confirmar y Procesar Operación'}</span>
+              </button>
+            )}
+          </div>
+        )}
 
         {/* Pestañas de Selección de Documento & Botones de Impresión (no imprimible) */}
         <div className="flex flex-wrap items-center justify-between gap-3 p-3 bg-muted/20 border-b border-card-border no-print">

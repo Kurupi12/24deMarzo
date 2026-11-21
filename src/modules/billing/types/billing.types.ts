@@ -15,6 +15,8 @@ export interface CreateSaleInput {
   customerRuc: string;
   customerEmail?: string | null;
   customerAddress?: string | null;
+  googleMapsUrl?: string | null;
+  isQuotation?: boolean;
   paymentCondition: PaymentCondition;
   paymentMethod: PaymentMethod;
   paymentReference?: string | null;

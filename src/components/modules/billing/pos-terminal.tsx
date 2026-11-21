@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import {
   Search,
   Plus,
@@ -28,6 +28,10 @@ import {
   Lock,
   Unlock,
   KeyRound,
+  FileSpreadsheet,
+  ExternalLink,
+  Loader2,
+  AlertCircle,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { calculateVatBreakdown } from '@/shared/utils/vat-calculator';
@@ -36,7 +40,13 @@ import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 import { useAuth } from '@/lib/auth/auth-context';
 import { PriceAuthModal } from './price-auth-modal';
 
-export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any) => void }) {
+interface PosTerminalProps {
+  onSaleCompleted: (sale?: any) => void;
+  initialQuotation?: any | null;
+  onQuotationLoaded?: () => void;
+}
+
+export function PosTerminal({ onSaleCompleted, initialQuotation, onQuotationLoaded }: PosTerminalProps) {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
   const [unlockedProductIds, setUnlockedProductIds] = useState<string[]>([]);
@@ -45,13 +55,22 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
   const { alert: customAlert } = useCustomDialog();
   const [productSearch, setProductSearch] = useState('');
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [showProductDropdown, setShowProductDropdown] = useState(false);
+  const [isSearchingProducts, setIsSearchingProducts] = useState(false);
+  const [productSearchError, setProductSearchError] = useState<string | null>(null);
+  const [highlightedIdx, setHighlightedIdx] = useState<number>(0);
+  const productDropdownRef = useRef<HTMLDivElement>(null);
+  const productAbortRef = useRef<AbortController | null>(null);
   const [cart, setCart] = useState<any[]>([]);
   
   // Cliente & Facturación
-  const [docType, setDocType] = useState<'TICKET' | 'INVOICE'>('TICKET');
+  const [docType, setDocType] = useState<'TICKET' | 'INVOICE' | 'QUOTATION'>('TICKET');
   const [customerName, setCustomerName] = useState('Sin Nombre (Consumidor Final)');
   const [customerRuc, setCustomerRuc] = useState('44444401-7');
   const [customerAddress, setCustomerAddress] = useState('');
+  const [googleMapsUrl, setGoogleMapsUrl] = useState('');
+  const [lookingUpDnit, setLookingUpDnit] = useState(false);
+  const [dnitFeedback, setDnitFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
   const [paymentCondition, setPaymentCondition] = useState('CONTADO');
   const [paymentMethod, setPaymentMethod] = useState('EFECTIVO');
   const [paymentReference, setPaymentReference] = useState('');
@@ -68,6 +87,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
   const [showNewProjectModal, setShowNewProjectModal] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectAddress, setNewProjectAddress] = useState('');
+  const [newProjectMapsUrl, setNewProjectMapsUrl] = useState('');
   const [newProjectContact, setNewProjectContact] = useState('');
   const [newProjectPhone, setNewProjectPhone] = useState('');
   const [savingProject, setSavingProject] = useState(false);
@@ -155,25 +175,99 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
       .catch(() => {});
   }, [customerSearch]);
 
-  // Cerrar menú flotante de clientes al hacer clic fuera
+  // Cargar presupuesto convertido al carrito del POS
+  useEffect(() => {
+    if (initialQuotation) {
+      setDocType('TICKET');
+      setCustomerName(initialQuotation.customerName || 'Sin Nombre (Consumidor Final)');
+      setCustomerRuc(initialQuotation.customerRuc || '44444401-7');
+      setCustomerAddress(initialQuotation.customerAddress || '');
+      setGoogleMapsUrl(initialQuotation.googleMapsUrl || initialQuotation.project?.googleMapsUrl || '');
+      if (initialQuotation.projectId) {
+        setSelectedProjectId(initialQuotation.projectId);
+      }
+      if (Array.isArray(initialQuotation.items)) {
+        setCart(
+          initialQuotation.items.map((it: any) => ({
+            productId: it.productId,
+            name: it.product?.name || 'Material',
+            sku: it.product?.sku || 'ART',
+            unitPrice: Number(it.unitPrice),
+            originalPrice: Number(it.product?.salePrice || it.unitPrice),
+            costPrice: Number(it.product?.costPrice || 0),
+            vatRate: it.vatRate || 'IVA_10',
+            quantity: Number(it.quantity),
+          }))
+        );
+      }
+      if (onQuotationLoaded) onQuotationLoaded();
+    }
+  }, [initialQuotation, onQuotationLoaded]);
+
+  // Cerrar menú flotante de clientes y productos al hacer clic fuera
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       if (customerDropdownRef.current && !customerDropdownRef.current.contains(e.target as Node)) {
         setShowCustomerDropdown(false);
+      }
+      if (productDropdownRef.current && !productDropdownRef.current.contains(e.target as Node)) {
+        setShowProductDropdown(false);
       }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const handleSelectCustomer = (customer: { name: string; ruc: string; address?: string }) => {
+  const handleSelectCustomer = (customer: { name: string; ruc: string; address?: string; googleMapsUrl?: string }) => {
     setCustomerName(customer.name);
     setCustomerRuc(customer.ruc);
-    if (customer.address) {
-      setCustomerAddress(customer.address);
+    if (customer.address !== undefined) {
+      setCustomerAddress(customer.address || '');
     }
+    if (customer.googleMapsUrl !== undefined) {
+      setGoogleMapsUrl(customer.googleMapsUrl || '');
+    }
+    setDnitFeedback(null);
     setShowCustomerDropdown(false);
     setCustomerSearch('');
+  };
+
+  // Consultar RUC o C.I. en DNIT y Agenda Local
+  const handleLookupDnit = async () => {
+    const doc = customerRuc.trim();
+    if (!doc || doc.length < 4) {
+      customAlert({
+        title: 'Documento Incompleto',
+        message: 'Ingrese al menos 4 dígitos de C.I. o RUC antes de consultar en la DNIT.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    setLookingUpDnit(true);
+    setDnitFeedback(null);
+    try {
+      const res = await fetch(`/api/v1/billing/customers/lookup?doc=${encodeURIComponent(doc)}`);
+      const json = await res.json();
+      if (json.success && json.data) {
+        const d = json.data;
+        if (d.found) {
+          setCustomerRuc(d.ruc);
+          setCustomerName(d.name);
+          if (d.address) setCustomerAddress(d.address);
+          if (d.googleMapsUrl) setGoogleMapsUrl(d.googleMapsUrl);
+          setDnitFeedback({ ok: true, msg: d.message });
+        } else {
+          setDnitFeedback({ ok: false, msg: d.message });
+        }
+      } else {
+        setDnitFeedback({ ok: false, msg: json.error?.message || 'No se pudo consultar el documento.' });
+      }
+    } catch {
+      setDnitFeedback({ ok: false, msg: 'Error de conexión al consultar la DNIT. Puede ingresar el nombre manualmente.' });
+    } finally {
+      setLookingUpDnit(false);
+    }
   };
 
   // Cargar Obras del Cliente al cambiar RUC
@@ -193,18 +287,69 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
     }
   }, [customerRuc]);
 
-  // Buscar productos mientras escribe
-  useEffect(() => {
-    if (productSearch.trim().length >= 2) {
-      fetch(`/api/v1/inventory/products?search=${encodeURIComponent(productSearch.trim())}&limit=100`)
-        .then((res) => res.json())
-        .then((json) => {
-          if (json.success) setSearchResults(json.data || []);
-        });
-    } else {
+  // Búsqueda robusta de productos con debounce + AbortController (sin trancas ni duplicación de requests)
+  const executeProductSearch = useCallback(async (rawTerm: string) => {
+    const term = rawTerm.trim();
+    if (term.length < 2) {
       setSearchResults([]);
+      setShowProductDropdown(false);
+      setIsSearchingProducts(false);
+      setProductSearchError(null);
+      return;
     }
-  }, [productSearch]);
+
+    if (productAbortRef.current) {
+      productAbortRef.current.abort();
+    }
+    const controller = new AbortController();
+    productAbortRef.current = controller;
+
+    setIsSearchingProducts(true);
+    setProductSearchError(null);
+    setShowProductDropdown(true);
+
+    try {
+      const res = await fetch(
+        `/api/v1/inventory/products?search=${encodeURIComponent(term)}&limit=100`,
+        { signal: controller.signal }
+      );
+      const json = await res.json();
+      if (json.success) {
+        setSearchResults(json.data || []);
+        setHighlightedIdx(0);
+      } else {
+        setSearchResults([]);
+        setProductSearchError('No se pudo completar la búsqueda.');
+      }
+    } catch (err: any) {
+      if (err?.name !== 'AbortError') {
+        setProductSearchError('Error de red al buscar productos. Intenta nuevamente.');
+      }
+    } finally {
+      if (productAbortRef.current === controller) {
+        setIsSearchingProducts(false);
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    const term = productSearch.trim();
+    if (term.length < 2) {
+      if (productAbortRef.current) productAbortRef.current.abort();
+      setSearchResults([]);
+      setShowProductDropdown(false);
+      setIsSearchingProducts(false);
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      executeProductSearch(term);
+    }, 180);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [productSearch, executeProductSearch]);
 
   const addToCart = (product: any) => {
     const existing = cart.find((i) => i.productId === product.id);
@@ -227,6 +372,8 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
     }
     setProductSearch('');
     setSearchResults([]);
+    setShowProductDropdown(false);
+    setHighlightedIdx(0);
     setLastAddedId(product.id);
   };
 
@@ -280,6 +427,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
           customerRuc: customerRuc.trim(),
           name: newProjectName.trim(),
           address: newProjectAddress.trim(),
+          googleMapsUrl: newProjectMapsUrl.trim() || null,
           contactName: newProjectContact.trim(),
           contactPhone: newProjectPhone.trim(),
         }),
@@ -291,6 +439,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
         setShowNewProjectModal(false);
         setNewProjectName('');
         setNewProjectAddress('');
+        setNewProjectMapsUrl('');
         setNewProjectContact('');
         setNewProjectPhone('');
       } else {
@@ -323,7 +472,9 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
       return;
     }
 
-    if (paymentCondition !== 'A_CUENTA' && paymentMethod === 'TRANSFERENCIA_BANCARIA' && !paymentReference.trim()) {
+    const isQuotation = docType === 'QUOTATION';
+
+    if (!isQuotation && paymentCondition !== 'A_CUENTA' && paymentMethod === 'TRANSFERENCIA_BANCARIA' && !paymentReference.trim()) {
       customAlert({
         title: 'Comprobante de Transferencia Requerido',
         message: 'Cuando el pago es por transferencia bancaria (SIPAP), es obligatorio cargar el número de comprobante para tener un registro.',
@@ -335,7 +486,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
     if (docType === 'INVOICE' && !rucValidation.isValid && customerRuc.trim() !== '44444401-7') {
       customAlert({
         title: 'RUC Inválido para Factura SIFEN',
-        message: 'Para emitir Factura Electrónica SIFEN, debe ingresar un RUC válido con su Dígito Verificador (ej: 80012345-6). Si el cliente no tiene RUC, seleccione la opción "Comprobante / Ticket (Sin Factura)".',
+        message: 'Para emitir Factura Electrónica SIFEN, debe ingresar un RUC válido con su Dígito Verificador (ej: 80012345-6). Si el cliente no tiene RUC, seleccione "Comprobante / Ticket" o "Presupuesto".',
         variant: 'warning',
       });
       return;
@@ -345,10 +496,10 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
     const finalCustomerName = customerName.trim() || (docType === 'TICKET' ? 'Cliente Ocasional / Mostrador' : 'Sin Nombre (Consumidor Final)');
 
     const grandTotal = breakdown.grandTotal;
-    const downPaymentNum = isScheduled
+    const downPaymentNum = !isQuotation && isScheduled
       ? Math.min(grandTotal, Math.max(0, parseFloat(downPayment) || 0))
       : 0;
-    const balanceDueNum = isScheduled ? Math.max(0, grandTotal - downPaymentNum) : 0;
+    const balanceDueNum = !isQuotation && isScheduled ? Math.max(0, grandTotal - downPaymentNum) : 0;
 
     setLoading(true);
     try {
@@ -358,7 +509,9 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
         body: JSON.stringify({
           customerName: finalCustomerName,
           customerRuc: finalCustomerRuc,
-          customerAddress: customerAddress || undefined,
+          customerAddress: customerAddress.trim() || undefined,
+          googleMapsUrl: googleMapsUrl.trim() || undefined,
+          isQuotation,
           paymentCondition,
           paymentMethod,
           paymentReference: paymentReference.trim() || null,
@@ -366,12 +519,12 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
           driverId: driverId || null,
           helperIds: selectedHelperIds,
           vehiclePlate: vehiclePlate || null,
-          deliveryStatus: isScheduled ? 'PENDING_DELIVERY' : deliveryStatus,
+          deliveryStatus: isQuotation ? 'QUOTATION' : isScheduled ? 'PENDING_DELIVERY' : deliveryStatus,
           deliveryNotes: deliveryNotes || null,
           // Programación a Futuro y Seña
-          isScheduled,
-          scheduledDeliveryDate: isScheduled ? scheduledDeliveryDate : null,
-          deliveryTimeSlot: isScheduled ? deliveryTimeSlot : null,
+          isScheduled: !isQuotation && isScheduled,
+          scheduledDeliveryDate: !isQuotation && isScheduled ? scheduledDeliveryDate : null,
+          deliveryTimeSlot: !isQuotation && isScheduled ? deliveryTimeSlot : null,
           downPayment: downPaymentNum,
           balanceDue: balanceDueNum,
           // 2do Chofer y 2do Camión si está habilitado
@@ -384,7 +537,7 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
             unitPrice: i.unitPrice,
             vatRate: i.vatRate,
           })),
-          issueInvoiceImmediately: !isScheduled && paymentCondition !== 'A_CUENTA' && docType === 'INVOICE',
+          issueInvoiceImmediately: !isQuotation && !isScheduled && paymentCondition !== 'A_CUENTA' && docType === 'INVOICE',
         }),
       });
       const data = await res.json();
@@ -393,18 +546,19 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
         setPaymentReference('');
         setSelectedProjectId('');
         setDeliveryNotes('');
+        setGoogleMapsUrl('');
         setIsScheduled(false);
         setDownPayment('');
         setEnableSecondaryDelivery(false);
         setSecondaryDriverId('');
         setSecondaryVehiclePlate('');
         setSecondaryHelperIds([]);
-        // Disparar la apertura inmediata del comprobante fiscal y recibo de despacho / reserva
+        // Disparar la apertura inmediata del comprobante fiscal, presupuesto o recibo de despacho
         onSaleCompleted(data.data);
       } else {
         customAlert({
           title: 'Error de Facturación',
-          message: data.error?.message || 'No se pudo emitir la factura en el sistema.',
+          message: data.error?.message || 'No se pudo emitir el comprobante en el sistema.',
           variant: 'danger',
         });
       }
@@ -418,35 +572,98 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
       {/* Columna Izquierda: Buscador y Carrito */}
       <div className="lg:col-span-7 space-y-4">
         {/* Buscador de artículos */}
-        <div className="relative">
+        <div className="relative" ref={productDropdownRef}>
           <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
           <input
             ref={searchInputRef}
             type="text"
             value={productSearch}
             onChange={(e) => setProductSearch(e.target.value)}
+            onFocus={() => {
+              if (productSearch.trim().length >= 2) {
+                setShowProductDropdown(true);
+                executeProductSearch(productSearch);
+              }
+            }}
+            onKeyDown={(e) => {
+              if (!showProductDropdown || searchResults.length === 0) {
+                if (e.key === 'Enter' && productSearch.trim().length >= 2) {
+                  e.preventDefault();
+                  executeProductSearch(productSearch);
+                }
+                return;
+              }
+              if (e.key === 'ArrowDown') {
+                e.preventDefault();
+                setHighlightedIdx((prev) => Math.min(prev + 1, searchResults.length - 1));
+              } else if (e.key === 'ArrowUp') {
+                e.preventDefault();
+                setHighlightedIdx((prev) => Math.max(prev - 1, 0));
+              } else if (e.key === 'Enter') {
+                e.preventDefault();
+                const picked = searchResults[highlightedIdx] || searchResults[0];
+                if (picked) addToCart(picked);
+              } else if (e.key === 'Escape') {
+                setShowProductDropdown(false);
+              }
+            }}
             placeholder="Buscar por SKU o descripción (ej: Cemento, Varilla, Cal, Ladrillo, Arena)..."
-            className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-3 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
+            className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-9 py-2.5 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
           />
-          {searchResults.length > 0 && (
+          {productSearch && (
+            <button
+              type="button"
+              onClick={() => {
+                setProductSearch('');
+                setSearchResults([]);
+                setShowProductDropdown(false);
+                setProductSearchError(null);
+                searchInputRef.current?.focus();
+              }}
+              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground p-0.5"
+              title="Limpiar búsqueda"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          )}
+          {showProductDropdown && productSearch.trim().length >= 2 && (
             <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-border rounded-lg shadow-2xl z-30 max-h-80 overflow-y-auto divide-y divide-card-border">
-              <div className="sticky top-0 bg-[#0d121c] px-3 py-1.5 border-b border-card-border flex items-center justify-between text-[10px] font-mono text-muted-foreground z-10">
-                <span>Resultados encontrados ({searchResults.length})</span>
-                <span className="text-[9px] text-primary">Haz clic para agregar al carrito</span>
+              <div className="sticky top-0 bg-[#0d121c] px-3 py-2 border-b border-card-border flex items-center justify-between text-xs font-mono text-muted-foreground z-10">
+                <span>
+                  {isSearchingProducts
+                    ? 'Buscando en el catálogo...'
+                    : productSearchError
+                    ? productSearchError
+                    : `Resultados encontrados (${searchResults.length})`}
+                </span>
+                <span className="text-[11px] text-primary">Clic o Enter para agregar</span>
               </div>
-              {searchResults.map((p) => (
-                <div
-                  key={p.id}
-                  onClick={() => addToCart(p)}
-                  className="p-2.5 hover:bg-muted/40 cursor-pointer flex items-center justify-between text-xs transition-colors"
-                >
-                  <div className="flex-1 pr-3">
-                    <span className="font-mono font-bold text-primary mr-2 px-1.5 py-0.5 bg-primary/10 rounded text-[11px]">{p.sku}</span>
-                    <span className="text-foreground font-medium">{p.name}</span>
-                  </div>
-                  <span className="font-mono text-emerald-400 font-bold whitespace-nowrap">{formatCurrencyPYG(Number(p.salePrice))}</span>
+              {isSearchingProducts && searchResults.length === 0 ? (
+                <div className="p-4 text-center text-xs text-muted-foreground font-mono flex items-center justify-center gap-2">
+                  <Loader2 className="w-4 h-4 animate-spin text-primary" />
+                  <span>Cargando coincidencias...</span>
                 </div>
-              ))}
+              ) : searchResults.length === 0 ? (
+                <div className="p-4 text-center text-xs text-muted-foreground">
+                  No se encontraron productos para &ldquo;{productSearch}&rdquo;.
+                </div>
+              ) : (
+                searchResults.map((p, idx) => (
+                  <div
+                    key={p.id}
+                    onClick={() => addToCart(p)}
+                    className={`p-3 cursor-pointer flex items-center justify-between text-sm transition-colors ${
+                      idx === highlightedIdx ? 'bg-primary/15' : 'hover:bg-muted/40'
+                    }`}
+                  >
+                    <div className="flex-1 pr-3">
+                      <span className="font-mono font-bold text-primary mr-2 px-1.5 py-0.5 bg-primary/10 rounded text-xs">{p.sku}</span>
+                      <span className="text-foreground font-medium">{p.name}</span>
+                    </div>
+                    <span className="font-mono text-emerald-400 font-bold whitespace-nowrap">{formatCurrencyPYG(Number(p.salePrice))}</span>
+                  </div>
+                ))
+              )}
             </div>
           )}
         </div>
@@ -669,12 +886,12 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
               </button>
             </div>
 
-            {/* Selector de Tipo de Venta: Comprobante / Ticket vs Factura Electrónica SIFEN */}
-            <div className="space-y-1">
-              <label className="block text-[11px] font-mono text-muted-foreground font-semibold">
+            {/* Selector de Tipo de Venta: Comprobante / Ticket, Factura SIFEN o Presupuesto */}
+            <div className="space-y-1.5">
+              <label className="block text-xs font-mono text-muted-foreground font-semibold">
                 Tipo de Comprobante a Emitir:
               </label>
-              <div className="grid grid-cols-2 gap-2 p-1 bg-[#090d16] border border-card-border rounded-lg">
+              <div className="grid grid-cols-3 gap-1.5 p-1 bg-[#090d16] border border-card-border rounded-lg">
                 <button
                   type="button"
                   onClick={() => {
@@ -683,14 +900,14 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                       setCustomerRuc('44444401-7');
                     }
                   }}
-                  className={`py-2 px-2.5 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                  className={`py-2 px-2 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
                     docType === 'TICKET'
                       ? 'bg-emerald-600 text-white shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-card/40'
                   }`}
                 >
                   <Receipt className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">Comprobante / Ticket (Sin Factura)</span>
+                  <span className="truncate">Ticket / Venta</span>
                 </button>
 
                 <button
@@ -702,16 +919,40 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                       setCustomerName('');
                     }
                   }}
-                  className={`py-2 px-2.5 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                  className={`py-2 px-2 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
                     docType === 'INVOICE'
                       ? 'bg-primary text-white shadow-sm'
                       : 'text-muted-foreground hover:text-foreground hover:bg-card/40'
                   }`}
                 >
                   <ShieldCheck className="w-3.5 h-3.5 shrink-0" />
-                  <span className="truncate">Factura Electrónica (SIFEN)</span>
+                  <span className="truncate">Factura SIFEN</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => {
+                    setDocType('QUOTATION');
+                    setIsScheduled(false);
+                  }}
+                  className={`py-2 px-2 rounded-md text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
+                    docType === 'QUOTATION'
+                      ? 'bg-cyan-600 text-white shadow-sm'
+                      : 'text-muted-foreground hover:text-foreground hover:bg-card/40'
+                  }`}
+                >
+                  <FileSpreadsheet className="w-3.5 h-3.5 shrink-0" />
+                  <span className="truncate">Presupuesto</span>
                 </button>
               </div>
+              {docType === 'QUOTATION' && (
+                <div className="p-2 rounded-md bg-cyan-500/10 border border-cyan-500/30 text-xs text-cyan-300 flex items-center gap-2">
+                  <FileSpreadsheet className="w-4 h-4 shrink-0 text-cyan-400" />
+                  <span>
+                    <strong>Modo Presupuesto:</strong> NO descuenta ni reserva stock del depósito y NO registra cobro en caja.
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Buscador y Selector Autocompletable de Clientes */}
@@ -781,49 +1022,125 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
               )}
             </div>
 
-            {/* RUC y Nombre (Editables) */}
-            <div className="grid grid-cols-12 gap-2">
-              <div className="col-span-5">
-                <div className="flex justify-between items-center mb-1">
-                  <label className="text-[11px] font-mono text-muted-foreground">
-                    {docType === 'TICKET' ? 'C.I. / RUC (Opcional)' : 'RUC o CI con DV *'}
-                  </label>
-                  {docType === 'TICKET' ? (
-                    <span className="text-[9px] text-emerald-400 font-mono">
-                      Consumidor Final
-                    </span>
-                  ) : rucValidation.isValid ? (
-                    <span className="text-[9px] text-emerald-400 font-mono flex items-center gap-0.5">
-                      <CheckCircle2 className="w-2.5 h-2.5" /> Válido
-                    </span>
-                  ) : (
-                    <span className="text-[9px] text-warning font-mono">XXXXXX-DV</span>
-                  )}
+            {/* RUC / C.I. con Consulta DNIT y Nombre (Editables) */}
+            <div className="space-y-2">
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-6">
+                  <div className="flex justify-between items-center mb-1">
+                    <label className="text-xs font-mono text-muted-foreground">
+                      {docType === 'INVOICE' ? 'RUC o CI con DV *' : 'C.I. / RUC'}
+                    </label>
+                    {docType === 'TICKET' ? (
+                      <span className="text-[10px] text-emerald-400 font-mono">
+                        Opcional / Mostrador
+                      </span>
+                    ) : rucValidation.isValid ? (
+                      <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-0.5">
+                        <CheckCircle2 className="w-3 h-3" /> Válido
+                      </span>
+                    ) : (
+                      <span className="text-[10px] text-warning font-mono">XXXXXX-DV</span>
+                    )}
+                  </div>
+                  <div className="flex gap-1">
+                    <input
+                      type="text"
+                      value={customerRuc}
+                      onChange={(e) => {
+                        setCustomerRuc(e.target.value);
+                        setDnitFeedback(null);
+                      }}
+                      onFocus={(e) => e.target.select()}
+                      onClick={(e) => (e.target as HTMLInputElement).select()}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          handleLookupDnit();
+                        }
+                      }}
+                      placeholder="Ej: 80134022-5 o 4776458"
+                      className="w-full min-w-0 bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono font-bold text-foreground focus:outline-none focus:border-primary text-xs"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleLookupDnit}
+                      disabled={lookingUpDnit}
+                      title="Consultar RUC o C.I. en DNIT y Agenda Local"
+                      className="px-2.5 py-1.5 rounded-md bg-primary/15 border border-primary/40 text-primary hover:bg-primary/25 font-mono text-xs font-semibold flex items-center gap-1 shrink-0"
+                    >
+                      {lookingUpDnit ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
+                      <span>DNIT</span>
+                    </button>
+                  </div>
                 </div>
-                <input
-                  type="text"
-                  value={customerRuc}
-                  onChange={(e) => setCustomerRuc(e.target.value)}
-                  onFocus={(e) => e.target.select()}
-                  onClick={(e) => (e.target as HTMLInputElement).select()}
-                  placeholder={docType === 'TICKET' ? '44444401-7' : 'ej. 80012345-6'}
-                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono font-bold text-foreground focus:outline-none focus:border-primary text-xs"
-                />
+                <div className="col-span-6">
+                  <label className="block text-xs font-mono text-muted-foreground mb-1">
+                    {docType === 'INVOICE' ? 'Razón Social Oficial *' : 'Nombre del Cliente *'}
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={customerName}
+                    onChange={(e) => setCustomerName(e.target.value)}
+                    onFocus={(e) => e.target.select()}
+                    onClick={(e) => (e.target as HTMLInputElement).select()}
+                    placeholder={docType === 'TICKET' ? 'Nombre o Consumidor Final' : 'Nombre o Razón Social'}
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground font-semibold focus:outline-none focus:border-primary text-xs truncate"
+                  />
+                </div>
               </div>
-              <div className="col-span-7">
-                <label className="block text-[11px] font-mono text-muted-foreground mb-1">
-                  {docType === 'TICKET' ? 'Nombre del Cliente (ej: Don Pedro) *' : 'Razón Social Oficial *'}
-                </label>
-                <input
-                  type="text"
-                  required
-                  value={customerName}
-                  onChange={(e) => setCustomerName(e.target.value)}
-                  onFocus={(e) => e.target.select()}
-                  onClick={(e) => (e.target as HTMLInputElement).select()}
-                  placeholder={docType === 'TICKET' ? 'Nombre o Consumidor Final' : 'Nombre o Razón Social'}
-                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground font-semibold focus:outline-none focus:border-primary text-xs truncate"
-                />
+
+              {dnitFeedback && (
+                <div className={`px-2.5 py-1.5 rounded text-[11px] flex items-center gap-1.5 border ${dnitFeedback.ok ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300' : 'bg-amber-500/10 border-amber-500/30 text-amber-300'}`}>
+                  {dnitFeedback.ok ? <CheckCircle2 className="w-3.5 h-3.5 shrink-0" /> : <AlertCircle className="w-3.5 h-3.5 shrink-0" />}
+                  <span>{dnitFeedback.msg}</span>
+                </div>
+              )}
+
+              {/* Carga Rápida de Dirección y Enlace Google Maps (Opcional / Diferible) */}
+              <div className="grid grid-cols-12 gap-2">
+                <div className="col-span-7">
+                  <label className="block text-xs font-mono text-muted-foreground mb-1">
+                    Dirección (Opcional, se puede completar luego)
+                  </label>
+                  <input
+                    type="text"
+                    value={customerAddress}
+                    onChange={(e) => setCustomerAddress(e.target.value)}
+                    placeholder="Ej: Avda. Defensores del Chaco..."
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
+                <div className="col-span-5">
+                  <div className="flex items-center justify-between mb-1">
+                    <label className="text-xs font-mono text-muted-foreground truncate">Google Maps</label>
+                    {(googleMapsUrl.trim() || customerAddress.trim()) && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const target = googleMapsUrl.trim();
+                          const url =
+                            target.startsWith('http://') || target.startsWith('https://')
+                              ? target
+                              : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(customerAddress.trim() || target)}`;
+                          window.open(url, '_blank', 'noopener,noreferrer');
+                        }}
+                        className="text-[11px] font-mono text-primary hover:underline flex items-center gap-0.5 shrink-0"
+                        title="Abrir o buscar ubicación en Google Maps"
+                      >
+                        <ExternalLink className="w-3 h-3" />
+                        <span>{googleMapsUrl.trim().startsWith('http') ? 'Abrir' : 'Buscar'}</span>
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    type="text"
+                    value={googleMapsUrl}
+                    onChange={(e) => setGoogleMapsUrl(e.target.value)}
+                    placeholder="Pegar link de Maps..."
+                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary text-xs"
+                  />
+                </div>
               </div>
             </div>
 
@@ -1274,8 +1591,10 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
           <button
             type="submit"
             disabled={loading || cart.length === 0}
-            className={`w-full py-2.5 rounded-md text-white text-xs font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors shadow-md ${
-              isScheduled
+            className={`w-full py-3 rounded-md text-white text-sm font-semibold flex items-center justify-center gap-2 disabled:opacity-50 transition-colors shadow-md ${
+              docType === 'QUOTATION'
+                ? 'bg-cyan-600 hover:bg-cyan-500'
+                : isScheduled
                 ? 'bg-amber-600 hover:bg-amber-500'
                 : paymentCondition === 'A_CUENTA'
                 ? 'bg-amber-600 hover:bg-amber-500'
@@ -1284,7 +1603,16 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                 : 'bg-primary hover:bg-primary-hover'
             }`}
           >
-            {isScheduled ? (
+            {docType === 'QUOTATION' ? (
+              <>
+                <FileSpreadsheet className="w-4 h-4" />
+                <span>
+                  {loading
+                    ? 'Guardando Presupuesto...'
+                    : 'Guardar e Imprimir Presupuesto A4 (Sin Stock)'}
+                </span>
+              </>
+            ) : isScheduled ? (
               <>
                 <Calendar className="w-4 h-4" />
                 <span>
@@ -1367,6 +1695,35 @@ export function PosTerminal({ onSaleCompleted }: { onSaleCompleted: (sale?: any)
                   onChange={(e) => setNewProjectAddress(e.target.value)}
                   placeholder="Ej: Avda. Molas López c/ San Martín, Asunción"
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 text-foreground focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              <div>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-mono text-muted-foreground">Enlace Google Maps (Opcional)</label>
+                  {newProjectAddress.trim() && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        window.open(
+                          `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(newProjectAddress.trim())}`,
+                          '_blank',
+                          'noopener,noreferrer'
+                        )
+                      }
+                      className="text-[10px] font-mono text-primary hover:underline flex items-center gap-1"
+                    >
+                      <ExternalLink className="w-3 h-3" />
+                      <span>Buscar en Maps</span>
+                    </button>
+                  )}
+                </div>
+                <input
+                  type="text"
+                  value={newProjectMapsUrl}
+                  onChange={(e) => setNewProjectMapsUrl(e.target.value)}
+                  placeholder="Pegar link de WhatsApp / Maps (ej: https://maps.app.goo.gl/...)"
+                  className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary"
                 />
               </div>
 

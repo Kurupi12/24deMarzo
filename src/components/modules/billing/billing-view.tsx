@@ -9,16 +9,20 @@ import { CashShiftPanel } from './cash-shift-panel';
 import { CustomerAccountsPanel } from './customer-accounts-panel';
 import { ScheduledOrdersPanel } from './scheduled-orders-panel';
 import { ScheduledOrdersAlertBanner } from './scheduled-orders-alert-banner';
-import { ReceiptText, History, Landmark, DollarSign, Receipt, CheckCircle2, BookOpen, Calendar } from 'lucide-react';
+import { QuotationsPanel } from './quotations-panel';
+import { EditSaleCustomerModal } from './edit-sale-customer-modal';
+import { ReceiptText, History, Landmark, DollarSign, Receipt, CheckCircle2, BookOpen, Calendar, FileSpreadsheet } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 
 export function BillingView() {
   const searchParams = useSearchParams();
   const initialTab = (searchParams.get('tab') as any) || 'pos';
-  const [activeTab, setActiveTab] = useState<'pos' | 'history' | 'shifts' | 'accounts' | 'scheduled'>(initialTab);
+  const [activeTab, setActiveTab] = useState<'pos' | 'history' | 'quotations' | 'shifts' | 'accounts' | 'scheduled'>(initialTab);
   const [sales, setSales] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedSaleForDetail, setSelectedSaleForDetail] = useState<any>(null);
+  const [saleToEditCustomer, setSaleToEditCustomer] = useState<any>(null);
+  const [quotationForPos, setQuotationForPos] = useState<any>(null);
 
   const fetchSales = useCallback(async () => {
     setLoading(true);
@@ -88,7 +92,7 @@ export function BillingView() {
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-card-border pb-2">
+      <div className="flex flex-wrap items-center gap-2 border-b border-card-border pb-2">
         <button
           type="button"
           onClick={() => setActiveTab('pos')}
@@ -100,6 +104,19 @@ export function BillingView() {
         >
           <ReceiptText className="w-3.5 h-3.5" />
           <span>Punto de Venta (POS)</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setActiveTab('quotations')}
+          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+            activeTab === 'quotations'
+              ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20 font-semibold'
+              : 'text-muted-foreground hover:text-foreground'
+          }`}
+        >
+          <FileSpreadsheet className="w-3.5 h-3.5" />
+          <span>Presupuestos</span>
         </button>
 
         <button
@@ -158,6 +175,8 @@ export function BillingView() {
       {/* Contenido */}
       {activeTab === 'pos' ? (
         <PosTerminal
+          initialQuotation={quotationForPos}
+          onQuotationLoaded={() => setQuotationForPos(null)}
           onSaleCompleted={(sale) => {
             fetchSales();
             if (sale) {
@@ -165,11 +184,20 @@ export function BillingView() {
             }
           }}
         />
+      ) : activeTab === 'quotations' ? (
+        <QuotationsPanel
+          onViewQuotation={setSelectedSaleForDetail}
+          onLoadToPos={(q) => {
+            setQuotationForPos(q);
+            setActiveTab('pos');
+          }}
+        />
       ) : activeTab === 'history' ? (
         <SalesHistoryTable
           sales={sales}
           loading={loading}
           onViewInvoice={setSelectedSaleForDetail}
+          onEditCustomer={setSaleToEditCustomer}
         />
       ) : activeTab === 'shifts' ? (
         <CashShiftPanel />
@@ -179,11 +207,27 @@ export function BillingView() {
         <ScheduledOrdersPanel onOrderDispatched={fetchSales} />
       )}
 
-      {/* Modal de Detalle de DTE */}
+      {/* Modal de Detalle de DTE / Presupuesto */}
       <InvoiceDetailModal
         sale={selectedSaleForDetail}
         isOpen={!!selectedSaleForDetail}
         onClose={() => setSelectedSaleForDetail(null)}
+        onEditCustomer={(sale) => {
+          setSaleToEditCustomer(sale);
+        }}
+      />
+
+      {/* Modal para Completar / Editar Datos, Dirección y Maps del Cliente */}
+      <EditSaleCustomerModal
+        sale={saleToEditCustomer}
+        isOpen={!!saleToEditCustomer}
+        onClose={() => setSaleToEditCustomer(null)}
+        onUpdated={(updated) => {
+          fetchSales();
+          if (selectedSaleForDetail?.id === updated.id) {
+            setSelectedSaleForDetail(updated);
+          }
+        }}
       />
     </div>
   );

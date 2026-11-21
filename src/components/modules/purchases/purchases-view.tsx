@@ -124,17 +124,30 @@ export function PurchasesView() {
     fetchSuppliers();
   }, [supplierQuery, selectedCategory]);
 
-  // Buscar productos mientras tipea en la compra
+  // Buscar productos mientras tipea en la compra (con debounce y AbortController)
   useEffect(() => {
-    if (productSearch.trim().length >= 2) {
-      fetch(`/api/v1/inventory/products?search=${encodeURIComponent(productSearch.trim())}&limit=100`)
+    const term = productSearch.trim();
+    if (term.length < 2) {
+      setProductResults([]);
+      return;
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => {
+      fetch(`/api/v1/inventory/products?search=${encodeURIComponent(term)}&limit=100`, {
+        signal: controller.signal,
+      })
         .then((res) => res.json())
         .then((json) => {
           if (json.success) setProductResults(json.data || []);
-        });
-    } else {
-      setProductResults([]);
-    }
+        })
+        .catch(() => {});
+    }, 180);
+
+    return () => {
+      clearTimeout(timer);
+      controller.abort();
+    };
   }, [productSearch]);
 
   const addProductToPurchase = (prod: any) => {

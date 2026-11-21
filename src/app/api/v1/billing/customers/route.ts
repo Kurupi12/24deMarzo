@@ -41,7 +41,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { ruc, name, address, phone, email } = body;
+    const { ruc, name, address, googleMapsUrl, phone, email } = body;
 
     if (!ruc || !name) {
       return NextResponse.json(
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
       update: {
         name: name.trim(),
         address: address?.trim() || undefined,
+        googleMapsUrl: googleMapsUrl?.trim() || undefined,
         phone: phone?.trim() || undefined,
         email: email?.trim() || undefined,
       },
@@ -62,6 +63,7 @@ export async function POST(req: NextRequest) {
         ruc: ruc.trim(),
         name: name.trim(),
         address: address?.trim() || undefined,
+        googleMapsUrl: googleMapsUrl?.trim() || undefined,
         phone: phone?.trim() || undefined,
         email: email?.trim() || undefined,
       },

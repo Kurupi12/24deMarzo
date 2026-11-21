@@ -4,15 +4,16 @@ import React from 'react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
-import { Receipt, QrCode, CheckCircle2, Eye } from 'lucide-react';
+import { Receipt, QrCode, CheckCircle2, Eye, Pencil, MapPin, ExternalLink } from 'lucide-react';
 
 interface SalesHistoryProps {
   sales: any[];
   loading: boolean;
   onViewInvoice: (sale: any) => void;
+  onEditCustomer?: (sale: any) => void;
 }
 
-export function SalesHistoryTable({ sales, loading, onViewInvoice }: SalesHistoryProps) {
+export function SalesHistoryTable({ sales, loading, onViewInvoice, onEditCustomer }: SalesHistoryProps) {
   if (loading) {
     return (
       <div className="bg-card border border-card-border rounded-lg p-12 text-center text-xs text-muted-foreground font-mono">
@@ -59,7 +60,24 @@ export function SalesHistoryTable({ sales, loading, onViewInvoice }: SalesHistor
                   </td>
                   <td className="py-2.5 px-3 font-sans">
                     <p className="font-medium text-foreground truncate max-w-xs">{s.customerName}</p>
-                    <p className="text-[10px] text-muted-foreground font-mono">{s.customerRuc}</p>
+                    <p className="text-[11px] text-muted-foreground font-mono">{s.customerRuc}</p>
+                    {s.customerAddress ? (
+                      <p className="text-[11px] text-muted-foreground truncate max-w-xs">{s.customerAddress}</p>
+                    ) : (
+                      <p className="text-[11px] text-amber-400/80 italic">Dirección pendiente</p>
+                    )}
+                    {(s.googleMapsUrl || s.project?.googleMapsUrl) && (
+                      <a
+                        href={(s.googleMapsUrl || s.project?.googleMapsUrl).startsWith('http') ? (s.googleMapsUrl || s.project?.googleMapsUrl) : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.googleMapsUrl || s.project?.googleMapsUrl)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-mono mt-0.5"
+                      >
+                        <MapPin className="w-3 h-3" />
+                        <span>Maps</span>
+                        <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
+                    )}
                   </td>
                   <td className="py-2.5 px-3 text-[11px] font-sans">
                     {s.project ? (
@@ -95,15 +113,28 @@ export function SalesHistoryTable({ sales, loading, onViewInvoice }: SalesHistor
                     </span>
                   </td>
                   <td className="py-2.5 px-3 text-center">
-                    <button
-                      type="button"
-                      onClick={() => onViewInvoice(s)}
-                      title="Ver factura electrónica SIFEN"
-                      className="inline-flex items-center gap-1 px-2.5 py-1 rounded bg-[#0d121c] border border-card-border hover:border-primary text-muted-foreground hover:text-primary transition-colors text-[11px]"
-                    >
-                      <Eye className="w-3 h-3" />
-                      <span>Ver DTE</span>
-                    </button>
+                    <div className="inline-flex items-center gap-1.5">
+                      {onEditCustomer && (
+                        <button
+                          type="button"
+                          onClick={() => onEditCustomer(s)}
+                          title="Completar o editar RUC, Dirección y Google Maps"
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-[#0d121c] border border-card-border hover:border-amber-400 text-muted-foreground hover:text-amber-300 transition-colors text-xs"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                          <span>Editar</span>
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => onViewInvoice(s)}
+                        title="Ver factura o comprobante"
+                        className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded bg-[#0d121c] border border-card-border hover:border-primary text-muted-foreground hover:text-primary transition-colors text-xs"
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        <span>Ver DTE</span>
+                      </button>
+                    </div>
                   </td>
                 </tr>
               );

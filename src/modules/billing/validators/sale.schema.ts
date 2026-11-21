@@ -21,6 +21,8 @@ export const CreateSaleSchema = z.object({
     .transform((val) => (val && val.trim().length >= 3 ? val.trim() : '44444401-7')),
   customerEmail: z.string().email('Email inválido').optional().nullable(),
   customerAddress: z.string().optional().nullable(),
+  googleMapsUrl: z.string().optional().nullable(),
+  isQuotation: z.boolean().optional().default(false),
   paymentCondition: z.enum(['CONTADO', 'CREDITO', 'A_CUENTA']).default('CONTADO'),
   paymentMethod: z.enum([
     'EFECTIVO',

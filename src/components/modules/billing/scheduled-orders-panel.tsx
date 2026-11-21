@@ -16,6 +16,8 @@ import {
   X,
   Building2,
   Layers,
+  MapPin,
+  ExternalLink,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { InvoiceDetailModal } from './invoice-detail-modal';
@@ -349,12 +351,24 @@ export function ScheduledOrdersPanel({ onOrderDispatched }: { onOrderDispatched?
 
                       <td className="py-2.5 px-3 font-sans">
                         <div className="font-semibold text-foreground">{order.customerName}</div>
-                        <div className="text-[10px] text-muted-foreground font-mono">
+                        <div className="text-[11px] text-muted-foreground font-mono">
                           RUC: {order.customerRuc}
                         </div>
-                        <div className="text-[10px] text-muted-foreground truncate max-w-xs">
+                        <div className="text-[11px] text-muted-foreground truncate max-w-xs">
                           {order.customerAddress || order.project?.address || 'Mostrador'}
                         </div>
+                        {(order.googleMapsUrl || order.project?.googleMapsUrl) && (
+                          <a
+                            href={(order.googleMapsUrl || order.project?.googleMapsUrl).startsWith('http') ? (order.googleMapsUrl || order.project?.googleMapsUrl) : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.googleMapsUrl || order.project?.googleMapsUrl)}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-1 text-[11px] text-primary hover:underline font-mono mt-0.5"
+                          >
+                            <MapPin className="w-3 h-3" />
+                            <span>Abrir Ubicación Maps</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        )}
                       </td>
 
                       <td className="py-2.5 px-3">

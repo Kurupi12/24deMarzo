@@ -1,25 +1,29 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Printer, ShieldCheck, CheckCircle2, Truck, FileText, Copy } from 'lucide-react';
+import { X, Printer, ShieldCheck, CheckCircle2, Truck, FileText, Copy, FileSpreadsheet, MapPin, ExternalLink, Pencil } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { DeliveryOrderA4 } from './delivery-order-a4';
 import { ReservationReceiptA4 } from './reservation-receipt-a4';
+import { QuotationA4 } from './quotation-a4';
 import { printElementById } from '@/shared/utils/print-html';
 
 interface InvoiceDetailModalProps {
   sale: any | null;
   isOpen: boolean;
   onClose: () => void;
+  onEditCustomer?: (sale: any) => void;
 }
 
-export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModalProps) {
+export function InvoiceDetailModal({ sale, isOpen, onClose, onEditCustomer }: InvoiceDetailModalProps) {
   // Documento activo para previsualizar e imprimir: 'delivery_order' (A4 duplicado) o 'invoice' (fiscal SIFEN)
   const [activeDoc, setActiveDoc] = useState<'delivery_order' | 'invoice'>('delivery_order');
 
   if (!isOpen || !sale) return null;
 
   const invoice = sale.invoice;
+  const isQuotation = sale.status === 'QUOTATION';
+  const mapsLink = sale.googleMapsUrl || sale.project?.googleMapsUrl;
 
   const formatDate = (dateStr: string) => {
     try {
@@ -35,7 +39,9 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
 
   const handlePrint = (mode: 'delivery_order' | 'invoice') => {
     if (mode === 'delivery_order') {
-      const docTitle = sale.isScheduled
+      const docTitle = isQuotation
+        ? `Presupuesto_${sale.saleNumber || 'A4'}`
+        : sale.isScheduled
         ? `Comprobante_Reserva_${sale.reservationReceiptNumber || sale.saleNumber || 'A4'}`
         : `Orden_Entrega_${sale.saleNumber || 'A4'}`;
 
@@ -58,27 +64,51 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
         {/* Cabecera Principal del Modal (no imprimible) */}
         <div className="flex items-center justify-between p-3 sm:p-4 border-b border-card-border bg-[#0b0e14] no-print">
           <div className="flex items-center gap-2.5">
-            <div className="p-2 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-              <CheckCircle2 className="w-5 h-5" />
+            <div className={`p-2 rounded-full border ${isQuotation ? 'bg-cyan-500/10 border-cyan-500/20 text-cyan-400' : 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'}`}>
+              {isQuotation ? <FileSpreadsheet className="w-5 h-5" /> : <CheckCircle2 className="w-5 h-5" />}
             </div>
             <div>
               <h3 className="text-sm font-bold text-foreground">
-                Documentos de Venta Emitidos &bull; {sale.saleNumber}
+                {isQuotation ? `Presupuesto Cotizado • ${sale.saleNumber}` : `Documentos de Venta Emitidos • ${sale.saleNumber}`}
               </h3>
-              <p className="text-[11px] font-mono text-muted-foreground">
+              <p className="text-xs font-mono text-muted-foreground">
                 {sale.customerName} &bull; Total: <strong className="text-emerald-400">{formatCurrencyPYG(Number(sale.grandTotal))}</strong>
               </p>
             </div>
           </div>
 
-          <button
-            type="button"
-            onClick={onClose}
-            className="p-1.5 rounded-lg border border-card-border text-muted-foreground hover:bg-muted/20 hover:text-foreground transition-colors"
-            title="Cerrar ventana"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2">
+            {mapsLink && (
+              <a
+                href={mapsLink.startsWith('http') ? mapsLink : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(mapsLink)}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="px-2.5 py-1.5 rounded-lg border border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 text-xs font-medium flex items-center gap-1.5"
+              >
+                <MapPin className="w-3.5 h-3.5" />
+                <span>Maps</span>
+                <ExternalLink className="w-3 h-3" />
+              </a>
+            )}
+            {onEditCustomer && (
+              <button
+                type="button"
+                onClick={() => onEditCustomer(sale)}
+                className="px-2.5 py-1.5 rounded-lg border border-card-border text-muted-foreground hover:text-foreground hover:border-primary text-xs font-medium flex items-center gap-1.5"
+              >
+                <Pencil className="w-3.5 h-3.5" />
+                <span>Completar Datos / Dirección</span>
+              </button>
+            )}
+            <button
+              type="button"
+              onClick={onClose}
+              className="p-1.5 rounded-lg border border-card-border text-muted-foreground hover:bg-muted/20 hover:text-foreground transition-colors"
+              title="Cerrar ventana"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
         </div>
 
         {/* Pestañas de Selección de Documento & Botones de Impresión (no imprimible) */}
@@ -94,35 +124,47 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
                   : 'text-muted-foreground hover:text-foreground'
               }`}
             >
-              <Truck className="w-3.5 h-3.5" />
-              <span>{sale.isScheduled ? 'Comprobante de Reserva & Seña (A4)' : 'Comprobante / Orden de Entrega (A4 Duplicado)'}</span>
+              {isQuotation ? <FileSpreadsheet className="w-3.5 h-3.5" /> : <Truck className="w-3.5 h-3.5" />}
+              <span>
+                {isQuotation
+                  ? 'Presupuesto Formal (A4)'
+                  : sale.isScheduled
+                  ? 'Comprobante de Reserva & Seña (A4)'
+                  : 'Comprobante / Orden de Entrega (A4 Duplicado)'}
+              </span>
             </button>
 
-            <button
-              type="button"
-              onClick={() => setActiveDoc('invoice')}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
-                activeDoc === 'invoice'
-                  ? 'bg-primary text-white shadow-sm'
-                  : 'text-muted-foreground hover:text-foreground'
-              }`}
-            >
-              <ShieldCheck className="w-3.5 h-3.5" />
-              <span>{invoice ? 'Factura Electrónica SIFEN' : 'Ticket Térmico (Sin Factura)'}</span>
-            </button>
+            {!isQuotation && (
+              <button
+                type="button"
+                onClick={() => setActiveDoc('invoice')}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-xs font-semibold transition-all ${
+                  activeDoc === 'invoice'
+                    ? 'bg-primary text-white shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <ShieldCheck className="w-3.5 h-3.5" />
+                <span>{invoice ? 'Factura Electrónica SIFEN' : 'Ticket Térmico (Sin Factura)'}</span>
+              </button>
+            )}
           </div>
 
           {/* Botones de Acción */}
           <div className="flex items-center gap-2">
-            {activeDoc === 'delivery_order' ? (
+            {activeDoc === 'delivery_order' || isQuotation ? (
               <button
                 type="button"
                 onClick={() => handlePrint('delivery_order')}
-                className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-lg transition-all"
+                className={`px-4 py-2 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-lg transition-all ${
+                  isQuotation ? 'bg-cyan-600 hover:bg-cyan-500' : 'bg-emerald-600 hover:bg-emerald-500'
+                }`}
               >
                 <Printer className="w-4 h-4" />
                 <span>
-                  {sale.isScheduled
+                  {isQuotation
+                    ? 'Imprimir Presupuesto (A4)'
+                    : sale.isScheduled
                     ? 'Imprimir Comprobante de Reserva (A4 Duplicado)'
                     : 'Imprimir Comprobante de Entrega (A4 Duplicado)'}
                 </span>
@@ -151,19 +193,23 @@ export function InvoiceDetailModal({ sale, isOpen, onClose }: InvoiceDetailModal
 
         {/* Área de Visualización y Contenedor de Impresión */}
         <div className="p-4 overflow-y-auto flex-1 bg-[#06080d]">
-          {activeDoc === 'delivery_order' ? (
-            /* Vista de la Orden de Entrega Duplicado en Hoja A4 */
+          {activeDoc === 'delivery_order' || isQuotation ? (
+            /* Vista de la Orden de Entrega / Reserva / Presupuesto en Hoja A4 */
             <div className="flex flex-col items-center">
-              <div className="text-[11px] font-mono text-muted-foreground mb-2 flex items-center gap-2 no-print">
+              <div className="text-xs font-mono text-muted-foreground mb-2 flex items-center gap-2 no-print">
                 <Copy className="w-3.5 h-3.5 text-primary" />
                 <span>
-                  {sale.isScheduled
+                  {isQuotation
+                    ? 'Vista Previa: Presupuesto de Materiales en A4 (NO descuenta stock)'
+                    : sale.isScheduled
                     ? 'Vista Previa: Comprobante de Reserva & Seña (Original + Duplicado en A4)'
                     : 'Vista Previa: 2 órdenes en 1 hoja A4 (Original Superior + Duplicado Inferior)'}
                 </span>
               </div>
               <div className="w-full max-w-[200mm] bg-white rounded shadow-2xl p-2 border border-neutral-300">
-                {sale.isScheduled ? (
+                {isQuotation ? (
+                  <QuotationA4 sale={sale} />
+                ) : sale.isScheduled ? (
                   <ReservationReceiptA4 sale={sale} />
                 ) : (
                   <DeliveryOrderA4 sale={sale} />

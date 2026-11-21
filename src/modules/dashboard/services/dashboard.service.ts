@@ -38,8 +38,9 @@ export class DashboardService {
         where: { status: 'COMPLETED' },
         _sum: { grandTotal: true, vat10Amount: true },
       }),
-      // Ventas recientes
+      // Ventas recientes (excluyendo presupuestos)
       prisma.sale.findMany({
+        where: { status: { not: 'QUOTATION' } },
         take: 5,
         orderBy: { createdAt: 'desc' },
         select: { id: true, saleNumber: true, customerName: true, grandTotal: true, createdAt: true },

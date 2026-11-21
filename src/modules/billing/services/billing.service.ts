@@ -33,14 +33,21 @@ export class BillingService {
       itemCalculations.map((i) => ({ total: i.subtotal, vatRate: i.vatRate }))
     );
 
-    const saleNumber = await this.repo.getLatestSaleNumber();
-    const warehouse = await prisma.warehouse.findFirst({ where: { isMain: true } });
+    const isQuotation = !!input.isQuotation;
+    const saleNumber = isQuotation
+      ? await this.repo.getLatestQuotationNumber()
+      : await this.repo.getLatestSaleNumber();
+    const warehouse = !isQuotation
+      ? await prisma.warehouse.findFirst({ where: { isMain: true } })
+      : null;
 
     return prisma.$transaction(
       async (tx) => {
-        const isScheduled = !!input.isScheduled;
-        const downPayment = Number(input.downPayment || 0);
-        const balanceDue = Number(input.balanceDue ?? (taxSummary.grandTotal - downPayment));
+        const isScheduled = !isQuotation && !!input.isScheduled;
+        const downPayment = isQuotation ? 0 : Number(input.downPayment || 0);
+        const balanceDue = isQuotation
+          ? 0
+          : Number(input.balanceDue ?? (taxSummary.grandTotal - downPayment));
         const reservationReceiptNumber = isScheduled
           ? `RES-${saleNumber.replace(/\D/g, '').padStart(6, '0')}`
           : null;
@@ -49,11 +56,12 @@ export class BillingService {
           data: {
             saleNumber,
             userId: input.userId,
-            cashShiftId: input.cashShiftId || null,
+            cashShiftId: isQuotation ? null : (input.cashShiftId || null),
             customerName: input.customerName.trim(),
             customerRuc: input.customerRuc.trim(),
             customerEmail: input.customerEmail?.trim() || null,
             customerAddress: input.customerAddress?.trim() || null,
+            googleMapsUrl: input.googleMapsUrl?.trim() || null,
             paymentCondition: input.paymentCondition,
             paymentMethod: input.paymentMethod,
             paymentReference: input.paymentReference?.trim() || null,
@@ -62,7 +70,11 @@ export class BillingService {
             driverId: input.driverId || null,
             helperIds: input.helperIds || [],
             vehiclePlate: input.vehiclePlate?.trim() || null,
-            deliveryStatus: isScheduled ? 'PENDING_DELIVERY' : (input.deliveryStatus || 'DELIVERED'),
+            deliveryStatus: isQuotation
+              ? 'QUOTATION'
+              : isScheduled
+              ? 'PENDING_DELIVERY'
+              : (input.deliveryStatus || 'DELIVERED'),
             deliveryNotes: input.deliveryNotes?.trim() || null,
             isScheduled,
             scheduledDeliveryDate: input.scheduledDeliveryDate ? new Date(input.scheduledDeliveryDate) : null,
@@ -80,7 +92,7 @@ export class BillingService {
             totalVat10: taxSummary.taxable10,
             vat5Amount: taxSummary.vat5Amount,
             vat10Amount: taxSummary.vat10Amount,
-            status: isScheduled ? 'PENDING' : 'COMPLETED',
+            status: isQuotation ? 'QUOTATION' : isScheduled ? 'PENDING' : 'COMPLETED',
             items: {
               create: itemCalculations.map((item) => ({
                 productId: item.productId,
@@ -97,23 +109,25 @@ export class BillingService {
         });
 
         // 1.1 Registrar / Actualizar el cliente en el maestro de clientes para autocompletado SIFEN
-        if (input.customerRuc && input.customerName) {
+        if (input.customerRuc && input.customerName && input.customerRuc.trim() !== '44444401-7') {
           await tx.customer.upsert({
             where: { ruc: input.customerRuc.trim() },
             update: {
               name: input.customerName.trim(),
               address: input.customerAddress?.trim() || undefined,
+              googleMapsUrl: input.googleMapsUrl?.trim() || undefined,
             },
             create: {
               ruc: input.customerRuc.trim(),
               name: input.customerName.trim(),
               address: input.customerAddress?.trim() || undefined,
+              googleMapsUrl: input.googleMapsUrl?.trim() || undefined,
             },
           });
         }
 
-        // 2. Gestión de Stock en lote: Si es programado, reserva el stock; si es entrega inmediata, deduce de stock y asienta Kardex
-        if (warehouse) {
+        // 2. Gestión de Stock en lote: Si es presupuesto NO toca stock; si es programado reserva; si es entrega inmediata deduce
+        if (!isQuotation && warehouse) {
           const productIds = itemCalculations.map((item) => item.productId);
           const stockItems = await tx.stockItem.findMany({
             where: {
@@ -164,8 +178,8 @@ export class BillingService {
           }
         }
 
-        // 3. Generar comprobante electrónico SIFEN con CDC de 44 dígitos
-        if (input.issueInvoiceImmediately) {
+        // 3. Generar comprobante electrónico SIFEN con CDC de 44 dígitos (nunca en presupuestos)
+        if (!isQuotation && input.issueInvoiceImmediately) {
           const invoiceSeq = parseInt(sale.saleNumber.replace(/\D/g, ''), 10) || 1;
           const invoiceNumber = `001-001-${invoiceSeq.toString().padStart(7, '0')}`;
           const cdc = generateSifenCdc({ secuencia: invoiceSeq, issueDate: sale.createdAt });

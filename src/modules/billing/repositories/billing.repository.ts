@@ -3,10 +3,19 @@ import { SaleFilterParams } from '../types/billing.types';
 
 export class BillingRepository {
   async findSales(params: SaleFilterParams) {
-    const { search, startDate, endDate, page = 1, limit = 20 } = params;
+    const { search, status, startDate, endDate, page = 1, limit = 20 } = params;
     const skip = (page - 1) * limit;
 
     const where: any = {};
+
+    if (status === 'QUOTATION') {
+      where.status = 'QUOTATION';
+    } else if (status && status !== 'ALL') {
+      where.status = status;
+    } else if (status !== 'ALL') {
+      // Por defecto el historial de ventas excluye presupuestos para no alterar KPIs de facturación
+      where.status = { not: 'QUOTATION' };
+    }
 
     if (search) {
       where.OR = [
@@ -59,6 +68,7 @@ export class BillingRepository {
 
   async getLatestSaleNumber(): Promise<string> {
     const lastSale = await prisma.sale.findFirst({
+      where: { saleNumber: { startsWith: 'VTA-' } },
       orderBy: { createdAt: 'desc' },
       select: { saleNumber: true },
     });
@@ -67,6 +77,19 @@ export class BillingRepository {
     const match = lastSale.saleNumber.match(/\d+$/);
     const seq = match ? parseInt(match[0], 10) + 1 : 1;
     return `VTA-${seq.toString().padStart(7, '0')}`;
+  }
+
+  async getLatestQuotationNumber(): Promise<string> {
+    const lastQuotation = await prisma.sale.findFirst({
+      where: { saleNumber: { startsWith: 'PRES-' } },
+      orderBy: { createdAt: 'desc' },
+      select: { saleNumber: true },
+    });
+
+    if (!lastQuotation) return 'PRES-0000001';
+    const match = lastQuotation.saleNumber.match(/\d+$/);
+    const seq = match ? parseInt(match[0], 10) + 1 : 1;
+    return `PRES-${seq.toString().padStart(7, '0')}`;
   }
 
   async getTodaySalesTotal(): Promise<{ count: number; totalAmount: number }> {

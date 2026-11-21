@@ -225,6 +225,7 @@ enum SaleStatus {
   PENDING
   COMPLETED
   CANCELLED
+  QUOTATION
 }
 
 enum SifenDocType {
@@ -360,6 +361,7 @@ model Sale {
   vehiclePlate     String?
   deliveryStatus   String           @default("DELIVERED")
   deliveryNotes    String?
+  googleMapsUrl    String?          // Enlace o coordenadas de Google Maps para entrega
 
   // Programación de Entrega a Futuro, Señas y Recordatorios
   isScheduled             Boolean          @default(false)
@@ -397,9 +399,10 @@ model CustomerProject {
   customerRuc  String   // RUC o CI del cliente al que pertenece la obra
   name         String   // Ej: "Edificio Altamira - Piso 4", "Obra Villa Morra"
   address      String   // Dirección de descarga / entrega
-  contactName  String?  // Capataz / Encargado de obra / Arquitecto
-  contactPhone String?  // Teléfono del contacto en obra
-  isActive     Boolean  @default(true)
+  contactName   String?  // Capataz / Encargado de obra / Arquitecto
+  contactPhone  String?  // Teléfono del contacto en obra
+  googleMapsUrl String?  // Ubicación exacta en Google Maps
+  isActive      Boolean  @default(true)
   
   sales        Sale[]
 
@@ -414,9 +417,10 @@ model Customer {
   id           String   @id @default(uuid())
   ruc          String   @unique // RUC o CI con DV ej: 80012345-6
   name         String   // Razón Social o Nombre Completo
-  email        String?
-  address      String?
-  phone        String?
+  email         String?
+  address       String?
+  googleMapsUrl String?
+  phone         String?
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt

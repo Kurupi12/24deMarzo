@@ -13,10 +13,11 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const search = searchParams.get('search') || undefined;
+    const status = searchParams.get('status') || undefined;
     const page = Number(searchParams.get('page')) || 1;
     const limit = Number(searchParams.get('limit')) || 20;
 
-    const result = await billingService.listSales({ search, page, limit });
+    const result = await billingService.listSales({ search, status, page, limit });
     return NextResponse.json(
       createSuccessResponse(result.items, {
         page: result.page,
@@ -58,9 +59,9 @@ export async function POST(req: NextRequest) {
       if (exists) userId = exists.id;
     }
 
-    // Vincular automáticamente al turno de caja actualmente abierto si no fue especificado
-    let cashShiftId = validatedDto.cashShiftId || null;
-    if (!cashShiftId) {
+    // Vincular automáticamente al turno de caja actualmente abierto si no es presupuesto
+    let cashShiftId = validatedDto.isQuotation ? null : (validatedDto.cashShiftId || null);
+    if (!validatedDto.isQuotation && !cashShiftId) {
       const openShift = await prisma.cashShift.findFirst({
         where: { isOpen: true },
         orderBy: { openedAt: 'desc' },

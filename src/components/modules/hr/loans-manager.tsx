@@ -1341,12 +1341,14 @@ export function LoansManager({
                 </label>
                 <input
                   type="number"
-                  min="5000"
+                  min="1"
                   max={selectedLoan.remainingBalance}
-                  step="5000"
+                  step="1"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
-                  placeholder="ej. 200000"
+                  onFocus={(e) => e.target.select()}
+                  onClick={(e) => (e.target as HTMLInputElement).select()}
+                  placeholder="ej. 174000"
                   required
                   autoFocus
                   className="w-full bg-[#0d121c] border border-card-border rounded-lg px-3 py-2 text-xs font-mono font-bold text-foreground focus:outline-none focus:border-primary text-right"

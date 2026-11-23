@@ -137,8 +137,8 @@ export function CreateEmployeeModal({ isOpen, onClose, onEmployeeCreated }: Crea
               <input
                 type="number"
                 required
-                min="100000"
-                step="10000"
+                min="1"
+                step="1"
                 value={form.weeklySalary}
                 onChange={(e) => setForm({ ...form, weeklySalary: e.target.value })}
                 onFocus={(e) => e.target.select()}

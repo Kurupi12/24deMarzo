@@ -339,7 +339,8 @@ export function NewExpenseModal({
                   </label>
                   <input
                     type="number"
-                    step="1000"
+                    min="1"
+                    step="1"
                     placeholder="Ej: 300000"
                     value={partsCost}
                     onChange={(e) => handleFuelAmountChange(e.target.value)}
@@ -360,7 +361,8 @@ export function NewExpenseModal({
                   </label>
                   <input
                     type="number"
-                    step="10"
+                    min="1"
+                    step="1"
                     placeholder="Ej: 8500"
                     value={fuelPricePerLiter}
                     onChange={(e) => handleFuelPriceChange(e.target.value)}

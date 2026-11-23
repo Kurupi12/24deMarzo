@@ -917,7 +917,7 @@ export function PosTerminal({
                               <input
                                 type="number"
                                 min="0"
-                                step="100"
+                                step="1"
                                 readOnly={!isPriceUnlocked}
                                 value={item.unitPrice}
                                 onFocus={(e) => {

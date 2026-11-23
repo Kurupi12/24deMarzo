@@ -23,6 +23,7 @@ export function EditSaleCustomerModal({
   const [customerAddress, setCustomerAddress] = useState('');
   const [googleMapsUrl, setGoogleMapsUrl] = useState('');
   const [deliveryNotes, setDeliveryNotes] = useState('');
+  const [paymentReference, setPaymentReference] = useState('');
   const [saving, setSaving] = useState(false);
   const [lookingUp, setLookingUp] = useState(false);
   const [lookupFeedback, setLookupFeedback] = useState<{ ok: boolean; msg: string } | null>(null);
@@ -34,6 +35,7 @@ export function EditSaleCustomerModal({
       setCustomerAddress(sale.customerAddress || sale.project?.address || '');
       setGoogleMapsUrl(sale.googleMapsUrl || sale.project?.googleMapsUrl || '');
       setDeliveryNotes(sale.deliveryNotes || '');
+      setPaymentReference(sale.paymentReference || '');
       setLookupFeedback(null);
     }
   }, [sale]);
@@ -103,6 +105,7 @@ export function EditSaleCustomerModal({
           customerAddress: customerAddress.trim() || null,
           googleMapsUrl: googleMapsUrl.trim() || null,
           deliveryNotes: deliveryNotes.trim() || null,
+          paymentReference: paymentReference.trim() || null,
         }),
       });
       const json = await res.json();
@@ -213,6 +216,34 @@ export function EditSaleCustomerModal({
               onChange={(e) => setGoogleMapsUrl(e.target.value)}
               placeholder="Pegar link de WhatsApp/Maps (ej: https://maps.app.goo.gl/...)"
               className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-2 font-mono text-foreground focus:outline-none focus:border-primary"
+            />
+          </div>
+
+          <div>
+            <div className="flex items-center justify-between mb-1">
+              <label className="font-mono text-muted-foreground">
+                N° Comprobante Transferencia / Cheque
+              </label>
+              {sale.paymentMethod === 'TRANSFERENCIA_BANCARIA' &&
+                sale.paymentCondition !== 'A_CUENTA' &&
+                !paymentReference.trim() && (
+                  <span className="text-[10px] font-mono bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 font-semibold">
+                    Falta comprobante SIPAP
+                  </span>
+                )}
+            </div>
+            <input
+              type="text"
+              value={paymentReference}
+              onChange={(e) => setPaymentReference(e.target.value)}
+              placeholder="Ej: 10485920 / Ueno / Continental"
+              className={`w-full bg-[#0d121c] border rounded-md px-3 py-2 font-mono text-foreground focus:outline-none focus:border-primary ${
+                sale.paymentMethod === 'TRANSFERENCIA_BANCARIA' &&
+                sale.paymentCondition !== 'A_CUENTA' &&
+                !paymentReference.trim()
+                  ? 'border-amber-500/60'
+                  : 'border-card-border'
+              }`}
             />
           </div>
 

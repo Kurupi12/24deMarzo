@@ -95,11 +95,21 @@ export function SalesHistoryTable({ sales, loading, onViewInvoice, onEditCustome
                   <td className="py-2.5 px-3 text-[11px] font-sans">
                     <span className="block text-foreground">{s.paymentCondition}</span>
                     <span className="text-[10px] text-muted-foreground">{s.paymentMethod.replace(/_/g, ' ')}</span>
-                    {s.paymentReference && (
+                    {s.paymentReference ? (
                       <span className="block text-[9.5px] font-mono text-blue-400 font-semibold truncate max-w-[120px]" title="Comprobante de Transferencia">
                         Ref: {s.paymentReference}
                       </span>
-                    )}
+                    ) : s.paymentMethod === 'TRANSFERENCIA_BANCARIA' && s.paymentCondition !== 'A_CUENTA' ? (
+                      <button
+                        type="button"
+                        onClick={() => onEditCustomer?.(s)}
+                        disabled={!onEditCustomer}
+                        title="Hacer clic para cargar el N° de comprobante SIPAP"
+                        className="mt-0.5 inline-flex items-center px-1.5 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300 text-[9.5px] font-mono font-bold hover:bg-amber-500/25 transition-colors"
+                      >
+                        Falta comprobante
+                      </button>
+                    ) : null}
                   </td>
                   <td className="py-2.5 px-3 text-right text-primary font-medium">
                     {formatCurrencyPYG(Number(s.vat10Amount))}

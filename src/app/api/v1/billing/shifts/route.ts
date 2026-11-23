@@ -98,6 +98,36 @@ export async function GET() {
       };
     }
 
+    // 4.1 Transferencias SIPAP sin N° de comprobante (incluye días anteriores para que no se pase ningún cobro)
+    const pendingTransfersRaw = await prisma.sale.findMany({
+      where: {
+        paymentMethod: 'TRANSFERENCIA_BANCARIA',
+        paymentCondition: { not: 'A_CUENTA' },
+        status: { notIn: ['QUOTATION', 'CANCELLED'] },
+        OR: [{ paymentReference: null }, { paymentReference: '' }],
+      },
+      orderBy: { createdAt: 'desc' },
+      select: {
+        id: true,
+        saleNumber: true,
+        customerName: true,
+        customerRuc: true,
+        grandTotal: true,
+        paymentCondition: true,
+        paymentMethod: true,
+        deliveryStatus: true,
+        cashShiftId: true,
+        createdAt: true,
+      },
+      take: 100,
+    });
+
+    const pendingTransfers = pendingTransfersRaw.map((t) => ({
+      ...t,
+      grandTotal: Number(t.grandTotal),
+    }));
+    const pendingTransfersTotal = pendingTransfers.reduce((sum, t) => sum + t.grandTotal, 0);
+
     return NextResponse.json(
       createSuccessResponse({
         register,
@@ -105,6 +135,8 @@ export async function GET() {
         lastClosedShift,
         metrics,
         history,
+        pendingTransfers,
+        pendingTransfersTotal,
       })
     );
   } catch (error: any) {
@@ -222,6 +254,23 @@ export async function POST(req: NextRequest) {
       const actualDeclared = Number(closingBalance) || 0;
       const difference = actualDeclared - expectedInDrawer;
 
+      // 6. Registrar en el acta de cierre las transferencias del turno que quedaron sin comprobante
+      const unconfirmedTransfers = shift.sales.filter(
+        (s) =>
+          s.paymentMethod === 'TRANSFERENCIA_BANCARIA' &&
+          s.paymentCondition !== 'A_CUENTA' &&
+          s.status !== 'QUOTATION' &&
+          s.status !== 'CANCELLED' &&
+          !s.paymentReference?.trim()
+      );
+      const pendingAuditNote =
+        unconfirmedTransfers.length > 0
+          ? `[Transferencias sin comprobante al cierre (${unconfirmedTransfers.length}): ${unconfirmedTransfers
+              .map((s) => `${s.saleNumber} ${s.customerName} (${Number(s.grandTotal).toLocaleString('es-PY')} Gs)`)
+              .join(' | ')}]`
+          : '';
+      const combinedNotes = [notes?.trim(), pendingAuditNote].filter(Boolean).join(' — ') || null;
+
       const closedShift = await prisma.cashShift.update({
         where: { id: shiftId },
         data: {
@@ -234,7 +283,7 @@ export async function POST(req: NextRequest) {
           totalIncomes: incomesTotal,
           totalExpenses: expensesTotal,
           totalSafeDeposits: safeDepositsTotal,
-          closingNotes: notes ? notes.trim() : null,
+          closingNotes: combinedNotes,
           cashCountBreakdown: breakdown || null,
           isOpen: false, // Turno cerrado e inmutable
         },

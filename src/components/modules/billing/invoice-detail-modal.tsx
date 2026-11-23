@@ -326,12 +326,17 @@ export function InvoiceDetailModal({
                     {sale.paymentCondition?.replace(/_/g, ' ')} ({sale.paymentMethod?.replace(/_/g, ' ') || 'EFECTIVO'})
                   </span>
                 </div>
-                {sale.paymentReference && (
+                {sale.paymentReference ? (
                   <div className="flex justify-between text-blue-400 font-mono text-[10.5px]">
                     <span>Comprobante Ref:</span>
                     <span className="font-bold">{sale.paymentReference}</span>
                   </div>
-                )}
+                ) : sale.paymentMethod === 'TRANSFERENCIA_BANCARIA' && sale.paymentCondition !== 'A_CUENTA' ? (
+                  <div className="flex justify-between text-amber-400 font-mono text-[10.5px]">
+                    <span>Comprobante SIPAP:</span>
+                    <span className="font-bold">PENDIENTE AL RECIBIR</span>
+                  </div>
+                ) : null}
                 {sale.project && (
                   <div className="flex justify-between">
                     <span className="text-muted-foreground">Obra:</span>

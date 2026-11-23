@@ -133,7 +133,8 @@ export function DeliveryOrderA4({ sale }: DeliveryOrderA4Props) {
             <span className="font-mono font-bold">{sale.vehiclePlate || 'S/D'}</span>
           </div>
 
-          {sale.paymentReference && (
+          {(sale.paymentReference ||
+            (sale.paymentMethod === 'TRANSFERENCIA_BANCARIA' && sale.paymentCondition !== 'A_CUENTA')) && (
             <div className="col-span-12 pt-0.5 text-[8px] bg-neutral-100 border border-neutral-300 px-1.5 py-0.5 font-mono flex items-center justify-between mt-0.5">
               <span>
                 <strong className="text-black">Forma de Pago: </strong>
@@ -141,7 +142,11 @@ export function DeliveryOrderA4({ sale }: DeliveryOrderA4Props) {
               </span>
               <span>
                 <strong className="text-black">N° Comprobante / Ref. Transferencia: </strong>
-                <strong className="text-black underline font-bold">{sale.paymentReference}</strong>
+                {sale.paymentReference ? (
+                  <strong className="text-black underline font-bold">{sale.paymentReference}</strong>
+                ) : (
+                  <strong className="text-black font-bold">PENDIENTE AL RECIBIR</strong>
+                )}
               </span>
             </div>
           )}

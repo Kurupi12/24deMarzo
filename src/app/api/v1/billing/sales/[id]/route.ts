@@ -18,6 +18,7 @@ export async function PATCH(
       customerAddress,
       googleMapsUrl,
       deliveryNotes,
+      paymentReference,
       projectId,
       status,
     } = body;
@@ -56,6 +57,10 @@ export async function PATCH(
           googleMapsUrl: nextMaps,
           deliveryNotes:
             deliveryNotes !== undefined ? (String(deliveryNotes).trim() || null) : existingSale.deliveryNotes,
+          paymentReference:
+            paymentReference !== undefined
+              ? (String(paymentReference).trim() || null)
+              : existingSale.paymentReference,
           projectId: projectId !== undefined ? (projectId || null) : existingSale.projectId,
           ...(status ? { status } : {}),
         },

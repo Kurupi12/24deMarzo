@@ -47,6 +47,14 @@ export function BillingView() {
   // Totales acumulados
   const totalBilled = sales.reduce((sum, s) => sum + Number(s.grandTotal), 0);
   const totalVat10 = sales.reduce((sum, s) => sum + Number(s.vat10Amount), 0);
+  const missingTransferRefsCount = sales.filter(
+    (s) =>
+      s.paymentMethod === 'TRANSFERENCIA_BANCARIA' &&
+      s.paymentCondition !== 'A_CUENTA' &&
+      s.status !== 'QUOTATION' &&
+      s.status !== 'CANCELLED' &&
+      !s.paymentReference
+  ).length;
 
   return (
     <div className="space-y-5">
@@ -135,6 +143,14 @@ export function BillingView() {
         >
           <History className="w-3.5 h-3.5" />
           <span>Historial de Ventas & DTEs</span>
+          {missingTransferRefsCount > 0 && (
+            <span
+              title="Ventas por transferencia sin N° de comprobante cargado"
+              className="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-mono font-bold"
+            >
+              {missingTransferRefsCount}
+            </span>
+          )}
         </button>
 
         <button
@@ -148,6 +164,14 @@ export function BillingView() {
         >
           <Landmark className="w-3.5 h-3.5" />
           <span>Control de Cajas</span>
+          {missingTransferRefsCount > 0 && (
+            <span
+              title="Transferencias pendientes de comprobante"
+              className="px-1.5 py-0.5 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-300 text-[10px] font-mono font-bold"
+            >
+              {missingTransferRefsCount}
+            </span>
+          )}
         </button>
 
         <button
@@ -209,7 +233,7 @@ export function BillingView() {
           onEditCustomer={setSaleToEditCustomer}
         />
       ) : activeTab === 'shifts' ? (
-        <CashShiftPanel />
+        <CashShiftPanel onTransferUpdated={fetchSales} />
       ) : activeTab === 'accounts' ? (
         <CustomerAccountsPanel onViewInvoice={setSelectedSaleForDetail} />
       ) : (

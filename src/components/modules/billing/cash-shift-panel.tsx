@@ -39,10 +39,16 @@ import {
 } from './banknote-counter';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
-export function CashShiftPanel() {
+export function CashShiftPanel({
+  onTransferUpdated,
+}: {
+  onTransferUpdated?: () => void;
+} = {}) {
   const { alert: customAlert } = useCustomDialog();
   const [shiftData, setShiftData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [transferInputs, setTransferInputs] = useState<Record<string, string>>({});
+  const [savingTransferId, setSavingTransferId] = useState<string | null>(null);
 
   // Seguridad de Ceguera y PIN de Supervisor (1126)
   const SUPERVISOR_PIN = '1126';
@@ -154,6 +160,130 @@ export function CashShiftPanel() {
   const currentShift = shiftData?.currentShift;
   const metrics = shiftData?.metrics;
   const history = shiftData?.history || [];
+  const pendingTransfers: any[] = shiftData?.pendingTransfers || [];
+  const pendingTransfersTotal: number = shiftData?.pendingTransfersTotal || 0;
+
+  const handleSaveTransferReference = async (saleId: string) => {
+    const ref = (transferInputs[saleId] || '').trim();
+    if (!ref) {
+      await customAlert({
+        title: 'Ingrese el N° de Comprobante',
+        message: 'Escriba el número de comprobante o referencia bancaria SIPAP antes de guardar.',
+        variant: 'warning',
+      });
+      return;
+    }
+
+    setSavingTransferId(saleId);
+    try {
+      const res = await fetch(`/api/v1/billing/sales/${saleId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ paymentReference: ref }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setTransferInputs((prev) => {
+          const next = { ...prev };
+          delete next[saleId];
+          return next;
+        });
+        await fetchShift();
+        onTransferUpdated?.();
+      } else {
+        await customAlert({
+          title: 'Error al Guardar Comprobante',
+          message: json.error?.message || 'No se pudo actualizar el comprobante de transferencia.',
+          variant: 'danger',
+        });
+      }
+    } finally {
+      setSavingTransferId(null);
+    }
+  };
+
+  const renderPendingTransfersCard = (compact = false) => {
+    if (pendingTransfers.length === 0) return null;
+
+    return (
+      <div className="bg-amber-500/5 border border-amber-500/35 rounded-xl p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2 border-b border-amber-500/20 pb-2.5">
+          <div className="flex items-center gap-2">
+            <AlertTriangle className="w-4 h-4 text-amber-400 shrink-0" />
+            <div>
+              <h3 className="text-xs font-mono uppercase text-amber-300 font-bold">
+                Transferencias SIPAP Pendientes de Comprobante ({pendingTransfers.length})
+              </h3>
+              <p className="text-[11px] text-muted-foreground font-sans">
+                Ventas enviadas que esperan confirmación de transferencia. Quedan registradas aquí hasta cargar su número (incluso de días anteriores).
+              </p>
+            </div>
+          </div>
+          <span className="px-2.5 py-1 rounded bg-amber-500/15 border border-amber-500/30 text-amber-300 font-mono font-bold text-xs">
+            Total por confirmar: {formatCurrencyPYG(pendingTransfersTotal)}
+          </span>
+        </div>
+
+        <div className={`space-y-2 ${compact ? 'max-h-52' : 'max-h-80'} overflow-y-auto pr-1`}>
+          {pendingTransfers.map((t) => {
+            const isCurrentShift = currentShift && t.cashShiftId === currentShift.id;
+            return (
+              <div
+                key={t.id}
+                className="p-2.5 rounded-lg bg-[#0d121c] border border-card-border flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 text-xs"
+              >
+                <div className="min-w-0 space-y-0.5">
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-mono font-bold text-foreground">{t.saleNumber}</span>
+                    <span className="font-semibold text-foreground truncate">{t.customerName}</span>
+                    <span
+                      className={`px-1.5 py-0.5 rounded text-[9px] font-mono font-bold border ${
+                        isCurrentShift
+                          ? 'bg-primary/15 text-primary border-primary/30'
+                          : 'bg-amber-500/15 text-amber-300 border-amber-500/30'
+                      }`}
+                    >
+                      {isCurrentShift ? 'Turno actual' : format(new Date(t.createdAt), 'dd/MM HH:mm', { locale: es })}
+                    </span>
+                  </div>
+                  <div className="text-[11px] font-mono text-muted-foreground">
+                    RUC/CI: {t.customerRuc} &bull; Monto:{' '}
+                    <strong className="text-amber-300">{formatCurrencyPYG(t.grandTotal)}</strong>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-1.5 shrink-0">
+                  <input
+                    type="text"
+                    value={transferInputs[t.id] || ''}
+                    onChange={(e) =>
+                      setTransferInputs((prev) => ({ ...prev, [t.id]: e.target.value }))
+                    }
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleSaveTransferReference(t.id);
+                      }
+                    }}
+                    placeholder="N° Comprobante SIPAP..."
+                    className="w-44 sm:w-48 bg-card border border-amber-500/40 rounded px-2.5 py-1.5 font-mono text-xs text-foreground focus:outline-none focus:border-amber-400"
+                  />
+                  <button
+                    type="button"
+                    disabled={savingTransferId === t.id}
+                    onClick={() => handleSaveTransferReference(t.id)}
+                    className="px-3 py-1.5 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-mono text-xs font-bold transition-colors disabled:opacity-50"
+                  >
+                    {savingTransferId === t.id ? 'Guardando...' : 'Guardar'}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
 
   // Totales calculados de billetaje en vivo
   const openingBreakdownTotal = calculateBreakdownTotals(openingBreakdown).grandTotal;
@@ -805,6 +935,8 @@ export function CashShiftPanel() {
         </div>
       )}
 
+      {!showHistoryView && renderPendingTransfersCard(false)}
+
       {/* MODAL PRINCIPAL: ARQUEO FÍSICO DE CIERRE A CIEGAS CON BILLETAJE */}
       {showCloseModal && currentShift && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 overflow-y-auto">
@@ -838,6 +970,8 @@ export function CashShiftPanel() {
                 <strong>Control de Ceguera Activo:</strong> El sistema calculará el cuadre de caja comparando su declaración física contra las ventas registradas una vez congelado el cierre.
               </span>
             </div>
+
+            {renderPendingTransfersCard(true)}
 
             {/* Selector de Método: Billetaje vs Monto Directo */}
             <div className="flex items-center justify-between pb-1">
@@ -1171,6 +1305,20 @@ export function CashShiftPanel() {
             <p className="text-[11px] text-muted-foreground leading-relaxed font-sans">
               Una vez confirmada, la caja quedará congelada e inmutable para auditoría. El sistema contrastará su declaración contra las ventas cobradas durante el día para emitir el acta final.
             </p>
+
+            {pendingTransfers.length > 0 && (
+              <div className="p-3 rounded-lg bg-amber-500/10 border border-amber-500/35 text-amber-300 text-[11px] font-sans space-y-1">
+                <p className="font-bold flex items-center gap-1.5">
+                  <AlertTriangle className="w-3.5 h-3.5 shrink-0" />
+                  <span>
+                    Quedan {pendingTransfers.length} transferencia(s) sin N° de comprobante ({formatCurrencyPYG(pendingTransfersTotal)}).
+                  </span>
+                </p>
+                <p className="text-muted-foreground">
+                  Podrá cerrar la caja igual: quedarán asentadas en el acta de cierre y seguirán visibles en pendientes para cobrarlas/cargarlas al día siguiente.
+                </p>
+              </div>
+            )}
 
             <div className="flex items-center justify-end gap-2 pt-2 border-t border-card-border">
               <button

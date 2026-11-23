@@ -524,10 +524,10 @@ export function PosTerminal({
 
     const isQuotation = docType === 'QUOTATION';
 
-    if (!isQuotation && paymentCondition !== 'A_CUENTA' && paymentMethod === 'TRANSFERENCIA_BANCARIA' && !paymentReference.trim()) {
+    if (!isQuotation && paymentCondition !== 'A_CUENTA' && paymentMethod === 'CHEQUE' && !paymentReference.trim()) {
       customAlert({
-        title: 'Comprobante de Transferencia Requerido',
-        message: 'Cuando el pago es por transferencia bancaria (SIPAP), es obligatorio cargar el número de comprobante para tener un registro.',
+        title: 'N° de Cheque Requerido',
+        message: 'Cuando el pago es con cheque, cargue el número o banco emisor para tener un registro.',
         variant: 'warning',
       });
       return false;
@@ -1354,28 +1354,27 @@ export function PosTerminal({
               </div>
             )}
 
-            {/* Campo Condicional: Comprobante de Transferencia SIPAP */}
+            {/* Campo Condicional: Comprobante de Transferencia SIPAP (Opcional al emitir) */}
             {paymentCondition !== 'A_CUENTA' && paymentMethod === 'TRANSFERENCIA_BANCARIA' && (
               <div className="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/30 space-y-1.5">
-                <div className="flex items-center justify-between">
+                <div className="flex items-center justify-between gap-2">
                   <label className="text-[11px] font-mono font-semibold text-blue-400 flex items-center gap-1.5">
                     <FileText className="w-3.5 h-3.5" />
-                    <span>N° de Comprobante de Transferencia SIPAP *</span>
+                    <span>N° Comprobante Transferencia SIPAP</span>
                   </label>
-                  <span className="text-[9px] font-mono bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded border border-blue-500/30">
-                    Obligatorio
+                  <span className="text-[9px] font-mono bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded border border-amber-500/30 shrink-0">
+                    Opcional si paga al recibir
                   </span>
                 </div>
                 <input
                   type="text"
-                  required
                   value={paymentReference}
                   onChange={(e) => setPaymentReference(e.target.value)}
-                  placeholder="Ej: 10485920 / Banco Continental / Ueno"
+                  placeholder="Cargar N° si ya pagó, o dejar vacío si transfiere al recibir"
                   className="w-full bg-[#0d121c] border border-blue-500/40 rounded-md px-2.5 py-1.5 text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-blue-400 font-mono text-xs"
                 />
-                <p className="text-[10px] text-muted-foreground font-sans">
-                  Quedará registrado para auditoría y se imprimirá en la Factura.
+                <p className="text-[10px] text-muted-foreground font-sans leading-snug">
+                  Si lo deja vacío, se imprimirá igual y quedará marcado como <strong className="text-amber-300">Comprobante Pendiente</strong> para completarlo luego o en Caja.
                 </p>
               </div>
             )}

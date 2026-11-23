@@ -63,8 +63,8 @@ export function WeeklyReceiptModal({ settlement, period, isOpen, onClose }: Week
         </div>
 
         {/* Contenido Visualizador del Recibo A4 */}
-        <div className="p-4 bg-neutral-900/50 overflow-x-auto max-h-[82vh]">
-          <div className="flex justify-center shadow-lg">
+        <div className="p-4 bg-[#06080d] overflow-auto max-h-[82vh]">
+          <div className="w-fit mx-auto bg-white rounded-sm shadow-2xl overflow-hidden border border-neutral-300">
             <WeeklyReceiptA4 settlement={settlement} period={period} />
           </div>
         </div>

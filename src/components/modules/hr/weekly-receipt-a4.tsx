@@ -291,7 +291,7 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
   return (
     <div
       id="printable-weekly-receipt"
-      className="w-[210mm] max-w-[210mm] h-[297mm] max-h-[297mm] mx-auto bg-white p-0 box-border flex flex-col justify-between overflow-hidden select-none"
+      className="w-[210mm] max-w-[210mm] min-h-[155mm] mx-auto bg-white p-0 box-border flex flex-col justify-between overflow-hidden select-none"
     >
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {

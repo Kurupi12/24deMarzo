@@ -229,9 +229,9 @@ export function InvoiceDetailModal({
         <div className="p-4 overflow-y-auto flex-1 bg-[#06080d]">
           {activeDoc === 'delivery_order' || isQuotation ? (
             /* Vista de la Orden de Entrega / Reserva / Presupuesto en Hoja A4 */
-            <div className="flex flex-col items-center">
-              <div className="text-xs font-mono text-muted-foreground mb-2 flex items-center gap-2 no-print">
-                <Copy className="w-3.5 h-3.5 text-primary" />
+            <div className="space-y-2">
+              <div className="text-xs font-mono text-muted-foreground flex items-center justify-center gap-2 no-print">
+                <Copy className="w-3.5 h-3.5 text-primary shrink-0" />
                 <span>
                   {isQuotation
                     ? 'Vista Previa: Presupuesto de Materiales en A4 (NO descuenta stock)'
@@ -240,14 +240,16 @@ export function InvoiceDetailModal({
                     : 'Vista Previa: 2 órdenes en 1 hoja A4 (Original Superior + Duplicado Inferior)'}
                 </span>
               </div>
-              <div className="w-full max-w-[200mm] bg-white rounded shadow-2xl p-2 border border-neutral-300">
-                {isQuotation ? (
-                  <QuotationA4 sale={sale} />
-                ) : sale.isScheduled ? (
-                  <ReservationReceiptA4 sale={sale} />
-                ) : (
-                  <DeliveryOrderA4 sale={sale} />
-                )}
+              <div className="w-full overflow-x-auto pb-2">
+                <div className="w-fit mx-auto bg-white rounded-sm shadow-2xl overflow-hidden border border-neutral-300">
+                  {isQuotation ? (
+                    <QuotationA4 sale={sale} />
+                  ) : sale.isScheduled ? (
+                    <ReservationReceiptA4 sale={sale} />
+                  ) : (
+                    <DeliveryOrderA4 sale={sale} />
+                  )}
+                </div>
               </div>
             </div>
           ) : (

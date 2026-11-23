@@ -201,7 +201,7 @@ export function ReservationReceiptA4({ sale }: ReservationReceiptA4Props) {
   };
 
   return (
-    <div id="printable-delivery-order" className="w-full max-w-[196mm] mx-auto bg-white p-0 space-y-1 box-border">
+    <div id="printable-delivery-order" className="w-[210mm] max-w-[210mm] mx-auto bg-white px-[8mm] py-[6mm] space-y-1.5 box-border">
       {renderSingleReceipt('ORIGINAL')}
 
       <div className="w-full flex items-center justify-between text-[7px] font-mono text-neutral-400 select-none py-0.5 border-t border-b border-dashed border-neutral-300 my-0.5">

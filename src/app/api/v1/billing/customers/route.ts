@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
+import { resolveCustomerRuc } from '@/modules/billing/utils/customer-identity';
 
 export const dynamic = 'force-dynamic';
 
@@ -43,25 +44,31 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { ruc, name, address, googleMapsUrl, phone, email } = body;
 
-    if (!ruc || !name) {
+    if (!name || !String(name).trim()) {
       return NextResponse.json(
-        createErrorResponse('RUC y Nombre o Razón Social son obligatorios', 'VALIDATION_ERROR'),
+        createErrorResponse('El Nombre o Razón Social del cliente es obligatorio', 'VALIDATION_ERROR'),
         { status: 422 }
       );
     }
 
+    const cleanName = String(name).trim();
+    const resolvedRuc = await resolveCustomerRuc(prisma, {
+      customerRuc: ruc,
+      customerName: cleanName,
+    });
+
     const customer = await prisma.customer.upsert({
-      where: { ruc: ruc.trim() },
+      where: { ruc: resolvedRuc },
       update: {
-        name: name.trim(),
+        name: cleanName,
         address: address?.trim() || undefined,
         googleMapsUrl: googleMapsUrl?.trim() || undefined,
         phone: phone?.trim() || undefined,
         email: email?.trim() || undefined,
       },
       create: {
-        ruc: ruc.trim(),
-        name: name.trim(),
+        ruc: resolvedRuc,
+        name: cleanName,
         address: address?.trim() || undefined,
         googleMapsUrl: googleMapsUrl?.trim() || undefined,
         phone: phone?.trim() || undefined,

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
+import { resolveCustomerRuc, syncCustomerMaster } from '@/modules/billing/utils/customer-identity';
 
 export const dynamic = 'force-dynamic';
 
@@ -36,25 +37,41 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { customerRuc, name, address, contactName, contactPhone, googleMapsUrl } = body;
+    const { customerRuc, customerName, name, address, contactName, contactPhone, googleMapsUrl } = body;
 
-    if (!customerRuc || !name || !address) {
+    if (!name || !String(name).trim()) {
       return NextResponse.json(
-        createErrorResponse('RUC del cliente, nombre y dirección de obra son obligatorios', 'VALIDATION_ERROR'),
+        createErrorResponse('El nombre de la obra es obligatorio', 'VALIDATION_ERROR'),
         { status: 422 }
       );
     }
 
-    const project = await prisma.customerProject.create({
-      data: {
-        customerRuc: customerRuc.trim(),
-        name: name.trim(),
-        address: address.trim(),
-        contactName: contactName ? contactName.trim() : null,
-        contactPhone: contactPhone ? contactPhone.trim() : null,
-        googleMapsUrl: googleMapsUrl ? googleMapsUrl.trim() : null,
-        isActive: true,
-      },
+    const project = await prisma.$transaction(async (tx) => {
+      const resolvedRuc = await resolveCustomerRuc(tx, {
+        customerRuc,
+        customerName,
+      });
+
+      if (customerName && String(customerName).trim() && resolvedRuc !== '44444401-7') {
+        await syncCustomerMaster(tx, {
+          ruc: resolvedRuc,
+          name: String(customerName),
+          address: address || null,
+          googleMapsUrl: googleMapsUrl || null,
+        });
+      }
+
+      return tx.customerProject.create({
+        data: {
+          customerRuc: resolvedRuc,
+          name: String(name).trim(),
+          address: address && String(address).trim() ? String(address).trim() : 'Dirección a confirmar',
+          contactName: contactName ? String(contactName).trim() : null,
+          contactPhone: contactPhone ? String(contactPhone).trim() : null,
+          googleMapsUrl: googleMapsUrl ? String(googleMapsUrl).trim() : null,
+          isActive: true,
+        },
+      });
     });
 
     return NextResponse.json(createSuccessResponse(project), { status: 201 });

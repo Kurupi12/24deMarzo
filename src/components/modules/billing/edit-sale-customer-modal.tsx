@@ -83,10 +83,10 @@ export function EditSaleCustomerModal({
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!customerName.trim() || !customerRuc.trim()) {
+    if (!customerName.trim()) {
       customAlert({
-        title: 'Datos Requeridos',
-        message: 'El RUC/CI y el Nombre del Cliente son obligatorios.',
+        title: 'Nombre Requerido',
+        message: 'Ingrese al menos el Nombre del Cliente (el RUC/CI es opcional).',
         variant: 'warning',
       });
       return;
@@ -142,14 +142,15 @@ export function EditSaleCustomerModal({
 
         <form onSubmit={handleSave} className="p-5 space-y-3.5 text-xs">
           <div>
-            <label className="block font-mono text-muted-foreground mb-1">RUC o C.I. del Cliente *</label>
+            <label className="block font-mono text-muted-foreground mb-1">
+              RUC o C.I. del Cliente (Opcional)
+            </label>
             <div className="flex gap-2">
               <input
                 type="text"
-                required
                 value={customerRuc}
                 onChange={(e) => setCustomerRuc(e.target.value)}
-                placeholder="Ej: 80134022-5 o 4776458"
+                placeholder="Ej: 80134022-5, 4776458 o dejar vacío"
                 className="flex-1 bg-[#0d121c] border border-card-border rounded-md px-3 py-2 font-mono font-bold text-foreground focus:outline-none focus:border-primary"
               />
               <button

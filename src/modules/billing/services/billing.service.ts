@@ -4,6 +4,7 @@ import { calculateVatBreakdown } from '@/shared/utils/vat-calculator';
 import { generateSifenCdc } from '@/shared/utils/cdc-generator';
 import { prisma } from '@/lib/prisma';
 import { NotFoundError, AppError } from '@/shared/errors/app-error';
+import { resolveCustomerRuc, syncCustomerMaster } from '../utils/customer-identity';
 
 export class BillingService {
   private repo: BillingRepository;
@@ -53,42 +54,11 @@ export class BillingService {
           : null;
 
         const cleanName = input.customerName.trim();
-        let resolvedRuc = (input.customerRuc || '').trim();
-
-        // Si es cliente ocasional con nombre propio pero sin C.I. ni RUC (y no es Factura SIFEN innominada),
-        // asignar o reutilizar un código interno correlativo automático (OC-00001, OC-00002...)
-        const isGenericName =
-          !cleanName ||
-          cleanName.toLowerCase() === 'sin nombre (consumidor final)' ||
-          cleanName.toLowerCase() === 'consumidor final' ||
-          cleanName.toLowerCase() === 'cliente ocasional / mostrador';
-
-        if (!resolvedRuc) {
-          if (!isGenericName && !input.issueInvoiceImmediately) {
-            const existingOccasional = await tx.customer.findFirst({
-              where: {
-                name: { equals: cleanName, mode: 'insensitive' },
-                ruc: { startsWith: 'OC-' },
-              },
-              select: { ruc: true },
-            });
-
-            if (existingOccasional) {
-              resolvedRuc = existingOccasional.ruc;
-            } else {
-              const lastOccasional = await tx.customer.findFirst({
-                where: { ruc: { startsWith: 'OC-' } },
-                orderBy: { createdAt: 'desc' },
-                select: { ruc: true },
-              });
-              const lastSeq = lastOccasional?.ruc.match(/\d+$/)?.[0];
-              const nextSeq = lastSeq ? parseInt(lastSeq, 10) + 1 : 1;
-              resolvedRuc = `OC-${String(nextSeq).padStart(5, '0')}`;
-            }
-          } else {
-            resolvedRuc = '44444401-7';
-          }
-        }
+        const resolvedRuc = await resolveCustomerRuc(tx, {
+          customerRuc: input.customerRuc,
+          customerName: cleanName,
+          forceAnonymousFallback: input.issueInvoiceImmediately,
+        });
 
         const sale = await tx.sale.create({
           data: {
@@ -147,22 +117,12 @@ export class BillingService {
         });
 
         // 1.1 Registrar / Actualizar el cliente en el maestro de clientes (incluidos clientes ocasionales con código OC-)
-        if (resolvedRuc && cleanName && resolvedRuc !== '44444401-7') {
-          await tx.customer.upsert({
-            where: { ruc: resolvedRuc },
-            update: {
-              name: cleanName,
-              address: input.customerAddress?.trim() || undefined,
-              googleMapsUrl: input.googleMapsUrl?.trim() || undefined,
-            },
-            create: {
-              ruc: resolvedRuc,
-              name: cleanName,
-              address: input.customerAddress?.trim() || undefined,
-              googleMapsUrl: input.googleMapsUrl?.trim() || undefined,
-            },
-          });
-        }
+        await syncCustomerMaster(tx, {
+          ruc: resolvedRuc,
+          name: cleanName,
+          address: input.customerAddress,
+          googleMapsUrl: input.googleMapsUrl,
+        });
 
         // 2. Gestión de Stock en lote: Si es presupuesto NO toca stock; si es programado reserva; si es entrega inmediata deduce
         if (!isQuotation && warehouse) {

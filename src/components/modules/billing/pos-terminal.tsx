@@ -420,10 +420,10 @@ export function PosTerminal({
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newProjectName.trim() || !newProjectAddress.trim()) {
+    if (!newProjectName.trim()) {
       customAlert({
-        title: 'Campos Obligatorios',
-        message: 'El nombre y la dirección de la obra son obligatorios.',
+        title: 'Nombre Requerido',
+        message: 'Ingrese al menos el nombre de la obra para guardarla.',
         variant: 'warning',
       });
       return;
@@ -435,8 +435,9 @@ export function PosTerminal({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           customerRuc: customerRuc.trim(),
+          customerName: customerName.trim(),
           name: newProjectName.trim(),
-          address: newProjectAddress.trim(),
+          address: newProjectAddress.trim() || undefined,
           googleMapsUrl: newProjectMapsUrl.trim() || null,
           contactName: newProjectContact.trim(),
           contactPhone: newProjectPhone.trim(),
@@ -446,6 +447,9 @@ export function PosTerminal({
       if (data.success && data.data) {
         setCustomerProjects([data.data, ...customerProjects]);
         setSelectedProjectId(data.data.id);
+        if (!customerRuc.trim() && data.data.customerRuc?.startsWith('OC-')) {
+          setCustomerRuc(data.data.customerRuc);
+        }
         setShowNewProjectModal(false);
         setNewProjectName('');
         setNewProjectAddress('');
@@ -1279,19 +1283,23 @@ export function PosTerminal({
                 <option value="">(Sin Obra Asignada - Venta General / Mostrador)</option>
                 {customerProjects.map((proj) => (
                   <option key={proj.id} value={proj.id}>
-                    {proj.name} ({proj.address})
+                    {proj.name}
+                    {proj.address && proj.address !== 'Dirección a confirmar' ? ` (${proj.address})` : ''}
                   </option>
                 ))}
               </select>
 
-              {selectedProjectId && (
-                <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-1 pt-1">
-                  <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
-                  <span className="truncate">
-                    {customerProjects.find((p) => p.id === selectedProjectId)?.address}
-                  </span>
-                </div>
-              )}
+              {selectedProjectId &&
+                (() => {
+                  const addr = customerProjects.find((p) => p.id === selectedProjectId)?.address;
+                  if (!addr || addr === 'Dirección a confirmar') return null;
+                  return (
+                    <div className="text-[10px] text-muted-foreground font-mono flex items-center gap-1 pt-1">
+                      <MapPin className="w-3 h-3 text-muted-foreground shrink-0" />
+                      <span className="truncate">{addr}</span>
+                    </div>
+                  );
+                })()}
             </div>
 
             {/* Condición y Método de Pago */}
@@ -1796,8 +1804,16 @@ export function PosTerminal({
             <form onSubmit={handleCreateProject} className="p-5 space-y-3.5 text-xs">
               <div className="bg-[#0d121c] p-2.5 rounded-lg border border-card-border text-[11px] font-mono">
                 <span className="text-muted-foreground">Cliente Asignado: </span>
-                <span className="font-bold text-foreground">{customerName}</span>
-                <div className="text-muted-foreground text-[10px]">RUC: {customerRuc}</div>
+                <span className="font-bold text-foreground">
+                  {customerName.trim() || 'Cliente Ocasional / Sin asignar'}
+                </span>
+                <div className="text-muted-foreground text-[10px]">
+                  {customerRuc.trim()
+                    ? `RUC / C.I.: ${customerRuc}`
+                    : customerName.trim()
+                    ? 'Sin RUC (se asignará código interno automático)'
+                    : 'Sin RUC ni nombre (obra general de mostrador)'}
+                </div>
               </div>
 
               <div>
@@ -1813,13 +1829,14 @@ export function PosTerminal({
               </div>
 
               <div>
-                <label className="block text-[11px] font-mono text-muted-foreground mb-1">Dirección Exacta de Descarga *</label>
+                <label className="block text-[11px] font-mono text-muted-foreground mb-1">
+                  Dirección de Descarga (Opcional)
+                </label>
                 <input
                   type="text"
-                  required
                   value={newProjectAddress}
                   onChange={(e) => setNewProjectAddress(e.target.value)}
-                  placeholder="Ej: Avda. Molas López c/ San Martín, Asunción"
+                  placeholder="Opcional: se puede completar más adelante"
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 text-foreground focus:outline-none focus:border-primary"
                 />
               </div>

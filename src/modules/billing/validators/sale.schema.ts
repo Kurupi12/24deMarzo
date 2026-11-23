@@ -19,7 +19,13 @@ export const CreateSaleSchema = z.object({
     .optional()
     .default('')
     .transform((val) => (val ? val.trim() : '')),
-  customerEmail: z.string().email('Email inválido').optional().nullable(),
+  customerEmail: z
+    .string()
+    .email('Email inválido')
+    .optional()
+    .or(z.literal(''))
+    .nullable()
+    .transform((val) => (val && val.trim() ? val.trim() : null)),
   customerAddress: z.string().optional().nullable(),
   googleMapsUrl: z.string().optional().nullable(),
   isQuotation: z.boolean().optional().default(false),

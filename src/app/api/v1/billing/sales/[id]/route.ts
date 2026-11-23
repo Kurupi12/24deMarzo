@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
+import { resolveCustomerRuc, syncCustomerMaster } from '@/modules/billing/utils/customer-identity';
 
 export const dynamic = 'force-dynamic';
 
@@ -30,8 +31,17 @@ export async function PATCH(
     }
 
     const updated = await prisma.$transaction(async (tx) => {
-      const nextRuc = customerRuc !== undefined ? String(customerRuc).trim() : existingSale.customerRuc;
-      const nextName = customerName !== undefined ? String(customerName).trim() : existingSale.customerName;
+      const nextName =
+        customerName !== undefined
+          ? String(customerName).trim() || 'Sin Nombre (Consumidor Final)'
+          : existingSale.customerName;
+      const nextRuc =
+        customerRuc !== undefined
+          ? await resolveCustomerRuc(tx, {
+              customerRuc: String(customerRuc),
+              customerName: nextName,
+            })
+          : existingSale.customerRuc;
       const nextAddress =
         customerAddress !== undefined ? (String(customerAddress).trim() || null) : existingSale.customerAddress;
       const nextMaps =
@@ -59,22 +69,12 @@ export async function PATCH(
       });
 
       // Sincronizar también en el maestro de clientes si no es Consumidor Final genérico
-      if (nextRuc && nextName && nextRuc !== '44444401-7') {
-        await tx.customer.upsert({
-          where: { ruc: nextRuc },
-          update: {
-            name: nextName,
-            ...(nextAddress !== null ? { address: nextAddress } : {}),
-            ...(nextMaps !== null ? { googleMapsUrl: nextMaps } : {}),
-          },
-          create: {
-            ruc: nextRuc,
-            name: nextName,
-            address: nextAddress,
-            googleMapsUrl: nextMaps,
-          },
-        });
-      }
+      await syncCustomerMaster(tx, {
+        ruc: nextRuc,
+        name: nextName,
+        address: nextAddress,
+        googleMapsUrl: nextMaps,
+      });
 
       return updatedSale;
     });

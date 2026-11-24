@@ -29,6 +29,7 @@ import {
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 import { downloadElementAsPdf, openWhatsAppShareWindow } from '@/shared/utils/pdf-export';
+import { AccountStatementA4, getOrderProjectLabel } from './account-statement-a4';
 
 interface CustomerAccountSummary {
   customerRuc: string;
@@ -114,17 +115,17 @@ export function CustomerAccountsPanel({
     setExportingAccountPdf(true);
     try {
       const safeName = `Estado_Cuenta_${selectedDetail.customer.name || selectedDetail.customer.ruc}`;
-      await downloadElementAsPdf('printable-account-statement', {
+      await downloadElementAsPdf('printable-account-statement-pdf', {
         fileName: safeName,
         paperSize: 'A4',
-        lightMode: true,
+        lightMode: false,
       });
       if (alsoWhatsApp) {
         const msg = [
-          `Depósito 4 de Marzo - Estado de Cuenta`,
+          `Depósito 4 de Marzo - Extracto Preliminar de Cuenta`,
           `Cliente: ${selectedDetail.customer.name} (${selectedDetail.customer.ruc})`,
-          `Saldo actual: ${formatCurrencyPYG(selectedDetail.currentBalance)}`,
-          `Adjunto el extracto detallado en PDF.`,
+          `Saldo pendiente: ${formatCurrencyPYG(selectedDetail.currentBalance)}`,
+          `Adjunto el extracto detallado por obra y fecha en PDF.`,
         ].join('\n');
         openWhatsAppShareWindow(msg, selectedDetail.customer.phone);
       }
@@ -748,7 +749,18 @@ export function CustomerAccountsPanel({
                       {selectedDetail.customer?.name}
                     </h3>
                     <p className="text-[11px] font-mono text-muted-foreground">
-                      RUC: {selectedDetail.customer?.ruc} &bull; {selectedDetail.customer?.address || 'Planta / Mostrador'}
+                      {(() => {
+                        const distinctProjects = Array.from(
+                          new Set((selectedDetail.orders || []).map((o: any) => getOrderProjectLabel(o)))
+                        );
+                        const obraSummary =
+                          distinctProjects.length > 1
+                            ? `${distinctProjects.length} obras / destinos registrados`
+                            : distinctProjects.length === 1
+                            ? String(distinctProjects[0])
+                            : selectedDetail.customer?.address || 'Planta / Mostrador';
+                        return `RUC: ${selectedDetail.customer?.ruc} • ${obraSummary}`;
+                      })()}
                     </p>
                   </div>
 
@@ -886,6 +898,9 @@ export function CustomerAccountsPanel({
                               <span className="font-bold text-foreground flex items-center gap-1">
                                 <ArrowUpRight className="w-3 h-3 text-amber-400" />
                                 {ord.saleNumber}
+                              </span>
+                              <span className="text-[10px] text-sky-300/90 block font-sans">
+                                Obra: {getOrderProjectLabel(ord)}
                               </span>
                               <span className="text-[10px] text-muted-foreground block font-sans">
                                 {ord.items?.length || 0} ítems &bull; {ord.invoice ? 'Facturado SIFEN' : 'Orden sin facturar'}
@@ -1316,6 +1331,13 @@ export function CustomerAccountsPanel({
               </div>
             </form>
           </div>
+        </div>
+      )}
+
+      {/* Plantilla A4 fuera de pantalla para generar el Extracto Preliminar PDF por Obra y Fecha */}
+      {selectedDetail && (
+        <div className="fixed -left-[9999px] top-0 pointer-events-none" aria-hidden="true">
+          <AccountStatementA4 detail={selectedDetail} />
         </div>
       )}
     </div>

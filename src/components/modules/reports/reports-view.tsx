@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
   FileBarChart,
   Building2,
@@ -19,11 +19,20 @@ import {
   Package,
   FileDown,
   Loader2,
+  X,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { downloadElementAsPdf } from '@/shared/utils/pdf-export';
+import { DateInputPY } from '@/components/common/date-input-py';
+
+function normalizeSearch(value: string | number | null | undefined): string {
+  return String(value ?? '')
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
 
 type ReportTab = 'sales_by_project' | 'deliveries_by_driver' | 'kardex_valuation' | 'price_list';
 
@@ -73,38 +82,207 @@ export function ReportsView() {
     fetchReport();
   }, [activeTab, startDate, endDate]);
 
-  // Exportar datos a Excel / CSV con BOM UTF-8
-  const handleExportCSV = () => {
-    if (!data) return;
-
-    let csvContent = '\uFEFF'; // UTF-8 BOM para que Excel abra sin fallas de tildes o eñes
-    let filename = `reporte_${activeTab}_${format(new Date(), 'yyyyMMdd_HHmm')}.csv`;
+  // Filtrado en vivo sobre la tabla actual (sin tildes ni mayúsculas, por cliente, RUC, obra, chofer, factura o producto/SKU)
+  const filteredData = useMemo(() => {
+    if (!data) return null;
+    const term = normalizeSearch(searchTerm).trim();
+    if (!term) return data;
 
     if (activeTab === 'sales_by_project') {
-      csvContent += 'Cliente;RUC;Obra;Total Obra (Gs);Nro Factura;Fecha;Total Venta (Gs);Chofer;Vehiculo\n';
-      data.clients?.forEach((client: any) => {
+      const matchedClients: any[] = [];
+      let totalSales = 0;
+      let grandTotalAmount = 0;
+      let matchedProductUnits = 0;
+      let matchedProductSubtotal = 0;
+      let matchedAnyItem = false;
+
+      for (const client of data.clients || []) {
+        const clientMatches =
+          normalizeSearch(client.customerName).includes(term) ||
+          normalizeSearch(client.customerRuc).includes(term);
+
+        const matchedProjects: any[] = [];
+
+        for (const proj of client.projects || []) {
+          const projMatches =
+            clientMatches ||
+            normalizeSearch(proj.projectName).includes(term) ||
+            normalizeSearch(proj.projectAddress).includes(term);
+
+          const matchedSales: any[] = [];
+
+          for (const sale of proj.sales || []) {
+            const matchingItems = (sale.items || []).filter(
+              (it: any) =>
+                normalizeSearch(it.name).includes(term) ||
+                normalizeSearch(it.sku).includes(term)
+            );
+
+            const saleMetaMatches =
+              projMatches ||
+              normalizeSearch(sale.invoiceNumber).includes(term) ||
+              normalizeSearch(sale.saleNumber).includes(term) ||
+              normalizeSearch(sale.driverName).includes(term) ||
+              normalizeSearch(sale.vehiclePlate).includes(term);
+
+            if (saleMetaMatches || matchingItems.length > 0) {
+              if (matchingItems.length > 0) {
+                matchedAnyItem = true;
+                for (const mi of matchingItems) {
+                  matchedProductUnits += Number(mi.quantity || 0);
+                  matchedProductSubtotal += Number(mi.subtotal || 0);
+                }
+              }
+              matchedSales.push({
+                ...sale,
+                matchingItemNames: matchingItems.map((mi: any) => mi.name),
+              });
+            }
+          }
+
+          if (matchedSales.length > 0) {
+            const projTotal = matchedSales.reduce((acc, s) => acc + Number(s.grandTotal || 0), 0);
+            matchedProjects.push({
+              ...proj,
+              salesCount: matchedSales.length,
+              totalAmount: projTotal,
+              sales: matchedSales,
+            });
+          }
+        }
+
+        if (matchedProjects.length > 0) {
+          const clientTotal = matchedProjects.reduce((acc, p) => acc + Number(p.totalAmount || 0), 0);
+          const clientSalesCount = matchedProjects.reduce((acc, p) => acc + Number(p.salesCount || 0), 0);
+          totalSales += clientSalesCount;
+          grandTotalAmount += clientTotal;
+          matchedClients.push({
+            ...client,
+            salesCount: clientSalesCount,
+            totalAmount: clientTotal,
+            projects: matchedProjects,
+          });
+        }
+      }
+
+      return {
+        ...data,
+        clients: matchedClients,
+        totalSales,
+        grandTotalAmount,
+        matchedAnyItem,
+        matchedProductUnits,
+        matchedProductSubtotal,
+      };
+    }
+
+    if (activeTab === 'deliveries_by_driver') {
+      const deliveries = (data.deliveries || []).filter((d: any) => {
+        const metaMatch =
+          normalizeSearch(d.customerName).includes(term) ||
+          normalizeSearch(d.customerRuc).includes(term) ||
+          normalizeSearch(d.projectName).includes(term) ||
+          normalizeSearch(d.destinationAddress).includes(term) ||
+          normalizeSearch(d.invoiceNumber).includes(term) ||
+          normalizeSearch(d.saleNumber).includes(term) ||
+          normalizeSearch(d.driverName).includes(term) ||
+          normalizeSearch(d.secondaryDriverName).includes(term) ||
+          normalizeSearch((d.helpers || []).join(' ')).includes(term) ||
+          normalizeSearch(d.vehiclePlate).includes(term) ||
+          normalizeSearch(d.secondaryVehiclePlate).includes(term);
+
+        const itemMatch = (d.items || []).some(
+          (it: any) =>
+            normalizeSearch(it.name).includes(term) ||
+            normalizeSearch(it.sku).includes(term)
+        );
+        return metaMatch || itemMatch;
+      });
+
+      return {
+        ...data,
+        totalDeliveries: deliveries.length,
+        deliveries,
+      };
+    }
+
+    if (activeTab === 'kardex_valuation') {
+      const items = (data.items || []).filter(
+        (i: any) =>
+          normalizeSearch(i.name).includes(term) ||
+          normalizeSearch(i.sku).includes(term) ||
+          normalizeSearch(i.barcode).includes(term) ||
+          normalizeSearch(i.unitOfMeasure).includes(term)
+      );
+      const totalCostValuation = items.reduce((acc: number, i: any) => acc + Number(i.totalCostValuation || 0), 0);
+      const totalSaleValuation = items.reduce((acc: number, i: any) => acc + Number(i.totalSaleValuation || 0), 0);
+      return {
+        ...data,
+        totalSkus: items.length,
+        totalCostValuation,
+        totalSaleValuation,
+        projectedProfit: totalSaleValuation - totalCostValuation,
+        items,
+      };
+    }
+
+    if (activeTab === 'price_list') {
+      const products = (data.products || []).filter(
+        (p: any) =>
+          normalizeSearch(p.name).includes(term) ||
+          normalizeSearch(p.sku).includes(term) ||
+          normalizeSearch(p.barcode).includes(term) ||
+          normalizeSearch(p.unitOfMeasure).includes(term)
+      );
+      return {
+        ...data,
+        totalProducts: products.length,
+        products,
+      };
+    }
+
+    return data;
+  }, [data, activeTab, searchTerm]);
+
+  // Exportar datos filtrados a Excel / CSV con BOM UTF-8
+  const handleExportCSV = () => {
+    const source = filteredData;
+    if (!source) return;
+
+    let csvContent = '\uFEFF'; // UTF-8 BOM para que Excel abra sin fallas de tildes o eñes
+    let filename = `reporte_${activeTab}_${format(new Date(), 'ddMMyyyy_HHmm')}.csv`;
+
+    if (activeTab === 'sales_by_project') {
+      csvContent += 'Cliente;RUC;Obra;Total Obra (Gs);Nro Factura;Fecha;Materiales;Total Venta (Gs);Chofer;Vehiculo\n';
+      source.clients?.forEach((client: any) => {
         client.projects?.forEach((proj: any) => {
           proj.sales?.forEach((sale: any) => {
-            csvContent += `"${client.customerName}";"${client.customerRuc}";"${proj.projectName}";${proj.totalAmount};"${sale.invoiceNumber}";"${format(new Date(sale.createdAt), 'dd/MM/yyyy HH:mm')}";${sale.grandTotal};"${sale.driverName}";"${sale.vehiclePlate}"\n`;
+            const itemsSummary = (sale.items || [])
+              .map((it: any) => `${it.quantity} ${it.unitOfMeasure || ''} ${it.name}`.trim())
+              .join(' | ');
+            csvContent += `"${client.customerName}";"${client.customerRuc}";"${proj.projectName}";${proj.totalAmount};"${sale.invoiceNumber}";"${format(new Date(sale.createdAt), 'dd/MM/yyyy HH:mm')}";"${itemsSummary}";${sale.grandTotal};"${sale.driverName}";"${sale.vehiclePlate}"\n`;
           });
         });
       });
     } else if (activeTab === 'deliveries_by_driver') {
-      csvContent += 'Nro Venta;Factura;Fecha;Cliente;RUC;Obra / Destino;Direccion;Chofer 1;Ayudantes 1;Vehiculo 1;Chofer 2;Vehiculo 2;Estado Entrega;Monto (Gs)\n';
-      data.deliveries?.forEach((d: any) => {
+      csvContent += 'Nro Venta;Factura;Fecha;Cliente;RUC;Obra / Destino;Direccion;Materiales;Chofer 1;Ayudantes 1;Vehiculo 1;Chofer 2;Vehiculo 2;Estado Entrega;Monto (Gs)\n';
+      source.deliveries?.forEach((d: any) => {
         const helpers = d.helpers?.join(', ') || '-';
         const secDriver = d.secondaryDriverName || '-';
         const secVeh = d.secondaryVehiclePlate || '-';
-        csvContent += `"${d.saleNumber}";"${d.invoiceNumber}";"${format(new Date(d.date), 'dd/MM/yyyy HH:mm')}";"${d.customerName}";"${d.customerRuc}";"${d.projectName}";"${d.destinationAddress}";"${d.driverName}";"${helpers}";"${d.vehiclePlate}";"${secDriver}";"${secVeh}";"${d.deliveryStatus}";${d.grandTotal}\n`;
+        const itemsSummary = (d.items || [])
+          .map((it: any) => `${it.quantity} ${it.unitOfMeasure || ''} ${it.name}`.trim())
+          .join(' | ');
+        csvContent += `"${d.saleNumber}";"${d.invoiceNumber}";"${format(new Date(d.date), 'dd/MM/yyyy HH:mm')}";"${d.customerName}";"${d.customerRuc}";"${d.projectName}";"${d.destinationAddress}";"${itemsSummary}";"${d.driverName}";"${helpers}";"${d.vehiclePlate}";"${secDriver}";"${secVeh}";"${d.deliveryStatus}";${d.grandTotal}\n`;
       });
     } else if (activeTab === 'kardex_valuation') {
       csvContent += 'SKU;Codigo Barras;Nombre Producto;Unidad;Stock Actual;Costo Unitario (Gs);Precio Venta (Gs);Valuacion Costo (Gs);Valuacion Venta (Gs);Margen %\n';
-      data.items?.forEach((i: any) => {
+      source.items?.forEach((i: any) => {
         csvContent += `"${i.sku}";"${i.barcode}";"${i.name}";"${i.unitOfMeasure}";${i.currentStock};${i.costPrice};${i.salePrice};${i.totalCostValuation};${i.totalSaleValuation};${i.marginPercent}%\n`;
       });
     } else if (activeTab === 'price_list') {
       csvContent += 'SKU;Codigo Barras;Nombre Producto;Unidad;Tasa IVA;Precio Venta (Gs);Costo (Gs);Stock Disponible\n';
-      data.products?.forEach((p: any) => {
+      source.products?.forEach((p: any) => {
         csvContent += `"${p.sku}";"${p.barcode}";"${p.name}";"${p.unitOfMeasure}";"${p.vatRate}";${p.salePrice};${p.costPrice};${p.currentStock}\n`;
       });
     }
@@ -220,33 +398,46 @@ export function ReportsView() {
       {/* Barra de Filtros */}
       <div className="bg-card border border-card-border rounded-xl p-4 flex flex-wrap items-center gap-3 text-xs">
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-sky-400" />
-          <span className="font-mono text-sky-300 font-semibold">Desde:</span>
-          <input
-            type="date"
-            value={startDate}
-            onChange={(e) => setStartDate(e.target.value)}
-            className="bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded px-2.5 py-1 text-foreground font-mono text-xs focus:outline-none focus:border-sky-400 transition-colors"
-          />
+          <span className="font-mono text-sky-300 font-semibold whitespace-nowrap">Desde:</span>
+          <div className="w-40">
+            <DateInputPY
+              value={startDate}
+              onChange={setStartDate}
+              allowClear
+              className="bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded px-2.5 py-1.5 text-foreground text-xs focus:outline-none focus:border-sky-400 transition-colors"
+            />
+          </div>
         </div>
         <div className="flex items-center gap-2">
-          <Calendar className="w-4 h-4 text-sky-400" />
-          <span className="font-mono text-sky-300 font-semibold">Hasta:</span>
-          <input
-            type="date"
-            value={endDate}
-            onChange={(e) => setEndDate(e.target.value)}
-            className="bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded px-2.5 py-1 text-foreground font-mono text-xs focus:outline-none focus:border-sky-400 transition-colors"
-          />
+          <span className="font-mono text-sky-300 font-semibold whitespace-nowrap">Hasta:</span>
+          <div className="w-40">
+            <DateInputPY
+              value={endDate}
+              onChange={setEndDate}
+              allowClear
+              className="bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded px-2.5 py-1.5 text-foreground text-xs focus:outline-none focus:border-sky-400 transition-colors"
+            />
+          </div>
         </div>
-        <div className="flex-1 min-w-[200px]">
+        <div className="flex-1 min-w-[220px] relative">
+          <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-2.5 top-1/2 -translate-y-1/2" />
           <input
             type="text"
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Filtrar en tabla actual (cliente, chofer, material)..."
-            className="w-full bg-[#0d121c] border border-card-border rounded px-3 py-1 text-foreground text-xs placeholder:text-muted-foreground"
+            placeholder="Filtrar por producto/material, cliente, obra, RUC, chofer o factura..."
+            className="w-full bg-[#0d121c] border border-card-border rounded pl-8 pr-8 py-1.5 text-foreground text-xs placeholder:text-muted-foreground focus:outline-none focus:border-primary"
           />
+          {searchTerm && (
+            <button
+              type="button"
+              onClick={() => setSearchTerm('')}
+              className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+              title="Limpiar filtro"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -256,7 +447,7 @@ export function ReportsView() {
           <div className="p-16 text-center text-xs text-muted-foreground font-mono">
             Procesando métricas y consolidando datos en Neon Postgres...
           </div>
-        ) : !data ? (
+        ) : !filteredData ? (
           <div className="p-16 text-center text-xs text-muted-foreground">
             No se encontraron registros para los filtros seleccionados.
           </div>
@@ -268,22 +459,44 @@ export function ReportsView() {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-2">
                   <div className="p-4 rounded-xl bg-[#0d121c] border border-card-border">
                     <span className="text-[11px] font-mono uppercase text-muted-foreground">Clientes con Operaciones</span>
-                    <p className="text-xl font-bold text-foreground mt-1">{data.clients?.length || 0}</p>
+                    <p className="text-xl font-bold text-foreground mt-1">{filteredData.clients?.length || 0}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-[#0d121c] border border-card-border">
                     <span className="text-[11px] font-mono uppercase text-muted-foreground">Comprobantes Emitidos</span>
-                    <p className="text-xl font-bold text-foreground mt-1">{data.totalSales || 0}</p>
+                    <p className="text-xl font-bold text-foreground mt-1">{filteredData.totalSales || 0}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-[#0d121c] border border-card-border">
                     <span className="text-[11px] font-mono uppercase text-muted-foreground">Monto Total Facturado</span>
                     <p className="text-xl font-bold text-emerald-400 font-mono mt-1">
-                      {formatCurrencyPYG(data.grandTotalAmount || 0)}
+                      {formatCurrencyPYG(filteredData.grandTotalAmount || 0)}
                     </p>
                   </div>
                 </div>
 
+                {searchTerm.trim() && filteredData.matchedAnyItem && (
+                  <div className="p-3 rounded-lg bg-sky-500/10 border border-sky-500/30 flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-sky-300">
+                    <span>
+                      Material coincidente con &ldquo;{searchTerm.trim()}&rdquo;:{' '}
+                      <strong className="text-white">
+                        {Number(filteredData.matchedProductUnits || 0).toLocaleString('es-PY')} unidades
+                      </strong>
+                    </span>
+                    <span>
+                      Subtotal solo de ese material:{' '}
+                      <strong className="text-emerald-400">
+                        {formatCurrencyPYG(filteredData.matchedProductSubtotal || 0)}
+                      </strong>
+                    </span>
+                  </div>
+                )}
+
+                {(!filteredData.clients || filteredData.clients.length === 0) ? (
+                  <div className="p-10 text-center text-xs text-muted-foreground font-mono border border-dashed border-card-border rounded-xl">
+                    No se encontraron ventas ni materiales que coincidan con &ldquo;{searchTerm}&rdquo;.
+                  </div>
+                ) : (
                 <div className="space-y-4">
-                  {data.clients?.map((client: any) => (
+                  {filteredData.clients?.map((client: any) => (
                     <div key={client.customerRuc} className="border border-card-border rounded-xl bg-[#0b0f19] overflow-hidden">
                       <div className="p-3.5 bg-[#0d121c] border-b border-card-border flex items-center justify-between">
                         <div>
@@ -318,6 +531,7 @@ export function ReportsView() {
                                   <tr>
                                     <th className="py-1 px-2">Factura</th>
                                     <th className="py-1 px-2">Fecha</th>
+                                    <th className="py-1 px-2">Materiales / Detalle</th>
                                     <th className="py-1 px-2">Chofer / Entrega</th>
                                     <th className="py-1 px-2">Vehículo</th>
                                     <th className="py-1 px-2 text-right">Monto</th>
@@ -326,11 +540,33 @@ export function ReportsView() {
                                 <tbody className="divide-y divide-card-border text-[11px] text-muted-foreground">
                                   {proj.sales?.map((s: any) => (
                                     <tr key={s.id} className="hover:bg-muted/10">
-                                      <td className="py-1.5 px-2 font-bold text-foreground">{s.invoiceNumber}</td>
-                                      <td className="py-1.5 px-2">{format(new Date(s.createdAt), 'dd/MM/yyyy HH:mm')}</td>
-                                      <td className="py-1.5 px-2 text-foreground font-sans">{s.driverName}</td>
-                                      <td className="py-1.5 px-2">{s.vehiclePlate}</td>
-                                      <td className="py-1.5 px-2 text-right font-bold text-emerald-400">
+                                      <td className="py-1.5 px-2 font-bold text-foreground align-top">{s.invoiceNumber !== '-' ? s.invoiceNumber : s.saleNumber}</td>
+                                      <td className="py-1.5 px-2 align-top">{format(new Date(s.createdAt), 'dd/MM/yyyy HH:mm')}</td>
+                                      <td className="py-1.5 px-2 font-sans align-top">
+                                        <div className="flex flex-wrap gap-1">
+                                          {(s.items || []).map((it: any, iIdx: number) => {
+                                            const isMatch =
+                                              searchTerm.trim() &&
+                                              (normalizeSearch(it.name).includes(normalizeSearch(searchTerm).trim()) ||
+                                                normalizeSearch(it.sku).includes(normalizeSearch(searchTerm).trim()));
+                                            return (
+                                              <span
+                                                key={iIdx}
+                                                className={`px-1.5 py-0.5 rounded text-[10px] border ${
+                                                  isMatch
+                                                    ? 'bg-sky-500/20 border-sky-400/60 text-sky-200 font-bold'
+                                                    : 'bg-[#0d121c] border-card-border text-muted-foreground'
+                                                }`}
+                                              >
+                                                {it.quantity} {it.unitOfMeasure || ''} {it.name}
+                                              </span>
+                                            );
+                                          })}
+                                        </div>
+                                      </td>
+                                      <td className="py-1.5 px-2 text-foreground font-sans align-top">{s.driverName}</td>
+                                      <td className="py-1.5 px-2 align-top">{s.vehiclePlate}</td>
+                                      <td className="py-1.5 px-2 text-right font-bold text-emerald-400 align-top">
                                         {formatCurrencyPYG(s.grandTotal)}
                                       </td>
                                     </tr>
@@ -344,6 +580,7 @@ export function ReportsView() {
                     </div>
                   ))}
                 </div>
+                )}
               </div>
             )}
 
@@ -366,7 +603,13 @@ export function ReportsView() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-card-border font-mono text-muted-foreground">
-                      {data.deliveries?.map((d: any) => (
+                      {(!filteredData.deliveries || filteredData.deliveries.length === 0) ? (
+                        <tr>
+                          <td colSpan={9} className="py-8 text-center text-xs text-muted-foreground">
+                            No se encontraron despachos con ese filtro.
+                          </td>
+                        </tr>
+                      ) : filteredData.deliveries?.map((d: any) => (
                         <tr key={d.id} className="hover:bg-muted/20">
                           <td className="py-2.5 px-3 text-[11px]">{format(new Date(d.date), 'dd/MM/yyyy HH:mm')}</td>
                           <td className="py-2.5 px-3 font-bold text-foreground">{d.invoiceNumber}</td>
@@ -429,24 +672,24 @@ export function ReportsView() {
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                   <div className="p-4 rounded-xl bg-[#0d121c] border border-card-border">
                     <span className="text-[11px] font-mono uppercase text-muted-foreground">Catálogo Activo</span>
-                    <p className="text-xl font-bold text-foreground mt-1">{data.totalSkus || 0} Artículos</p>
+                    <p className="text-xl font-bold text-foreground mt-1">{filteredData.totalSkus || 0} Artículos</p>
                   </div>
                   <div className="p-4 rounded-xl bg-[#0d121c] border border-card-border">
                     <span className="text-[11px] font-mono uppercase text-muted-foreground">Valuación al Costo</span>
                     <p className="text-xl font-bold text-foreground font-mono mt-1">
-                      {formatCurrencyPYG(data.totalCostValuation || 0)}
+                      {formatCurrencyPYG(filteredData.totalCostValuation || 0)}
                     </p>
                   </div>
                   <div className="p-4 rounded-xl bg-[#0d121c] border border-card-border">
                     <span className="text-[11px] font-mono uppercase text-muted-foreground">Valuación a Precio Venta</span>
                     <p className="text-xl font-bold text-accent font-mono mt-1">
-                      {formatCurrencyPYG(data.totalSaleValuation || 0)}
+                      {formatCurrencyPYG(filteredData.totalSaleValuation || 0)}
                     </p>
                   </div>
                   <div className="p-4 rounded-xl bg-[#0d121c] border border-card-border">
                     <span className="text-[11px] font-mono uppercase text-muted-foreground">Margen de Utilidad Proyectado</span>
                     <p className="text-xl font-bold text-emerald-400 font-mono mt-1">
-                      {formatCurrencyPYG(data.projectedProfit || 0)}
+                      {formatCurrencyPYG(filteredData.projectedProfit || 0)}
                     </p>
                   </div>
                 </div>
@@ -466,7 +709,7 @@ export function ReportsView() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-card-border font-mono text-muted-foreground">
-                      {data.items?.map((item: any) => (
+                      {filteredData.items?.map((item: any) => (
                         <tr key={item.id} className="hover:bg-muted/20">
                           <td className="py-2 px-3 font-bold text-foreground">{item.sku}</td>
                           <td className="py-2 px-3 font-sans">
@@ -509,7 +752,7 @@ export function ReportsView() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-card-border font-mono text-muted-foreground">
-                      {data.products?.map((p: any) => (
+                      {filteredData.products?.map((p: any) => (
                         <tr key={p.id} className="hover:bg-muted/20">
                           <td className="py-2 px-3 font-bold text-foreground">{p.sku}</td>
                           <td className="py-2 px-3 text-[11px]">{p.barcode}</td>

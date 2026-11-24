@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { X, DollarSign, AlertCircle, Calendar, Landmark } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
+import { DateInputPY } from '@/components/common/date-input-py';
 
 interface AdvanceModalProps {
   employee: {
@@ -140,18 +141,16 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
               <Calendar className="w-4 h-4 text-sky-400" />
               <span>Fecha del Adelanto / Vale *</span>
             </label>
-            <input
-              type="date"
+            <DateInputPY
               required
               value={requestDate}
-              onChange={(e) => {
-                const val = e.target.value;
+              onChange={(val) => {
                 setRequestDate(val);
                 if (val) {
                   setDeductionPeriod(val.slice(0, 7));
                 }
               }}
-              className="w-full bg-card border border-card-border hover:border-sky-500/50 rounded px-2.5 py-1.5 font-mono text-foreground focus:outline-none focus:border-sky-400 text-xs transition-colors"
+              className="bg-card border border-card-border hover:border-sky-500/50 rounded px-2.5 py-1.5 text-foreground focus:outline-none focus:border-sky-400 text-xs transition-colors"
             />
             <p className="text-[10px] text-muted-foreground font-sans">
               Por defecto carga la fecha de hoy, pero puedes seleccionar una fecha anterior (ej. lunes) si estás cargando el vale después.

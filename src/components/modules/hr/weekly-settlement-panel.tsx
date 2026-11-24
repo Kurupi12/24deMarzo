@@ -25,6 +25,7 @@ import { SettlementEmployeeData } from './weekly-receipt-a4';
 import { WeeklyReceiptModal } from './weekly-receipt-modal';
 import { AdvanceModal } from './advance-modal';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
+import { DateInputPY } from '@/components/common/date-input-py';
 
 interface WeeklySettlementPanelProps {
   onFinanceOverdraft?: (employeeId: string, overdraftAmount: number, periodEndDate?: string) => void;
@@ -175,11 +176,10 @@ export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPa
               <Calendar className="w-3.5 h-3.5 text-sky-400" />
               <span>Fecha Desde (Lunes):</span>
             </label>
-            <input
-              type="date"
+            <DateInputPY
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="w-full bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-md px-3 py-1.5 font-mono text-foreground text-xs focus:outline-none focus:border-sky-400 transition-colors"
+              onChange={setStartDate}
+              className="bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-md px-3 py-1.5 text-foreground text-xs focus:outline-none focus:border-sky-400 transition-colors"
             />
           </div>
 
@@ -188,11 +188,10 @@ export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPa
               <Calendar className="w-3.5 h-3.5 text-sky-400" />
               <span>Fecha Hasta (Sábado / Cierre):</span>
             </label>
-            <input
-              type="date"
+            <DateInputPY
               value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
-              className="w-full bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-md px-3 py-1.5 font-mono text-foreground text-xs focus:outline-none focus:border-sky-400 transition-colors"
+              onChange={setEndDate}
+              className="bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-md px-3 py-1.5 text-foreground text-xs focus:outline-none focus:border-sky-400 transition-colors"
             />
           </div>
 

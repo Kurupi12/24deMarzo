@@ -58,8 +58,11 @@ export function InvoiceDetailModal({
     try {
       const d = new Date(dateStr);
       return d.toLocaleString('es-PY', {
-        dateStyle: 'short',
-        timeStyle: 'short',
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
       });
     } catch {
       return dateStr;

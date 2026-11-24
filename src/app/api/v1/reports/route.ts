@@ -14,11 +14,15 @@ export async function GET(req: NextRequest) {
     const driverId = searchParams.get('driverId') || undefined;
 
     const dateFilter: any = {};
-    if (startDateParam) dateFilter.gte = new Date(startDateParam);
+    if (startDateParam) {
+      dateFilter.gte = /^\d{4}-\d{2}-\d{2}$/.test(startDateParam)
+        ? new Date(`${startDateParam}T00:00:00.000-03:00`)
+        : new Date(startDateParam);
+    }
     if (endDateParam) {
-      const end = new Date(endDateParam);
-      end.setHours(23, 59, 59, 999);
-      dateFilter.lte = end;
+      dateFilter.lte = /^\d{4}-\d{2}-\d{2}$/.test(endDateParam)
+        ? new Date(`${endDateParam}T23:59:59.999-03:00`)
+        : new Date(endDateParam);
     }
 
     if (type === 'sales_by_project') {
@@ -103,6 +107,7 @@ export async function GET(req: NextRequest) {
           items: sale.items.map((it) => ({
             name: it.product.name,
             sku: it.product.sku,
+            unitOfMeasure: it.product.unitOfMeasure,
             quantity: Number(it.quantity),
             unitPrice: Number(it.unitPrice),
             subtotal: Number(it.subtotal),
@@ -125,7 +130,7 @@ export async function GET(req: NextRequest) {
 
     if (type === 'deliveries_by_driver') {
       // 2. Reporte: Trazabilidad de Despachos por Chofer / Ayudantes
-      const where: any = {};
+      const where: any = { status: { notIn: ['QUOTATION', 'CANCELLED'] } };
       if (startDateParam || endDateParam) where.createdAt = dateFilter;
       if (driverId) where.driverId = driverId;
 
@@ -137,6 +142,11 @@ export async function GET(req: NextRequest) {
             secondaryDriver: true,
             project: true,
             invoice: { select: { invoiceNumber: true } },
+            items: {
+              include: {
+                product: { select: { sku: true, name: true, unitOfMeasure: true } },
+              },
+            },
           },
           orderBy: { createdAt: 'desc' },
         }),
@@ -167,6 +177,13 @@ export async function GET(req: NextRequest) {
         deliveryStatus: s.deliveryStatus,
         deliveryNotes: s.deliveryNotes || '',
         grandTotal: Number(s.grandTotal),
+        items: s.items.map((it) => ({
+          name: it.product.name,
+          sku: it.product.sku,
+          unitOfMeasure: it.product.unitOfMeasure,
+          quantity: Number(it.quantity),
+          subtotal: Number(it.subtotal),
+        })),
       }));
 
       return NextResponse.json(

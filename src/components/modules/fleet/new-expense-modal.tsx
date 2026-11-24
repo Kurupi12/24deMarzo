@@ -18,6 +18,7 @@ import {
   Landmark,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
+import { DateInputPY } from '@/components/common/date-input-py';
 
 interface NewExpenseModalProps {
   isOpen: boolean;
@@ -256,12 +257,11 @@ export function NewExpenseModal({
               <label className="block text-xs font-semibold text-foreground mb-1">
                 Fecha del Gasto / Servicio *
               </label>
-              <input
-                type="date"
+              <DateInputPY
                 value={date}
-                onChange={(e) => setDate(e.target.value)}
+                onChange={setDate}
                 required
-                className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary transition-colors font-mono"
+                className="px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary transition-colors"
               />
             </div>
           </div>

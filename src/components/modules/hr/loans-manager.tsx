@@ -30,6 +30,7 @@ import {
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { useAuth } from '@/lib/auth/auth-context';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
+import { DateInputPY } from '@/components/common/date-input-py';
 
 interface LoanInstallment {
   id: string;
@@ -1030,12 +1031,11 @@ export function LoansManager({
                     <Calendar className="w-4 h-4 text-sky-400" />
                     <span>Fecha de Entrega del Dinero:</span>
                   </label>
-                  <input
-                    type="date"
+                  <DateInputPY
                     value={issueDate}
-                    onChange={(e) => setIssueDate(e.target.value)}
+                    onChange={setIssueDate}
                     required
-                    className="w-full bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-lg px-3 py-2 text-xs text-foreground font-mono focus:outline-none focus:border-sky-400 transition-colors"
+                    className="bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-lg px-3 py-2 text-xs text-foreground focus:outline-none focus:border-sky-400 transition-colors"
                   />
                 </div>
 
@@ -1044,12 +1044,11 @@ export function LoansManager({
                     <Calendar className="w-4 h-4 text-sky-400" />
                     <span>Primer Sábado de Descuento:</span>
                   </label>
-                  <input
-                    type="date"
+                  <DateInputPY
                     value={firstDeductionDate}
-                    onChange={(e) => setFirstDeductionDate(e.target.value)}
+                    onChange={setFirstDeductionDate}
                     required
-                    className="w-full bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-lg px-3 py-2 text-xs text-foreground font-mono focus:outline-none focus:border-sky-400 transition-colors"
+                    className="bg-[#0d121c] border border-card-border hover:border-sky-500/50 rounded-lg px-3 py-2 text-xs text-foreground focus:outline-none focus:border-sky-400 transition-colors"
                   />
                   {!disbursedFromCash && (
                     <p className="text-[10px] text-purple-300 font-mono mt-0.5">

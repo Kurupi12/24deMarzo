@@ -39,6 +39,7 @@ import { validateParaguayRuc } from '@/shared/utils/ruc-validator';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 import { useAuth } from '@/lib/auth/auth-context';
 import { PriceAuthModal } from './price-auth-modal';
+import { DateInputPY } from '@/components/common/date-input-py';
 
 interface PosTerminalProps {
   onSaleCompleted: (sale?: any) => void;
@@ -1430,12 +1431,11 @@ export function PosTerminal({
                         <Calendar className="w-3.5 h-3.5 text-amber-400" />
                         <span>Fecha de Entrega *</span>
                       </label>
-                      <input
-                        type="date"
+                      <DateInputPY
                         required
                         value={scheduledDeliveryDate}
-                        onChange={(e) => setScheduledDeliveryDate(e.target.value)}
-                        className="w-full bg-card border border-amber-500/40 hover:border-amber-400 rounded px-2.5 py-1.5 text-foreground text-xs font-mono focus:outline-none focus:border-amber-400 font-bold transition-colors"
+                        onChange={setScheduledDeliveryDate}
+                        className="bg-card border border-amber-500/40 hover:border-amber-400 rounded px-2.5 py-1.5 text-foreground text-xs focus:outline-none focus:border-amber-400 font-bold transition-colors"
                       />
                     </div>
                     <div>

@@ -33,6 +33,7 @@ export function ScheduledOrdersPanel({ onOrderDispatched }: { onOrderDispatched?
 
   // Modales
   const [selectedSaleForDetail, setSelectedSaleForDetail] = useState<any | null>(null);
+  const [detailInitialDoc, setDetailInitialDoc] = useState<'delivery_order' | 'invoice'>('delivery_order');
   const [orderToDispatch, setOrderToDispatch] = useState<any | null>(null);
 
   // Datos para modal de despacho
@@ -40,7 +41,7 @@ export function ScheduledOrdersPanel({ onOrderDispatched }: { onOrderDispatched?
   const [dispatchVehiclePlate, setDispatchVehiclePlate] = useState('');
   const [balancePaymentMethod, setBalancePaymentMethod] = useState('EFECTIVO');
   const [balancePaymentRef, setBalancePaymentRef] = useState('');
-  const [issueInvoice, setIssueInvoice] = useState(true);
+  const [issueInvoice, setIssueInvoice] = useState(false);
   const [submittingDispatch, setSubmittingDispatch] = useState(false);
 
   // Listas de choferes y flota
@@ -84,12 +85,13 @@ export function ScheduledOrdersPanel({ onOrderDispatched }: { onOrderDispatched?
   }, []);
 
   const openDispatchModal = (order: any) => {
+    const isLibretaOrder = order.paymentCondition === 'A_CUENTA' || order.paymentCondition === 'CREDITO';
     setOrderToDispatch(order);
     setDispatchDriverId(order.driverId || '');
     setDispatchVehiclePlate(order.vehiclePlate || '');
-    setBalancePaymentMethod('EFECTIVO');
+    setBalancePaymentMethod(isLibretaOrder ? 'A_CUENTA' : 'EFECTIVO');
     setBalancePaymentRef('');
-    setIssueInvoice(!order.invoice);
+    setIssueInvoice(false);
   };
 
   const handleConfirmDispatch = async (e: React.FormEvent) => {
@@ -124,7 +126,8 @@ export function ScheduledOrdersPanel({ onOrderDispatched }: { onOrderDispatched?
         setOrderToDispatch(null);
         fetchOrders();
         if (onOrderDispatched) onOrderDispatched();
-        // Abrir visor de comprobante final de entrega
+        // Abrir visor de ticket / comprobante final de entrega listo para imprimir
+        setDetailInitialDoc('invoice');
         setSelectedSaleForDetail(json.data);
       } else {
         customAlert({
@@ -426,9 +429,12 @@ export function ScheduledOrdersPanel({ onOrderDispatched }: { onOrderDispatched?
 
                           <button
                             type="button"
-                            onClick={() => setSelectedSaleForDetail(order)}
+                            onClick={() => {
+                              setDetailInitialDoc('delivery_order');
+                              setSelectedSaleForDetail(order);
+                            }}
                             className="p-1 rounded bg-[#0d121c] border border-card-border hover:border-primary text-muted-foreground hover:text-foreground transition-colors"
-                            title="Ver e imprimir comprobante A4"
+                            title="Ver e imprimir Ticket o Comprobante A4"
                           >
                             <Printer className="w-3.5 h-3.5" />
                           </button>
@@ -482,36 +488,57 @@ export function ScheduledOrdersPanel({ onOrderDispatched }: { onOrderDispatched?
                   <span>-{formatCurrencyPYG(Number(orderToDispatch.downPayment || 0))}</span>
                 </div>
                 <div className="flex justify-between font-bold text-foreground text-sm pt-1 border-t border-amber-500/20">
-                  <span>Saldo a Cobrar Contra Entrega:</span>
-                  <span className="text-red-400">{formatCurrencyPYG(Number(orderToDispatch.balanceDue))}</span>
+                  <span>
+                    {balancePaymentMethod === 'A_CUENTA'
+                      ? 'Saldo que queda en Libreta:'
+                      : 'Saldo a Cobrar Contra Entrega:'}
+                  </span>
+                  <span className={balancePaymentMethod === 'A_CUENTA' ? 'text-amber-400' : 'text-red-400'}>
+                    {formatCurrencyPYG(Number(orderToDispatch.balanceDue))}
+                  </span>
                 </div>
               </div>
 
               {Number(orderToDispatch.balanceDue) > 0 && (
-                <div className="grid grid-cols-2 gap-2">
-                  <div>
-                    <label className="block text-[11px] font-mono text-muted-foreground mb-1">Medio de Cobro Saldo</label>
-                    <select
-                      value={balancePaymentMethod}
-                      onChange={(e) => setBalancePaymentMethod(e.target.value)}
-                      className="w-full bg-[#0d121c] border border-card-border rounded px-2 py-1.5 text-foreground font-mono"
-                    >
-                      <option value="EFECTIVO">Efectivo (Entra a caja)</option>
-                      <option value="TRANSFERENCIA_BANCARIA">Transferencia SIPAP</option>
-                      <option value="CHEQUE">Cheque al Día</option>
-                    </select>
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <div className={balancePaymentMethod === 'TRANSFERENCIA_BANCARIA' ? '' : 'col-span-2'}>
+                      <label className="block text-[11px] font-mono text-muted-foreground mb-1">
+                        Condición / Medio de Cobro al Despachar
+                      </label>
+                      <select
+                        value={balancePaymentMethod}
+                        onChange={(e) => setBalancePaymentMethod(e.target.value)}
+                        className="w-full bg-[#0d121c] border border-card-border rounded px-2 py-1.5 text-foreground font-mono"
+                      >
+                        <option value="A_CUENTA">A Cuenta / Libreta (Paga fin de semana — No entra a Caja)</option>
+                        <option value="EFECTIVO">Efectivo (Entra a caja hoy)</option>
+                        <option value="TRANSFERENCIA_BANCARIA">Transferencia SIPAP</option>
+                        <option value="CHEQUE">Cheque al Día</option>
+                      </select>
+                    </div>
+
+                    {balancePaymentMethod === 'TRANSFERENCIA_BANCARIA' && (
+                      <div>
+                        <label className="block text-[11px] font-mono text-muted-foreground mb-1">
+                          N° Comprobante SIPAP *
+                        </label>
+                        <input
+                          type="text"
+                          value={balancePaymentRef}
+                          onChange={(e) => setBalancePaymentRef(e.target.value)}
+                          placeholder="Obligatorio"
+                          className="w-full bg-[#0d121c] border border-card-border rounded px-2 py-1.5 text-foreground font-mono"
+                        />
+                      </div>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="block text-[11px] font-mono text-muted-foreground mb-1">N° Comprobante SIPAP</label>
-                    <input
-                      type="text"
-                      value={balancePaymentRef}
-                      onChange={(e) => setBalancePaymentRef(e.target.value)}
-                      placeholder={balancePaymentMethod === 'TRANSFERENCIA_BANCARIA' ? 'Obligatorio' : 'Opcional'}
-                      className="w-full bg-[#0d121c] border border-card-border rounded px-2 py-1.5 text-foreground font-mono"
-                    />
-                  </div>
+                  {balancePaymentMethod === 'A_CUENTA' && (
+                    <div className="p-2 rounded bg-amber-500/10 border border-amber-500/25 text-[10.5px] font-mono text-amber-200">
+                      El monto sigue en la <strong>Libreta de Obra</strong> del cliente para cobrarlo a fin de semana. No suma efectivo a Caja hoy.
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -550,19 +577,43 @@ export function ScheduledOrdersPanel({ onOrderDispatched }: { onOrderDispatched?
                 </div>
               </div>
 
-              {/* Facturación Fiscal */}
+              {/* Tipo de Comprobante a Emitir al Despachar: Ticket vs Factura SIFEN */}
               {!orderToDispatch.invoice && (
-                <div className="p-2.5 rounded bg-[#0d121c] border border-card-border flex items-center justify-between">
-                  <div>
-                    <span className="font-semibold text-foreground block">Emitir Factura Electrónica SIFEN</span>
-                    <span className="text-[10px] text-muted-foreground">Genera el DTE oficial ante la DNIT con IVA 10%.</span>
+                <div className="p-2.5 rounded bg-[#0d121c] border border-card-border space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] font-mono font-semibold text-foreground">
+                      Comprobante a emitir al despachar
+                    </span>
+                    <span className="text-[10px] font-mono text-muted-foreground">
+                      También genera Orden A4 Duplicado
+                    </span>
                   </div>
-                  <input
-                    type="checkbox"
-                    checked={issueInvoice}
-                    onChange={(e) => setIssueInvoice(e.target.checked)}
-                    className="w-4 h-4 rounded text-primary accent-primary"
-                  />
+                  <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+                    <button
+                      type="button"
+                      onClick={() => setIssueInvoice(false)}
+                      className={`py-2 px-2.5 rounded border flex items-center justify-center gap-1.5 transition-colors ${
+                        !issueInvoice
+                          ? 'bg-emerald-600/25 border-emerald-500 text-emerald-300 font-bold'
+                          : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Ticket de Venta</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIssueInvoice(true)}
+                      className={`py-2 px-2.5 rounded border flex items-center justify-center gap-1.5 transition-colors ${
+                        issueInvoice
+                          ? 'bg-primary/25 border-primary text-primary font-bold'
+                          : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
+                      }`}
+                    >
+                      <ShieldCheck className="w-3.5 h-3.5" />
+                      <span>Factura SIFEN</span>
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -594,6 +645,7 @@ export function ScheduledOrdersPanel({ onOrderDispatched }: { onOrderDispatched?
           sale={selectedSaleForDetail}
           isOpen={!!selectedSaleForDetail}
           onClose={() => setSelectedSaleForDetail(null)}
+          initialDoc={detailInitialDoc}
         />
       )}
     </div>

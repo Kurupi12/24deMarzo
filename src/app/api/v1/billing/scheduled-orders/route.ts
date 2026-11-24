@@ -15,6 +15,7 @@ export async function GET(req: NextRequest) {
 
     const where: any = {
       isScheduled: true,
+      status: { not: 'CANCELLED' },
     };
 
     if (filter === 'today') {

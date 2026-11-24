@@ -20,7 +20,7 @@ export async function POST(
       helperIds = [],
       balancePaymentMethod = 'EFECTIVO',
       balancePaymentReference,
-      issueInvoice = true,
+      issueInvoice = false,
     } = body;
 
     const sale = await prisma.sale.findUnique({
@@ -44,8 +44,19 @@ export async function POST(
 
     const warehouse = await prisma.warehouse.findFirst({ where: { isMain: true } });
 
-    // Exigir turno de caja abierto para despachar pedidos y cobrar saldo
-    const openShift = await requireOpenCashShift(prisma);
+    const isDeferredToLibreta = balancePaymentMethod === 'A_CUENTA';
+    const balanceToPay = Number(sale.balanceDue || 0);
+    const downPaymentPaid = Number(sale.downPayment || 0);
+
+    // Exigir turno de caja abierto cuando se cobra dinero en efectivo/pago contra entrega
+    const openShift =
+      !isDeferredToLibreta && balanceToPay > 0
+        ? await requireOpenCashShift(prisma)
+        : await prisma.cashShift.findFirst({
+            where: { isOpen: true },
+            orderBy: { openedAt: 'desc' },
+            select: { id: true, openedAt: true },
+          });
 
     // Ejecutar transacción atómica de despacho
     const updatedSale = await prisma.$transaction(
@@ -69,7 +80,7 @@ export async function POST(
               const prevReserved = Number(stockItem.reservedStock || 0);
 
               const itemQty = Number(item.quantity);
-              const newStock = Math.max(0, prevStock - itemQty);
+              const newStock = prevStock - itemQty;
               const newReserved = Math.max(0, prevReserved - itemQty);
 
               await tx.stockItem.update({
@@ -90,7 +101,7 @@ export async function POST(
                   totalCost: Number(item.quantity) * Number(item.unitPrice) * 0.7,
                   previousStock: prevStock,
                   newStock: newStock,
-                  referenceType: 'FACTURA_VENTA',
+                  referenceType: 'DESPACHO_PROGRAMADO',
                   referenceId: sale.id,
                   notes: `Despacho de pedido programado a ${sale.customerName}`,
                   userId: sale.userId,
@@ -100,26 +111,22 @@ export async function POST(
           }
         }
 
-        // 2. Si tenía saldo pendiente y se cobra ahora, registrar ingreso en caja si es efectivo
-        const balanceToPay = Number(sale.balanceDue || 0);
-        if (balanceToPay > 0 && openShift && balancePaymentMethod === 'EFECTIVO') {
-          // Ingreso por cobro de saldo
-          await tx.customerPayment.create({
+        // 2. Manejo de cobro de saldo al entregar (si había seña previa en otro turno y paga saldo en efectivo ahora, sumar a caja sin duplicar libreta)
+        if (!isDeferredToLibreta && balanceToPay > 0 && downPaymentPaid > 0 && openShift && balancePaymentMethod === 'EFECTIVO') {
+          await tx.cashMovement.create({
             data: {
-              receiptNumber: `REC-SALDO-${sale.saleNumber.replace(/\D/g, '')}`,
-              customerRuc: sale.customerRuc,
-              customerName: sale.customerName,
-              amount: balanceToPay,
-              paymentMethod: balancePaymentMethod,
-              paymentReference: balancePaymentReference || null,
               cashShiftId: openShift.id,
-              notes: `Cobro de saldo contra entrega de pedido ${sale.saleNumber}`,
-              userId: sale.userId,
+              type: 'INCOME_CHANGE',
+              category: 'COBRO_SALDO_RESERVA',
+              amount: balanceToPay,
+              description: `Cobro saldo contra entrega ${sale.saleNumber} (${sale.customerName})`,
+              beneficiary: sale.customerName,
+              receiptNo: sale.saleNumber,
             },
           });
         }
 
-        // 3. Generar factura electrónica SIFEN si se solicitó y no existía factura previa
+        // 3. Generar factura electrónica SIFEN solo si se solicitó explícitamente y no existía factura previa
         if (issueInvoice && !sale.invoice) {
           const invoiceSeq = parseInt(sale.saleNumber.replace(/\D/g, ''), 10) || 1;
           const invoiceNumber = `001-001-${invoiceSeq.toString().padStart(7, '0')}`;
@@ -137,17 +144,32 @@ export async function POST(
           });
         }
 
-        // 4. Actualizar estado de la venta
+        // 4. Actualizar estado de la venta (respetando Libreta / A_CUENTA si paga a fin de semana)
+        const nextPaymentCondition = isDeferredToLibreta
+          ? 'A_CUENTA'
+          : sale.paymentCondition === 'A_CUENTA'
+          ? 'CONTADO'
+          : sale.paymentCondition;
+
+        const nextPaymentMethod = isDeferredToLibreta ? sale.paymentMethod : (balancePaymentMethod as any);
+        const nextCashShiftId =
+          isDeferredToLibreta || downPaymentPaid > 0
+            ? sale.cashShiftId
+            : openShift?.id || sale.cashShiftId;
+
         return tx.sale.update({
           where: { id: sale.id },
           data: {
             deliveryStatus: 'DELIVERED',
             status: 'COMPLETED',
-            balanceDue: 0,
+            paymentCondition: nextPaymentCondition,
+            paymentMethod: nextPaymentMethod,
+            paymentReference: !isDeferredToLibreta && balancePaymentReference ? balancePaymentReference : sale.paymentReference,
+            balanceDue: isDeferredToLibreta ? balanceToPay : 0,
             driverId: driverId || sale.driverId,
             vehiclePlate: vehiclePlate || sale.vehiclePlate,
             helperIds: helperIds.length > 0 ? helperIds : sale.helperIds,
-            cashShiftId: openShift?.id || sale.cashShiftId,
+            cashShiftId: nextCashShiftId,
           },
           include: {
             items: { include: { product: true } },

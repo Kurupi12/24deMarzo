@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   Printer,
@@ -32,6 +32,7 @@ interface InvoiceDetailModalProps {
   isPreviewOnly?: boolean;
   onConfirmAndProcess?: () => void;
   confirmLoading?: boolean;
+  initialDoc?: 'delivery_order' | 'invoice';
 }
 
 export function InvoiceDetailModal({
@@ -42,16 +43,24 @@ export function InvoiceDetailModal({
   isPreviewOnly = false,
   onConfirmAndProcess,
   confirmLoading = false,
+  initialDoc = 'delivery_order',
 }: InvoiceDetailModalProps) {
-  // Documento activo para previsualizar e imprimir: 'delivery_order' (A4 duplicado) o 'invoice' (fiscal SIFEN)
-  const [activeDoc, setActiveDoc] = useState<'delivery_order' | 'invoice'>('delivery_order');
+  // Documento activo para previsualizar e imprimir: 'delivery_order' (A4 duplicado) o 'invoice' (Ticket / SIFEN)
+  const [activeDoc, setActiveDoc] = useState<'delivery_order' | 'invoice'>(initialDoc);
   const [exportingPdf, setExportingPdf] = useState(false);
   const [pdfNotice, setPdfNotice] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (isOpen) {
+      setActiveDoc(initialDoc);
+    }
+  }, [isOpen, sale?.id, initialDoc]);
 
   if (!isOpen || !sale) return null;
 
   const invoice = sale.invoice;
   const isQuotation = sale.status === 'QUOTATION';
+  const isPendingReservation = Boolean(sale.isScheduled && sale.deliveryStatus !== 'DELIVERED');
   const mapsLink = sale.googleMapsUrl || sale.project?.googleMapsUrl;
 
   const formatDate = (dateStr: string) => {
@@ -80,7 +89,7 @@ export function InvoiceDetailModal({
           docLabel: 'Presupuesto de Materiales',
         };
       }
-      if (sale.isScheduled) {
+      if (isPendingReservation) {
         return {
           elementId: 'printable-delivery-order',
           paperSize: 'A4' as const,
@@ -244,7 +253,7 @@ export function InvoiceDetailModal({
               <span>
                 {isQuotation
                   ? 'Presupuesto Formal (A4)'
-                  : sale.isScheduled
+                  : isPendingReservation
                   ? 'Comprobante de Reserva & Seña (A4)'
                   : 'Comprobante / Orden de Entrega (A4 Duplicado)'}
               </span>
@@ -309,7 +318,7 @@ export function InvoiceDetailModal({
                 <span>
                   {isQuotation
                     ? 'Imprimir Presupuesto (A4)'
-                    : sale.isScheduled
+                    : isPendingReservation
                     ? 'Imprimir Comprobante de Reserva (A4 Duplicado)'
                     : 'Imprimir Comprobante de Entrega (A4 Duplicado)'}
                 </span>
@@ -360,7 +369,7 @@ export function InvoiceDetailModal({
                 <span>
                   {isQuotation
                     ? 'Vista Previa: Presupuesto de Materiales en A4 (NO descuenta stock)'
-                    : sale.isScheduled
+                    : isPendingReservation
                     ? 'Vista Previa: Comprobante de Reserva & Seña (Original + Duplicado en A4)'
                     : 'Vista Previa: 2 órdenes en 1 hoja A4 (Original Superior + Duplicado Inferior)'}
                 </span>
@@ -369,7 +378,7 @@ export function InvoiceDetailModal({
                 <div className="w-fit mx-auto bg-white rounded-sm shadow-2xl overflow-hidden border border-neutral-300">
                   {isQuotation ? (
                     <QuotationA4 sale={sale} />
-                  ) : sale.isScheduled ? (
+                  ) : isPendingReservation ? (
                     <ReservationReceiptA4 sale={sale} />
                   ) : (
                     <DeliveryOrderA4 sale={sale} />

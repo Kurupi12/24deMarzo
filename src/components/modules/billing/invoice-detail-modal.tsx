@@ -487,28 +487,26 @@ export function InvoiceDetailModal({
 
               {/* Detalle de Artículos */}
               <div className="py-2 border-b border-dashed border-card-border space-y-1.5">
-                <div className="grid grid-cols-12 text-[10px] uppercase font-bold text-muted-foreground border-b border-card-border pb-1">
-                  <div className="col-span-2">Cant</div>
-                  <div className="col-span-5">Descripción</div>
-                  <div className="col-span-2 text-right">P.Unit</div>
-                  <div className="col-span-3 text-right">Total</div>
+                <div className="flex justify-between items-center text-[10px] uppercase font-bold text-muted-foreground border-b border-card-border pb-1">
+                  <span>Descripción / Cant. × P. Unit</span>
+                  <span className="shrink-0">Total</span>
                 </div>
                 {sale.items?.map((item: any, idx: number) => (
                   <div
                     key={item.id || idx}
-                    className="grid grid-cols-12 text-[11px] py-1 border-b border-card-border/40 last:border-0 items-center"
+                    className="py-1 border-b border-card-border/40 last:border-0 space-y-0.5"
                   >
-                    <div className="col-span-2 font-bold">
-                      {item.quantity} {item.product?.unitOfMeasure || item.product?.unit || 'UN'}
-                    </div>
-                    <div className="col-span-5 truncate pr-1">
+                    <div className="text-[11px] font-semibold leading-snug break-words">
                       {item.product?.name || item.product?.description || 'Material'}
                     </div>
-                    <div className="col-span-2 text-right text-muted-foreground">
-                      {formatCurrencyPYG(Number(item.unitPrice))}
-                    </div>
-                    <div className="col-span-3 text-right font-bold">
-                      {formatCurrencyPYG(Number(item.subtotal))}
+                    <div className="flex justify-between items-baseline gap-2 text-[10.5px] font-mono tabular-nums">
+                      <span className="text-muted-foreground">
+                        {item.quantity} {item.product?.unitOfMeasure || item.product?.unit || 'UN'} &times;{' '}
+                        {formatCurrencyPYG(Number(item.unitPrice))}
+                      </span>
+                      <span className="font-bold whitespace-nowrap shrink-0">
+                        {formatCurrencyPYG(Number(item.subtotal))}
+                      </span>
                     </div>
                   </div>
                 ))}

@@ -1155,22 +1155,22 @@ export function PosTerminal({
 
             {/* RUC / C.I. con Consulta DNIT y Nombre (Editables) */}
             <div className="space-y-2">
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-6">
-                  <div className="flex justify-between items-center mb-1">
-                    <label className="text-xs font-mono text-muted-foreground">
-                      {docType === 'INVOICE' ? 'RUC o CI con DV *' : 'C.I. / RUC'}
+              <div className="grid grid-cols-12 gap-2 items-end">
+                <div className="col-span-6 min-w-0">
+                  <div className="h-5 flex justify-between items-center gap-1 mb-1">
+                    <label className="text-[11px] font-mono text-muted-foreground truncate">
+                      {docType === 'INVOICE' ? 'RUC / CI con DV *' : 'C.I. / RUC'}
                     </label>
                     {docType === 'TICKET' ? (
-                      <span className="text-[10px] text-emerald-400 font-mono">
-                        Opcional / Mostrador
+                      <span className="text-[10px] text-emerald-400 font-mono shrink-0">
+                        Opcional
                       </span>
                     ) : rucValidation.isValid ? (
-                      <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-0.5">
+                      <span className="text-[10px] text-emerald-400 font-mono flex items-center gap-0.5 shrink-0">
                         <CheckCircle2 className="w-3 h-3" /> Válido
                       </span>
                     ) : (
-                      <span className="text-[10px] text-warning font-mono">XXXXXX-DV</span>
+                      <span className="text-[10px] text-warning font-mono shrink-0">XXXXXX-DV</span>
                     )}
                   </div>
                   <div className="flex gap-1">
@@ -1189,33 +1189,40 @@ export function PosTerminal({
                           handleLookupDnit();
                         }
                       }}
-                      placeholder="Ej: 80134022-5 o dejar vacío"
-                      className="w-full min-w-0 bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono font-bold text-foreground focus:outline-none focus:border-primary text-xs"
+                      placeholder={docType === 'TICKET' ? 'RUC / CI (opcional)' : 'Ej: 80134022-5'}
+                      className="w-full min-w-0 h-8 bg-[#0d121c] border border-card-border rounded-md px-2.5 font-mono font-bold text-foreground focus:outline-none focus:border-primary text-xs"
                     />
                     <button
                       type="button"
                       onClick={handleLookupDnit}
                       disabled={lookingUpDnit}
                       title="Consultar RUC o C.I. en DNIT y Agenda Local"
-                      className="px-2.5 py-1.5 rounded-md bg-primary/15 border border-primary/40 text-primary hover:bg-primary/25 font-mono text-xs font-semibold flex items-center gap-1 shrink-0"
+                      className="h-8 px-2.5 rounded-md bg-primary/15 border border-primary/40 text-primary hover:bg-primary/25 font-mono text-xs font-semibold flex items-center gap-1 shrink-0"
                     >
                       {lookingUpDnit ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Search className="w-3.5 h-3.5" />}
                       <span>DNIT</span>
                     </button>
                   </div>
                 </div>
-                <div className="col-span-6">
-                  <label className="block text-xs font-mono text-muted-foreground mb-1">
-                    {docType === 'INVOICE' ? 'Razón Social Oficial *' : 'Nombre del Cliente (solo nombre si no hay CI)'}
-                  </label>
+                <div className="col-span-6 min-w-0">
+                  <div className="h-5 flex justify-between items-center gap-1 mb-1">
+                    <label className="text-[11px] font-mono text-muted-foreground truncate">
+                      {docType === 'INVOICE' ? 'Razón Social Oficial *' : 'Nombre del Cliente'}
+                    </label>
+                    {docType === 'TICKET' && (
+                      <span className="text-[10px] text-emerald-400 font-mono shrink-0">
+                        Mostrador
+                      </span>
+                    )}
+                  </div>
                   <input
                     type="text"
                     value={customerName}
                     onChange={(e) => setCustomerName(e.target.value)}
                     onFocus={(e) => e.target.select()}
                     onClick={(e) => (e.target as HTMLInputElement).select()}
-                    placeholder={docType === 'TICKET' ? 'Ej: Don Pedro (o dejar vacío)' : 'Nombre o Razón Social'}
-                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground font-semibold focus:outline-none focus:border-primary text-xs truncate"
+                    placeholder={docType === 'TICKET' ? 'Ej: Don Pedro (opcional)' : 'Nombre o Razón Social'}
+                    className="w-full h-8 bg-[#0d121c] border border-card-border rounded-md px-2.5 text-foreground font-semibold focus:outline-none focus:border-primary text-xs truncate"
                   />
                 </div>
               </div>
@@ -1228,22 +1235,24 @@ export function PosTerminal({
               )}
 
               {/* Carga Rápida de Dirección y Enlace Google Maps (Opcional / Diferible) */}
-              <div className="grid grid-cols-12 gap-2">
-                <div className="col-span-7">
-                  <label className="block text-xs font-mono text-muted-foreground mb-1">
-                    Dirección (Opcional, se puede completar luego)
-                  </label>
+              <div className="grid grid-cols-12 gap-2 items-end">
+                <div className="col-span-7 min-w-0">
+                  <div className="h-5 flex items-center justify-between gap-1 mb-1">
+                    <label className="text-[11px] font-mono text-muted-foreground truncate">
+                      Dirección (opcional)
+                    </label>
+                  </div>
                   <input
                     type="text"
                     value={customerAddress}
                     onChange={(e) => setCustomerAddress(e.target.value)}
                     placeholder="Ej: Avda. Defensores del Chaco..."
-                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 text-foreground focus:outline-none focus:border-primary text-xs"
+                    className="w-full h-8 bg-[#0d121c] border border-card-border rounded-md px-2.5 text-foreground focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
-                <div className="col-span-5">
-                  <div className="flex items-center justify-between mb-1">
-                    <label className="text-xs font-mono text-muted-foreground truncate">Google Maps</label>
+                <div className="col-span-5 min-w-0">
+                  <div className="h-5 flex items-center justify-between gap-1 mb-1">
+                    <label className="text-[11px] font-mono text-muted-foreground truncate">Google Maps</label>
                     {(googleMapsUrl.trim() || customerAddress.trim()) && (
                       <button
                         type="button"
@@ -1267,8 +1276,8 @@ export function PosTerminal({
                     type="text"
                     value={googleMapsUrl}
                     onChange={(e) => setGoogleMapsUrl(e.target.value)}
-                    placeholder="Pegar link de Maps..."
-                    className="w-full bg-[#0d121c] border border-card-border rounded-md px-2.5 py-1.5 font-mono text-foreground focus:outline-none focus:border-primary text-xs"
+                    placeholder="Link de Maps..."
+                    className="w-full h-8 bg-[#0d121c] border border-card-border rounded-md px-2.5 font-mono text-foreground focus:outline-none focus:border-primary text-xs"
                   />
                 </div>
               </div>

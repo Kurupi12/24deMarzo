@@ -29,6 +29,9 @@ interface ProductsTableProps {
   onEditProduct: (product: ProductItem) => void;
   onDeleteProduct: (product: ProductItem) => void;
   onSkuUpdated?: () => void;
+  selectedProductIds?: Set<string>;
+  onToggleProductSelect?: (product: ProductItem) => void;
+  onToggleAllVisible?: (products: ProductItem[], selectAll: boolean) => void;
 }
 
 export function ProductsTable({
@@ -41,6 +44,9 @@ export function ProductsTable({
   onEditProduct,
   onDeleteProduct,
   onSkuUpdated,
+  selectedProductIds,
+  onToggleProductSelect,
+  onToggleAllVisible,
 }: ProductsTableProps) {
   const { alert: customAlert } = useCustomDialog();
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -98,12 +104,29 @@ export function ProductsTable({
     );
   }
 
+  const allVisibleSelected =
+    Boolean(selectedProductIds) &&
+    products.length > 0 &&
+    products.every((p) => selectedProductIds!.has(p.id));
+
   return (
     <div className="bg-card border border-card-border rounded-lg overflow-hidden flex flex-col">
       <div className="overflow-x-auto">
         <table className="w-full text-left text-xs">
           <thead className="bg-[#0d121c] border-b border-card-border text-[11px] font-mono uppercase text-muted-foreground">
             <tr>
+              {onToggleProductSelect && (
+                <th className="py-2.5 px-3 w-9 text-center">
+                  <input
+                    type="checkbox"
+                    checked={allVisibleSelected}
+                    onChange={(e) => onToggleAllVisible?.(products, e.target.checked)}
+                    title="Seleccionar todos los productos visibles para Control de Stock"
+                    aria-label="Seleccionar todos los productos visibles"
+                    className="w-3.5 h-3.5 rounded border-card-border accent-primary cursor-pointer"
+                  />
+                </th>
+              )}
               <th className="py-2.5 px-3">SKU</th>
               <th className="py-2.5 px-3">Descripción</th>
               <th className="py-2.5 px-3">Medida</th>
@@ -122,9 +145,27 @@ export function ProductsTable({
               const isCritical = currentStock <= 0;
               const isLow = currentStock > 0 && currentStock <= minStock;
               const isEditing = editingId === p.id;
+              const isSelected = Boolean(selectedProductIds?.has(p.id));
 
               return (
-                <tr key={p.id} className="hover:bg-muted/20 transition-colors">
+                <tr
+                  key={p.id}
+                  className={`hover:bg-muted/20 transition-colors ${
+                    isSelected ? 'bg-primary/10' : ''
+                  }`}
+                >
+                  {onToggleProductSelect && (
+                    <td className="py-2 px-3 text-center">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => onToggleProductSelect(p)}
+                        title="Incluir en hoja de control de stock físico"
+                        aria-label={`Seleccionar ${p.name}`}
+                        className="w-3.5 h-3.5 rounded border-card-border accent-primary cursor-pointer"
+                      />
+                    </td>
+                  )}
                   {/* SKU Editable en línea */}
                   <td className="py-2 px-3 font-bold text-foreground">
                     {isEditing ? (

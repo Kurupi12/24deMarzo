@@ -202,6 +202,56 @@ input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
     color: #000000 !important;
     border-color: #000000 !important;
   }
+
+  /* Impresión A4 multipágina para Planilla de Control de Stock Físico */
+  body.printing-stock-count {
+    background: #ffffff !important;
+    color: #000000 !important;
+    overflow: visible !important;
+    position: static !important;
+    height: auto !important;
+    width: 100% !important;
+  }
+
+  body.printing-stock-count aside,
+  body.printing-stock-count header,
+  body.printing-stock-count #inventory-main-ui {
+    display: none !important;
+  }
+
+  body.printing-stock-count .pl-64,
+  body.printing-stock-count main {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  body.printing-stock-count #printable-stock-count-modal,
+  body.printing-stock-count #printable-stock-count-dialog,
+  body.printing-stock-count #printable-stock-count-scroll {
+    position: static !important;
+    inset: auto !important;
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    max-height: none !important;
+    height: auto !important;
+    overflow: visible !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    border: none !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+  }
+
+  body.printing-stock-count #printable-stock-count-sheet {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 4mm !important;
+    margin: 0 !important;
+    box-shadow: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
 }
 
 

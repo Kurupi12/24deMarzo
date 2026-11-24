@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
 import { generateSifenCdc } from '@/shared/utils/cdc-generator';
+import { requireOpenCashShift } from '@/modules/billing/utils/cash-movement-sync';
+import { AppError } from '@/shared/errors/app-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -42,12 +44,8 @@ export async function POST(
 
     const warehouse = await prisma.warehouse.findFirst({ where: { isMain: true } });
 
-    // Buscar turno de caja abierto para registrar el saldo cobrado
-    const openShift = await prisma.cashShift.findFirst({
-      where: { isOpen: true },
-      orderBy: { openedAt: 'desc' },
-      select: { id: true },
-    });
+    // Exigir turno de caja abierto para despachar pedidos y cobrar saldo
+    const openShift = await requireOpenCashShift(prisma);
 
     // Ejecutar transacción atómica de despacho
     const updatedSale = await prisma.$transaction(
@@ -167,6 +165,12 @@ export async function POST(
 
     return NextResponse.json(createSuccessResponse(updatedSale));
   } catch (error: any) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        createErrorResponse(error.message, error.code || 'DISPATCH_PROCESS_ERROR'),
+        { status: error.statusCode }
+      );
+    }
     return NextResponse.json(
       createErrorResponse(error.message, 'DISPATCH_PROCESS_ERROR'),
       { status: 500 }

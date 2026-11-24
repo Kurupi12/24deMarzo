@@ -42,8 +42,12 @@ interface CustomerAccountSummary {
 
 export function CustomerAccountsPanel({
   onViewInvoice,
+  isCashShiftOpen,
+  onGoToShifts,
 }: {
   onViewInvoice: (sale: any) => void;
+  isCashShiftOpen?: boolean | null;
+  onGoToShifts?: () => void;
 }) {
   const { alert: customAlert } = useCustomDialog();
   const [accounts, setAccounts] = useState<CustomerAccountSummary[]>([]);
@@ -154,6 +158,14 @@ export function CustomerAccountsPanel({
     acc: { customerRuc: string; customerName: string; currentBalance?: number },
     mode: 'full_no_invoice' | 'partial' = 'full_no_invoice'
   ) => {
+    if (isCashShiftOpen === false) {
+      customAlert({
+        title: 'Caja del Día Cerrada',
+        message: 'Debe abrir el turno de caja en "Control de Cajas" antes de cobrar o registrar pagos en libreta.',
+        variant: 'warning',
+      });
+      return;
+    }
     const balance = acc.currentBalance && acc.currentBalance > 0 ? acc.currentBalance : 0;
     setPaymentMode(mode);
     setPaymentCustomer({ ruc: acc.customerRuc, name: acc.customerName, currentBalance: balance });
@@ -172,6 +184,14 @@ export function CustomerAccountsPanel({
     totalDelivered?: number;
     customerAddress?: string | null;
   }) => {
+    if (isCashShiftOpen === false) {
+      customAlert({
+        title: 'Caja del Día Cerrada',
+        message: 'Debe abrir el turno de caja en "Control de Cajas" antes de facturar o saldar cuentas corrientes.',
+        variant: 'warning',
+      });
+      return;
+    }
     const balance = acc.currentBalance && acc.currentBalance > 0 ? acc.currentBalance : 0;
     const defaultAmt = balance > 0 ? balance : acc.totalDelivered || 0;
     setInvoiceCustomer({

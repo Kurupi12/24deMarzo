@@ -1,5 +1,7 @@
-import { CashMovementType, Prisma } from '@prisma/client';
+import { CashMovementType, Prisma, PrismaClient } from '@prisma/client';
 import { AppError } from '@/shared/errors/app-error';
+
+type DbClient = PrismaClient | Prisma.TransactionClient;
 
 export interface OptionalCashExpenseInput {
   type: CashMovementType;
@@ -8,6 +10,27 @@ export interface OptionalCashExpenseInput {
   description: string;
   beneficiary?: string | null;
   receiptNo?: string | null;
+}
+
+/**
+ * Obtiene el turno de caja abierto actual o lanza un error claro si la caja está cerrada.
+ */
+export async function requireOpenCashShift(db: DbClient) {
+  const openShift = await db.cashShift.findFirst({
+    where: { isOpen: true },
+    orderBy: { openedAt: 'desc' },
+    select: { id: true, openedAt: true },
+  });
+
+  if (!openShift) {
+    throw new AppError(
+      'La caja del día está cerrada. Abra el turno en "Control de Cajas" para poder vender, facturar o cobrar. (Los Presupuestos sí se pueden emitir con caja cerrada).',
+      400,
+      'CASH_SHIFT_CLOSED'
+    );
+  }
+
+  return openShift;
 }
 
 /**

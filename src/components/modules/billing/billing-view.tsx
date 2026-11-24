@@ -11,7 +11,7 @@ import { ScheduledOrdersPanel } from './scheduled-orders-panel';
 import { ScheduledOrdersAlertBanner } from './scheduled-orders-alert-banner';
 import { QuotationsPanel } from './quotations-panel';
 import { EditSaleCustomerModal } from './edit-sale-customer-modal';
-import { ReceiptText, History, Landmark, DollarSign, Receipt, CheckCircle2, BookOpen, Calendar, FileSpreadsheet } from 'lucide-react';
+import { ReceiptText, History, Landmark, DollarSign, Receipt, CheckCircle2, BookOpen, Calendar, FileSpreadsheet, Lock } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 
 export function BillingView() {
@@ -28,6 +28,19 @@ export function BillingView() {
   const [confirmingPreview, setConfirmingPreview] = useState(false);
   const [saleToEditCustomer, setSaleToEditCustomer] = useState<any>(null);
   const [quotationForPos, setQuotationForPos] = useState<any>(null);
+  const [isCashShiftOpen, setIsCashShiftOpen] = useState<boolean | null>(null);
+
+  const fetchCashShiftStatus = useCallback(async () => {
+    try {
+      const res = await fetch('/api/v1/billing/shifts');
+      const json = await res.json();
+      if (json.success) {
+        setIsCashShiftOpen(!!json.data?.currentShift);
+      }
+    } catch {
+      // Ignorar errores transitorios de red
+    }
+  }, []);
 
   const fetchSales = useCallback(async () => {
     setLoading(true);
@@ -43,6 +56,10 @@ export function BillingView() {
   useEffect(() => {
     fetchSales();
   }, [fetchSales]);
+
+  useEffect(() => {
+    fetchCashShiftStatus();
+  }, [activeTab, fetchCashShiftStatus]);
 
   // Totales acumulados
   const totalBilled = sales.reduce((sum, s) => sum + Number(s.grandTotal), 0);
@@ -70,6 +87,25 @@ export function BillingView() {
           Emisión de DTEs fiscales con CDC de 44 dígitos, liquidación de IVA y control de turnos de caja.
         </p>
       </div>
+
+      {/* Alerta Destacada de Caja Cerrada */}
+      {isCashShiftOpen === false && activeTab !== 'shifts' && (
+        <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/40 flex flex-wrap items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2.5 text-amber-200">
+            <Lock className="w-4 h-4 text-amber-400 shrink-0" />
+            <span>
+              <strong>Caja Cerrada:</strong> Solo podés emitir <strong>Presupuestos</strong> (no modifican stock). Para vender, facturar o cobrar, abrí la caja del día.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setActiveTab('shifts')}
+            className="px-3.5 py-1.5 rounded-lg bg-amber-500 hover:bg-amber-400 text-black font-bold text-xs shrink-0 transition-colors"
+          >
+            Abrir Caja Ahora
+          </button>
+        </div>
+      )}
 
       {/* Alerta Destacada de Entregas Programadas para HOY */}
       <ScheduledOrdersAlertBanner onViewScheduled={() => setActiveTab('scheduled')} />
@@ -205,6 +241,8 @@ export function BillingView() {
       {activeTab === 'pos' ? (
         <PosTerminal
           initialQuotation={quotationForPos}
+          isCashShiftOpen={isCashShiftOpen}
+          onGoToShifts={() => setActiveTab('shifts')}
           onQuotationLoaded={() => setQuotationForPos(null)}
           onPreviewRequest={(draftSale, onConfirm) => {
             setPreviewState({ sale: draftSale, onConfirm });
@@ -212,6 +250,7 @@ export function BillingView() {
           onSaleCompleted={(sale) => {
             setPreviewState(null);
             fetchSales();
+            fetchCashShiftStatus();
             if (sale) {
               setSelectedSaleForDetail(sale);
             }
@@ -233,9 +272,18 @@ export function BillingView() {
           onEditCustomer={setSaleToEditCustomer}
         />
       ) : activeTab === 'shifts' ? (
-        <CashShiftPanel onTransferUpdated={fetchSales} />
+        <CashShiftPanel
+          onTransferUpdated={() => {
+            fetchSales();
+            fetchCashShiftStatus();
+          }}
+        />
       ) : activeTab === 'accounts' ? (
-        <CustomerAccountsPanel onViewInvoice={setSelectedSaleForDetail} />
+        <CustomerAccountsPanel
+          onViewInvoice={setSelectedSaleForDetail}
+          isCashShiftOpen={isCashShiftOpen}
+          onGoToShifts={() => setActiveTab('shifts')}
+        />
       ) : (
         <ScheduledOrdersPanel onOrderDispatched={fetchSales} />
       )}

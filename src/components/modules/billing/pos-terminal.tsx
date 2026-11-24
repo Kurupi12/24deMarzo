@@ -46,6 +46,8 @@ interface PosTerminalProps {
   onPreviewRequest?: (draftSale: any, onConfirm: () => Promise<void>) => void;
   initialQuotation?: any | null;
   onQuotationLoaded?: () => void;
+  isCashShiftOpen?: boolean | null;
+  onGoToShifts?: () => void;
 }
 
 export function PosTerminal({
@@ -53,6 +55,8 @@ export function PosTerminal({
   onPreviewRequest,
   initialQuotation,
   onQuotationLoaded,
+  isCashShiftOpen,
+  onGoToShifts,
 }: PosTerminalProps) {
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
@@ -524,6 +528,15 @@ export function PosTerminal({
     }
 
     const isQuotation = docType === 'QUOTATION';
+
+    if (!isQuotation && isCashShiftOpen === false) {
+      customAlert({
+        title: 'Caja del Día Cerrada',
+        message: 'La caja está cerrada. Solo podés emitir Presupuestos (no modifican stock). Abrí la caja en "Control de Cajas" para vender, facturar o cobrar.',
+        variant: 'warning',
+      });
+      return false;
+    }
 
     if (!isQuotation && paymentCondition !== 'A_CUENTA' && paymentMethod === 'CHEQUE' && !paymentReference.trim()) {
       customAlert({
@@ -1706,6 +1719,32 @@ export function PosTerminal({
               <span className="text-emerald-400">{formatCurrencyPYG(breakdown.grandTotal)}</span>
             </div>
           </div>
+
+          {isCashShiftOpen === false && docType !== 'QUOTATION' && (
+            <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/40 text-xs text-amber-200 flex flex-wrap items-center justify-between gap-2">
+              <span>
+                <strong>Caja cerrada:</strong> Solo podés emitir Presupuestos (sin stock ni cobro).
+              </span>
+              <div className="flex items-center gap-1.5 shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setDocType('QUOTATION')}
+                  className="px-2.5 py-1 rounded bg-cyan-600/25 border border-cyan-500/40 text-cyan-200 hover:bg-cyan-600/40 font-mono text-[11px] font-semibold"
+                >
+                  Cambiar a Presupuesto
+                </button>
+                {onGoToShifts && (
+                  <button
+                    type="button"
+                    onClick={onGoToShifts}
+                    className="px-2.5 py-1 rounded bg-amber-500 text-black hover:bg-amber-400 font-mono text-[11px] font-bold"
+                  >
+                    Ir a Abrir Caja
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col sm:flex-row gap-2">
             {onPreviewRequest && (

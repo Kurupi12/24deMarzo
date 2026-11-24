@@ -4,6 +4,8 @@ import { BillingService } from '@/modules/billing/services/billing.service';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
 import { getSessionUser } from '@/lib/auth/session';
 import { createCustomerAccountPayment } from '@/modules/billing/utils/customer-account-payment';
+import { requireOpenCashShift } from '@/modules/billing/utils/cash-movement-sync';
+import { AppError } from '@/shared/errors/app-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,12 +64,8 @@ export async function POST(req: NextRequest) {
       userId = user.id;
     }
 
-    // Obtener turno de caja abierto si hubiere
-    const openShift = await prisma.cashShift.findFirst({
-      where: { isOpen: true },
-      orderBy: { openedAt: 'desc' },
-      select: { id: true },
-    });
+    // Exigir turno de caja abierto para cobrar/facturar cuentas corrientes
+    const openShift = await requireOpenCashShift(prisma);
 
     // Obtener o crear el artículo genérico de consolidación de materiales varios
     let genericProduct = await prisma.product.findFirst({
@@ -143,6 +141,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(createSuccessResponse({ ...sale, settlementPayment }), { status: 201 });
   } catch (error: any) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        createErrorResponse(error.message, error.code || 'MONTH_INVOICE_PROCESS_ERROR'),
+        { status: error.statusCode }
+      );
+    }
     return NextResponse.json(
       createErrorResponse(error.message, 'MONTH_INVOICE_PROCESS_ERROR'),
       { status: 500 }

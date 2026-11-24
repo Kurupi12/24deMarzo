@@ -4,6 +4,7 @@ import { CreateSaleSchema } from '@/modules/billing/validators/sale.schema';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
 import { AppError } from '@/shared/errors/app-error';
 import { prisma } from '@/lib/prisma';
+import { requireOpenCashShift } from '@/modules/billing/utils/cash-movement-sync';
 
 export const dynamic = 'force-dynamic';
 
@@ -59,17 +60,12 @@ export async function POST(req: NextRequest) {
       if (exists) userId = exists.id;
     }
 
-    // Vincular automáticamente al turno de caja actualmente abierto si no es presupuesto
-    let cashShiftId = validatedDto.isQuotation ? null : (validatedDto.cashShiftId || null);
-    if (!validatedDto.isQuotation && !cashShiftId) {
-      const openShift = await prisma.cashShift.findFirst({
-        where: { isOpen: true },
-        orderBy: { openedAt: 'desc' },
-        select: { id: true },
-      });
-      if (openShift) {
-        cashShiftId = openShift.id;
-      }
+    // Exigir caja abierta para ventas, facturas, reservas o entregas a cuenta.
+    // Los Presupuestos NO tocan stock ni caja, por lo que sí pueden emitirse con caja cerrada.
+    let cashShiftId: string | null = null;
+    if (!validatedDto.isQuotation) {
+      const openShift = await requireOpenCashShift(prisma);
+      cashShiftId = validatedDto.cashShiftId || openShift.id;
     }
 
     const sale = await billingService.processSale({

@@ -95,7 +95,14 @@ export function SalesHistoryTable({ sales, loading, onViewInvoice, onEditCustome
                   <td className="py-2.5 px-3 text-[11px] font-sans">
                     <span className="block text-foreground">{s.paymentCondition}</span>
                     <span className="text-[10px] text-muted-foreground">{s.paymentMethod.replace(/_/g, ' ')}</span>
-                    {s.paymentReference ? (
+                    {s.status === 'CANCELLED' && s.deliveryNotes ? (
+                      <span
+                        className="block text-[9.5px] font-mono text-danger/90 truncate max-w-[200px] mt-0.5"
+                        title={s.deliveryNotes}
+                      >
+                        {s.deliveryNotes}
+                      </span>
+                    ) : s.paymentReference ? (
                       <span className="block text-[9.5px] font-mono text-blue-400 font-semibold truncate max-w-[120px]" title="Comprobante de Transferencia">
                         Ref: {s.paymentReference}
                       </span>
@@ -118,9 +125,18 @@ export function SalesHistoryTable({ sales, loading, onViewInvoice, onEditCustome
                     {formatCurrencyPYG(Number(s.grandTotal))}
                   </td>
                   <td className="py-2.5 px-3 text-center">
-                    <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
-                      <CheckCircle2 className="w-3 h-3" /> Aprobado
-                    </span>
+                    {s.status === 'CANCELLED' ? (
+                      <span
+                        title={s.deliveryNotes || 'Pedido anulado y stock devuelto'}
+                        className="inline-flex items-center gap-1 text-[10px] text-danger bg-danger/10 px-2 py-0.5 rounded border border-danger/30 font-bold"
+                      >
+                        ANULADO
+                      </span>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 text-[10px] text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 font-bold">
+                        <CheckCircle2 className="w-3 h-3" /> Aprobado
+                      </span>
+                    )}
                   </td>
                   <td className="py-2.5 px-3 text-center">
                     <div className="inline-flex items-center gap-1.5">

@@ -23,6 +23,8 @@ import {
   FileDown,
   MessageCircle,
   Loader2,
+  Trash2,
+  RotateCcw,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
@@ -40,6 +42,23 @@ interface CustomerAccountSummary {
   lastActivity: string;
 }
 
+interface CancelledOrderAudit {
+  id: string;
+  saleNumber: string;
+  customerName: string;
+  customerRuc: string;
+  grandTotal: number;
+  createdAt: string;
+  cancelledAt: string;
+  deliveryNotes: string;
+  items: Array<{
+    name: string;
+    sku: string;
+    unitOfMeasure: string;
+    quantity: number;
+  }>;
+}
+
 export function CustomerAccountsPanel({
   onViewInvoice,
   isCashShiftOpen,
@@ -51,12 +70,18 @@ export function CustomerAccountsPanel({
 }) {
   const { alert: customAlert } = useCustomDialog();
   const [accounts, setAccounts] = useState<CustomerAccountSummary[]>([]);
+  const [cancelledOrders, setCancelledOrders] = useState<CancelledOrderAudit[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
-  const [accountFilter, setAccountFilter] = useState<'pending' | 'settled'>('pending');
+  const [accountFilter, setAccountFilter] = useState<'pending' | 'settled' | 'cancelled'>('pending');
   const [selectedRuc, setSelectedRuc] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<any | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
+
+  // Modal: Anular / Eliminar Pedido en Libreta (habilitado para todo mostrador, con auditoría)
+  const [orderToCancel, setOrderToCancel] = useState<any | null>(null);
+  const [cancelReason, setCancelReason] = useState('');
+  const [cancellingOrder, setCancellingOrder] = useState(false);
 
   // Modal: Registrar Pago a Cuenta (Total Sin Factura o Abono Parcial)
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -114,12 +139,57 @@ export function CustomerAccountsPanel({
       const res = await fetch('/api/v1/billing/customer-accounts');
       const json = await res.json();
       if (json.success) {
-        setAccounts(json.data || []);
+        const nextAccounts = Array.isArray(json.data) ? json.data : json.data?.accounts || [];
+        const nextCancelled = Array.isArray(json.data) ? [] : json.data?.cancelledOrders || [];
+        setAccounts(nextAccounts);
+        setCancelledOrders(nextCancelled);
       }
     } catch {
       // Ignorar errores transitorios
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleConfirmCancelOrder = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!orderToCancel) return;
+    setCancellingOrder(true);
+    try {
+      const res = await fetch(`/api/v1/billing/sales/${orderToCancel.id}`, {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ reason: cancelReason.trim() || 'Pedido cancelado o no entregado en libreta' }),
+      });
+      const json = await res.json();
+      if (res.ok && json.success) {
+        const cancelledSaleNumber = orderToCancel.saleNumber;
+        setOrderToCancel(null);
+        setCancelReason('');
+        await Promise.all([
+          fetchAccounts(),
+          selectedRuc ? fetchDetail(selectedRuc) : Promise.resolve(),
+        ]);
+        customAlert({
+          title: 'Pedido Anulado y Stock Devuelto',
+          message: `El pedido ${cancelledSaleNumber} fue anulado de la libreta. Todos los productos volvieron al inventario y el registro quedó guardado en Auditoría (pestaña Anulados, Historial de Ventas y Kardex).`,
+          variant: 'success',
+        });
+      } else {
+        customAlert({
+          title: 'No se pudo anular el pedido',
+          message: json.error?.message || 'Error al anular el pedido de libreta.',
+          variant: 'danger',
+        });
+      }
+    } catch {
+      customAlert({
+        title: 'Error de conexión',
+        message: 'No se pudo conectar con el servidor para anular el pedido.',
+        variant: 'danger',
+      });
+    } finally {
+      setCancellingOrder(false);
     }
   };
 
@@ -333,11 +403,22 @@ export function CustomerAccountsPanel({
   const settledAccountsCount = accounts.filter((a) => a.currentBalance <= 0).length;
 
   const filteredAccounts = accounts.filter((a) => {
+    if (accountFilter === 'cancelled') return false;
     const matchesStatus = accountFilter === 'pending' ? a.currentBalance > 0 : a.currentBalance <= 0;
     const matchesSearch =
       a.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
       a.customerRuc.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesSearch;
+  });
+
+  const filteredCancelledOrders = cancelledOrders.filter((co) => {
+    const q = searchQuery.toLowerCase();
+    return (
+      co.customerName.toLowerCase().includes(q) ||
+      co.customerRuc.toLowerCase().includes(q) ||
+      co.saleNumber.toLowerCase().includes(q) ||
+      co.deliveryNotes.toLowerCase().includes(q)
+    );
   });
 
   const totalGlobalDebt = accounts.reduce((sum, a) => sum + (a.currentBalance > 0 ? a.currentBalance : 0), 0);
@@ -417,6 +498,20 @@ export function CustomerAccountsPanel({
             >
               Saldados / Historial ({settledAccountsCount})
             </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAccountFilter('cancelled');
+                setSelectedRuc(null);
+              }}
+              className={`px-3 py-1 rounded transition-colors ${
+                accountFilter === 'cancelled'
+                  ? 'bg-red-500/20 text-red-300 border border-red-500/40 font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Anulados ({cancelledOrders.length})
+            </button>
           </div>
 
           <div className="relative w-full sm:w-72">
@@ -441,6 +536,78 @@ export function CustomerAccountsPanel({
       </div>
 
       {/* Contenido Principal: Listado y Detalle Dividido */}
+      {accountFilter === 'cancelled' ? (
+        <div className="space-y-3">
+          {loading ? (
+            <div className="p-8 text-center text-xs text-muted-foreground font-mono">
+              Cargando historial de pedidos anulados...
+            </div>
+          ) : filteredCancelledOrders.length === 0 ? (
+            <div className="p-8 text-center bg-card border border-card-border rounded-lg text-xs text-muted-foreground font-mono">
+              No hay pedidos de libreta anulados registrados. Cuando un pedido se anula, el stock regresa al depósito y el registro queda auditado aquí.
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 gap-3">
+              {filteredCancelledOrders.map((co) => (
+                <div
+                  key={co.id}
+                  className="p-4 rounded-lg bg-card border border-red-500/30 space-y-2.5"
+                >
+                  <div className="flex flex-wrap items-start justify-between gap-2">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-mono font-bold text-red-400">
+                          {co.saleNumber}
+                        </span>
+                        <span className="px-2 py-0.5 rounded bg-red-500/15 border border-red-500/30 text-[10px] font-mono font-bold text-red-300 flex items-center gap-1">
+                          <RotateCcw className="w-3 h-3" />
+                          ANULADO &bull; STOCK DEVUELTO
+                        </span>
+                      </div>
+                      <h4 className="text-xs font-bold text-foreground mt-1">
+                        {co.customerName}{' '}
+                        <span className="font-mono font-normal text-muted-foreground">
+                          (RUC: {co.customerRuc})
+                        </span>
+                      </h4>
+                    </div>
+
+                    <div className="text-right font-mono">
+                      <span className="text-xs font-bold text-red-300 line-through block">
+                        {formatCurrencyPYG(co.grandTotal)}
+                      </span>
+                      <span className="text-[10px] text-muted-foreground">
+                        Pedido: {new Date(co.createdAt).toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric' })} &bull; Anulado:{' '}
+                        {new Date(co.cancelledAt).toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric' })}{' '}
+                        {new Date(co.cancelledAt).toLocaleTimeString('es-PY', { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                    </div>
+                  </div>
+
+                  {co.deliveryNotes && (
+                    <div className="p-2.5 rounded bg-red-950/25 border border-red-500/20 text-[11px] font-mono text-red-200 whitespace-pre-wrap">
+                      {co.deliveryNotes}
+                    </div>
+                  )}
+
+                  {co.items && co.items.length > 0 && (
+                    <div className="pt-1 flex flex-wrap gap-1.5">
+                      {co.items.map((it, idx) => (
+                        <span
+                          key={idx}
+                          className="px-2 py-0.5 rounded bg-[#0d121c] border border-card-border text-[10px] font-mono text-muted-foreground"
+                        >
+                          +{it.quantity} {it.unitOfMeasure} &bull; {it.name}
+                        </span>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Lista de Clientes con Cuenta Corriente (Izquierda) */}
         <div className={`${selectedRuc ? 'lg:col-span-5' : 'lg:col-span-12'} space-y-2`}>
@@ -729,13 +896,29 @@ export function CustomerAccountsPanel({
                             </td>
                             <td className="py-2 px-3 text-right text-muted-foreground">-</td>
                             <td className="py-2 px-3 text-center">
-                              <button
-                                type="button"
-                                onClick={() => onViewInvoice(ord)}
-                                className="text-[10px] text-primary hover:underline"
-                              >
-                                Ver Orden
-                              </button>
+                              <div className="flex items-center justify-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => onViewInvoice(ord)}
+                                  className="text-[10px] text-primary hover:underline"
+                                >
+                                  Ver Orden
+                                </button>
+                                {!ord.invoice && (
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      setOrderToCancel(ord);
+                                      setCancelReason('');
+                                    }}
+                                    className="px-1.5 py-0.5 rounded bg-red-500/15 hover:bg-red-500/30 text-red-400 border border-red-500/30 text-[10px] font-semibold flex items-center gap-1 transition-colors"
+                                    title="Anular pedido de libreta y devolver productos al stock"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                    <span>Anular</span>
+                                  </button>
+                                )}
+                              </div>
                             </td>
                           </tr>
                         ))}
@@ -775,6 +958,7 @@ export function CustomerAccountsPanel({
           </div>
         )}
       </div>
+      )}
 
       {/* ================= MODAL 1: REGISTRAR PAGO A CUENTA (COBRO DE VIERNES) ================= */}
       {showPaymentModal && paymentCustomer && (
@@ -1030,6 +1214,104 @@ export function CustomerAccountsPanel({
                 >
                   <Printer className="w-3.5 h-3.5" />
                   <span>{submittingInvoice ? 'Emitiendo en DNIT...' : 'Emitir Factura SIFEN'}</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Confirmar Anulación de Pedido de Libreta y Devolución de Stock */}
+      {orderToCancel && (
+        <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="w-full max-w-md bg-card border border-red-500/40 rounded-lg shadow-2xl overflow-hidden text-xs">
+            <div className="px-5 py-3.5 bg-red-500/10 border-b border-red-500/20 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Trash2 className="w-4 h-4 text-red-400" />
+                <h3 className="text-sm font-semibold text-foreground">
+                  Anular Pedido de Libreta
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setOrderToCancel(null)}
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmCancelOrder} className="p-5 space-y-3.5">
+              <div className="p-3 rounded bg-[#0d121c] border border-card-border space-y-1 font-mono">
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Orden N°:</span>
+                  <span className="font-bold text-foreground">{orderToCancel.saleNumber}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-muted-foreground">Monto descontado de libreta:</span>
+                  <span className="font-bold text-amber-400">
+                    {formatCurrencyPYG(Number(orderToCancel.grandTotal))}
+                  </span>
+                </div>
+              </div>
+
+              {orderToCancel.items && orderToCancel.items.length > 0 && (
+                <div className="p-3 rounded bg-emerald-500/5 border border-emerald-500/25 space-y-1.5">
+                  <span className="text-[11px] font-semibold text-emerald-300 flex items-center gap-1.5">
+                    <RotateCcw className="w-3.5 h-3.5" />
+                    Productos que volverán al stock automáticamente:
+                  </span>
+                  <ul className="space-y-0.5 text-[11px] font-mono text-muted-foreground max-h-28 overflow-y-auto">
+                    {orderToCancel.items.map((it: any, i: number) => (
+                      <li key={i}>
+                        + {Number(it.quantity)} {it.product?.unitOfMeasure || ''} &bull;{' '}
+                        {it.product?.name || 'Producto'}
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-[11px] font-mono font-semibold text-foreground mb-1">
+                  Motivo de anulación / cambio *
+                </label>
+                <textarea
+                  required
+                  rows={2}
+                  value={cancelReason}
+                  onChange={(e) => setCancelReason(e.target.value)}
+                  placeholder="Ej: El cliente canceló antes de salir el camión / cambio de materiales"
+                  className="w-full bg-[#0d121c] border border-card-border rounded-md p-2.5 text-foreground font-mono text-[11px] focus:outline-none focus:border-red-400"
+                />
+              </div>
+
+              <div className="p-2.5 rounded bg-amber-500/10 border border-amber-500/25 text-[10px] font-mono text-amber-200 flex items-start gap-2">
+                <AlertCircle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <span>
+                  Esta anulación queda registrada con tu nombre de usuario, fecha, hora y motivo en la pestaña Anulados, en Historial de Ventas y en el Kardex de Inventario.
+                </span>
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-card-border">
+                <button
+                  type="button"
+                  onClick={() => setOrderToCancel(null)}
+                  className="px-3 py-1.5 rounded-md border border-card-border text-muted-foreground hover:bg-muted/20"
+                >
+                  Volver
+                </button>
+                <button
+                  type="submit"
+                  disabled={cancellingOrder}
+                  className="px-4 py-1.5 rounded-md bg-red-600 hover:bg-red-700 text-white font-semibold flex items-center gap-1.5 shadow-md"
+                >
+                  {cancellingOrder ? (
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="w-3.5 h-3.5" />
+                  )}
+                  <span>{cancellingOrder ? 'Anulando...' : 'Confirmar Anulación y Devolver Stock'}</span>
                 </button>
               </div>
             </form>

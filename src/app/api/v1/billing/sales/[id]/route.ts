@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
 import { resolveCustomerRuc, syncCustomerMaster } from '@/modules/billing/utils/customer-identity';
+import { getSessionUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
 
@@ -94,26 +95,155 @@ export async function PATCH(
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const sale = await prisma.sale.findUnique({ where: { id: params.id } });
+    const body = await req.json().catch(() => ({}));
+    const rawReason = String(body?.reason || '').trim();
+    const sessionUser = await getSessionUser();
+
+    const sale = await prisma.sale.findUnique({
+      where: { id: params.id },
+      include: {
+        items: true,
+        invoice: true,
+      },
+    });
+
     if (!sale) {
       return NextResponse.json(createErrorResponse('Registro no encontrado', 'NOT_FOUND'), { status: 404 });
     }
-    if (sale.status !== 'QUOTATION') {
+
+    if (sale.status === 'QUOTATION') {
+      await prisma.sale.delete({ where: { id: params.id } });
+      return NextResponse.json(createSuccessResponse({ deleted: true, mode: 'QUOTATION_DELETED' }));
+    }
+
+    if (sale.status === 'CANCELLED') {
       return NextResponse.json(
-        createErrorResponse('Solo se pueden eliminar presupuestos sin facturar.', 'FORBIDDEN'),
+        createErrorResponse('Este pedido ya fue anulado previamente.', 'ALREADY_CANCELLED'),
         { status: 400 }
       );
     }
 
-    await prisma.sale.delete({ where: { id: params.id } });
-    return NextResponse.json(createSuccessResponse({ deleted: true }));
+    if (sale.invoice) {
+      return NextResponse.json(
+        createErrorResponse(
+          'Este pedido ya tiene Factura Electrónica SIFEN emitida y no puede anularse desde libreta.',
+          'INVOICED_FORBIDDEN'
+        ),
+        { status: 400 }
+      );
+    }
+
+    if (sale.paymentCondition !== 'A_CUENTA' && sale.paymentCondition !== 'CREDITO') {
+      return NextResponse.json(
+        createErrorResponse('Solo se pueden anular pedidos de cuenta corriente / libreta sin facturar.', 'FORBIDDEN'),
+        { status: 400 }
+      );
+    }
+
+    const cleanReason = rawReason || 'Pedido cancelado o no entregado desde libreta';
+    let actorId = sessionUser?.id;
+    let actorLabel = sessionUser ? `${sessionUser.name} (${sessionUser.role})` : '';
+    if (!actorId) {
+      const fallbackUser = await prisma.user.findFirst({ select: { id: true, name: true, role: true } });
+      actorId = fallbackUser?.id || sale.userId;
+      actorLabel = fallbackUser ? `${fallbackUser.name} (${fallbackUser.role})` : 'Operador Mostrador';
+    }
+
+    const cancelledAtStr = new Date().toLocaleString('es-PY', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+
+    const auditStamp = `[ANULADO el ${cancelledAtStr} por ${actorLabel} | Motivo: ${cleanReason}]`;
+    const nextDeliveryNotes = [sale.deliveryNotes?.trim(), auditStamp].filter(Boolean).join(' — ');
+
+    const cancelledSale = await prisma.$transaction(async (tx) => {
+      const warehouse = await tx.warehouse.findFirst({ where: { isMain: true } });
+
+      if (warehouse && sale.items.length > 0) {
+        const productIds = sale.items.map((it) => it.productId);
+        const stockItems = await tx.stockItem.findMany({
+          where: {
+            warehouseId: warehouse.id,
+            productId: { in: productIds },
+          },
+        });
+        const stockMap = new Map(stockItems.map((si) => [si.productId, si]));
+
+        const wasOnlyReserved = sale.isScheduled && sale.deliveryStatus !== 'DELIVERED';
+
+        for (const item of sale.items) {
+          const stockItem = stockMap.get(item.productId);
+          if (!stockItem) continue;
+
+          const qty = Number(item.quantity);
+
+          if (wasOnlyReserved) {
+            const prevReserved = Number(stockItem.reservedStock || 0);
+            await tx.stockItem.update({
+              where: { id: stockItem.id },
+              data: { reservedStock: Math.max(0, prevReserved - qty) },
+            });
+          } else {
+            const prevStock = Number(stockItem.currentStock || 0);
+            const newStock = prevStock + qty;
+
+            await tx.stockItem.update({
+              where: { id: stockItem.id },
+              data: { currentStock: newStock },
+            });
+
+            await tx.stockMovement.create({
+              data: {
+                movementType: 'ADJUSTMENT_POSITIVE',
+                productId: item.productId,
+                warehouseId: warehouse.id,
+                quantity: qty,
+                unitCost: Number(item.unitPrice) * 0.7,
+                totalCost: qty * Number(item.unitPrice) * 0.7,
+                previousStock: prevStock,
+                newStock,
+                referenceType: 'ANULACION_LIBRETA',
+                referenceId: sale.id,
+                notes: `Devolución de stock por anulación de pedido en libreta ${sale.saleNumber} (${actorLabel}): ${cleanReason}`,
+                userId: actorId,
+              },
+            });
+          }
+        }
+      }
+
+      return tx.sale.update({
+        where: { id: sale.id },
+        data: {
+          status: 'CANCELLED',
+          balanceDue: 0,
+          deliveryNotes: nextDeliveryNotes,
+        },
+        include: {
+          items: { include: { product: true } },
+          project: true,
+        },
+      });
+    });
+
+    return NextResponse.json(
+      createSuccessResponse({
+        deleted: true,
+        mode: 'LIBRETA_CANCELLED_STOCK_RESTORED',
+        sale: cancelledSale,
+      })
+    );
   } catch (error: any) {
     return NextResponse.json(
-      createErrorResponse(error.message || 'Error al eliminar presupuesto', 'QUOTATION_DELETE_ERROR'),
+      createErrorResponse(error.message || 'Error al anular registro', 'SALE_DELETE_ERROR'),
       { status: 500 }
     );
   }

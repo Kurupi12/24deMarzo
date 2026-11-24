@@ -135,12 +135,51 @@ export async function GET(req: NextRequest) {
       accountsMap.set(r, existing);
     }
 
+    // Listado general de pedidos anulados en libreta (para auditoría visible)
+    const cancelledOrdersRaw = await prisma.sale.findMany({
+      where: {
+        paymentCondition: { in: ['A_CUENTA', 'CREDITO'] },
+        status: 'CANCELLED',
+      },
+      include: {
+        items: {
+          include: {
+            product: { select: { sku: true, name: true, unitOfMeasure: true } },
+          },
+        },
+      },
+      orderBy: { updatedAt: 'desc' },
+      take: 100,
+    });
+
+    const cancelledOrders = cancelledOrdersRaw.map((o) => ({
+      id: o.id,
+      saleNumber: o.saleNumber,
+      customerName: o.customerName,
+      customerRuc: o.customerRuc,
+      grandTotal: Number(o.grandTotal),
+      createdAt: o.createdAt,
+      cancelledAt: o.updatedAt,
+      deliveryNotes: o.deliveryNotes || '',
+      items: o.items.map((it) => ({
+        name: it.product.name,
+        sku: it.product.sku,
+        unitOfMeasure: it.product.unitOfMeasure,
+        quantity: Number(it.quantity),
+      })),
+    }));
+
     const accounts = Array.from(accountsMap.values()).map((acc) => ({
       ...acc,
       currentBalance: acc.totalDelivered - acc.totalPaid,
     }));
 
-    return NextResponse.json(createSuccessResponse(accounts));
+    return NextResponse.json(
+      createSuccessResponse({
+        accounts,
+        cancelledOrders,
+      })
+    );
   } catch (error: any) {
     return NextResponse.json(
       createErrorResponse(error.message, 'CUSTOMER_ACCOUNTS_FETCH_ERROR'),

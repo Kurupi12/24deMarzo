@@ -61,9 +61,10 @@ export function BillingView() {
     fetchCashShiftStatus();
   }, [activeTab, fetchCashShiftStatus]);
 
-  // Totales acumulados
-  const totalBilled = sales.reduce((sum, s) => sum + Number(s.grandTotal), 0);
-  const totalVat10 = sales.reduce((sum, s) => sum + Number(s.vat10Amount), 0);
+  // Totales acumulados (excluye anuladas)
+  const activeSales = sales.filter((s) => s.status !== 'CANCELLED');
+  const totalBilled = activeSales.reduce((sum, s) => sum + Number(s.grandTotal), 0);
+  const totalVat10 = activeSales.reduce((sum, s) => sum + Number(s.vat10Amount), 0);
   const missingTransferRefsCount = sales.filter(
     (s) =>
       s.paymentMethod === 'TRANSFERENCIA_BANCARIA' &&

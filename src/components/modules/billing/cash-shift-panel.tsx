@@ -574,7 +574,7 @@ export function CashShiftPanel({
                   <th className="py-2.5 px-3">Apertura</th>
                   <th className="py-2.5 px-3">Cierre</th>
                   <th className="py-2.5 px-3 text-right">Fondo Inicial</th>
-                  <th className="py-2.5 px-3 text-right">Ventas Efectivo</th>
+                  <th className="py-2.5 px-3 text-right">Cobrado Efectivo</th>
                   <th className="py-2.5 px-3 text-right">Gastos / Salidas</th>
                   <th className="py-2.5 px-3 text-right">Sobres Fuerte</th>
                   <th className="py-2.5 px-3 text-right">Declarado Cajón</th>
@@ -596,7 +596,14 @@ export function CashShiftPanel({
                         {s.closedAt ? format(new Date(s.closedAt), 'dd/MM/yyyy HH:mm', { locale: es }) : 'En curso'}
                       </td>
                       <td className="py-2.5 px-3 text-right">{formatCurrencyPYG(Number(s.openingBalance))}</td>
-                      <td className="py-2.5 px-3 text-right text-foreground font-bold">{formatCurrencyPYG(Number(s.totalCashSales || 0))}</td>
+                      <td className="py-2.5 px-3 text-right text-foreground font-bold">
+                        {formatCurrencyPYG(Number(s.totalCashCollected ?? s.totalCashSales ?? 0))}
+                        {Number(s.totalCustomerPaymentsCash || 0) > 0 && (
+                          <span className="block text-[9px] text-emerald-400 font-normal">
+                            Libreta: {formatCurrencyPYG(Number(s.totalCustomerPaymentsCash))}
+                          </span>
+                        )}
+                      </td>
                       <td className="py-2.5 px-3 text-right text-danger">{formatCurrencyPYG(Number(s.totalExpenses || 0))}</td>
                       <td className="py-2.5 px-3 text-right text-accent font-bold">{formatCurrencyPYG(Number(s.totalSafeDeposits || 0))}</td>
                       <td className="py-2.5 px-3 text-right text-emerald-400 font-bold">{formatCurrencyPYG(Number(s.closingBalance || 0))}</td>
@@ -713,11 +720,16 @@ export function CashShiftPanel({
                 <ArrowDownRight className="w-3 h-3 text-emerald-400" /> Cobrado Efectivo
               </span>
               <p className="text-sm font-bold font-mono text-emerald-400 mt-1">
-                +{formatCurrencyPYG(metrics?.cashSales || 0)}
+                +{formatCurrencyPYG(metrics?.totalCashCollected ?? ((metrics?.cashSales || 0) + (metrics?.customerPaymentsCash || 0)))}
               </p>
-              <span className="text-[9px] font-mono text-muted-foreground block">
-                {currentShift.sales?.length || 0} tickets
+              <span className="text-[9px] font-mono text-muted-foreground block mt-0.5 leading-tight">
+                {metrics?.cashSalesCount ?? 0} contado &bull; {metrics?.customerPaymentsCashCount ?? 0} libreta
               </span>
+              {Number(metrics?.customerPaymentsCash || 0) > 0 && (
+                <span className="text-[9px] font-mono text-emerald-300/90 block leading-tight">
+                  Incl. {formatCurrencyPYG(metrics.customerPaymentsCash)} de libreta
+                </span>
+              )}
             </div>
 
             <div className="p-3 rounded-xl bg-card border border-card-border">
@@ -855,24 +867,65 @@ export function CashShiftPanel({
             </button>
           </div>
 
-          {/* Registro de Movimientos de Caja Menor */}
+          {/* Registro de Cobros de Libreta y Movimientos de Caja Menor */}
           <div className="bg-card border border-card-border rounded-xl p-4 space-y-3">
-            <div className="flex items-center justify-between border-b border-card-border pb-2">
+            <div className="flex flex-wrap items-center justify-between gap-2 border-b border-card-border pb-2">
               <span className="text-xs font-mono uppercase text-muted-foreground font-semibold flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-primary" /> Asientos de Caja Menor & Extracciones del Turno
+                <FileText className="w-3.5 h-3.5 text-primary" /> Cobros de Libreta & Movimientos de Caja del Turno
               </span>
               <span className="text-[11px] font-mono text-muted-foreground">
-                {currentShift.movements?.length || 0} movimientos registrados
+                {(currentShift.customerPayments?.length || 0) + (currentShift.movements?.length || 0)} registros en el turno
               </span>
             </div>
 
-            {(!currentShift.movements || currentShift.movements.length === 0) ? (
+            {((!currentShift.movements || currentShift.movements.length === 0) && (!currentShift.customerPayments || currentShift.customerPayments.length === 0)) ? (
               <p className="text-xs text-muted-foreground text-center py-10 font-sans">
-                No hay movimientos de caja menor registrados en este turno.
+                No hay cobros de libreta ni movimientos de caja menor registrados en este turno.
               </p>
             ) : (
               <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
-                {currentShift.movements.map((m: any) => {
+                {currentShift.customerPayments?.map((cp: any) => {
+                  const isCash = cp.paymentMethod === 'EFECTIVO';
+                  return (
+                    <div
+                      key={`cp-${cp.id}`}
+                      className="p-2.5 rounded bg-[#0d121c] border border-emerald-500/25 flex items-center justify-between text-xs"
+                    >
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className={`p-1.5 rounded ${
+                            isCash ? 'bg-emerald-500/20 text-emerald-400' : 'bg-slate-500/20 text-slate-300'
+                          }`}
+                        >
+                          <ArrowDownRight className="w-3.5 h-3.5" />
+                        </div>
+                        <div>
+                          <p className="font-semibold text-foreground">
+                            Cobro Libreta ({cp.receiptNumber}) &bull; {cp.customerName}
+                          </p>
+                          <div className="flex flex-wrap items-center gap-2 text-[10px] text-muted-foreground font-mono">
+                            <span>{format(new Date(cp.createdAt), 'HH:mm')}</span>
+                            <span>&bull; RUC: {cp.customerRuc}</span>
+                            <span>
+                              &bull; {cp.paymentMethod === 'EFECTIVO' ? 'Efectivo al cajón' : `${cp.paymentMethod.replace(/_/g, ' ')} (No cajón)`}
+                            </span>
+                            {cp.paymentReference && <span>&bull; Ref: {cp.paymentReference}</span>}
+                          </div>
+                        </div>
+                      </div>
+
+                      <span
+                        className={`font-mono font-bold text-xs ${
+                          isCash ? 'text-emerald-400' : 'text-slate-300'
+                        }`}
+                      >
+                        {isCash ? `+${formatCurrencyPYG(Number(cp.amount))}` : formatCurrencyPYG(Number(cp.amount))}
+                      </span>
+                    </div>
+                  );
+                })}
+
+                {currentShift.movements?.map((m: any) => {
                   const isIncome = m.type === 'INCOME_CHANGE';
                   const isSafe = m.type === 'SAFE_DEPOSIT';
                   return (
@@ -1594,7 +1647,10 @@ export function CashShiftPanel({
             </div>
 
             <div className="space-y-1 text-[11px] text-muted-foreground">
-              <p>&bull; Ventas en efectivo del turno: <strong>{formatCurrencyPYG(Number(showClosingSuccessModal.totalCashSales || 0))}</strong></p>
+              <p>&bull; Ventas contado en efectivo del turno: <strong>{formatCurrencyPYG(Number(showClosingSuccessModal.totalCashSales || 0))}</strong></p>
+              {Number(showClosingSuccessModal.totalCustomerPaymentsCash || 0) > 0 && (
+                <p>&bull; Cobros de Libreta en efectivo: <strong className="text-emerald-400">{formatCurrencyPYG(Number(showClosingSuccessModal.totalCustomerPaymentsCash))}</strong></p>
+              )}
               <p>&bull; Gastos / Adelantos deducidos: <strong>{formatCurrencyPYG(Number(showClosingSuccessModal.totalExpenses || 0))}</strong></p>
               <p>&bull; Billetes resguardados en sobres: <strong>{formatCurrencyPYG(Number(showClosingSuccessModal.totalSafeDeposits || 0))}</strong></p>
               {showClosingSuccessModal.closingNotes && (

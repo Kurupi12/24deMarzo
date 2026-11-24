@@ -66,28 +66,47 @@ export async function GET() {
     });
 
     // 3. Historial de turnos recientes
-    const history = await prisma.cashShift.findMany({
+    const historyRaw = await prisma.cashShift.findMany({
       where: { cashRegisterId: register.id },
       take: 15,
       orderBy: { openedAt: 'desc' },
       include: {
         movements: true,
+        customerPayments: {
+          select: { amount: true, paymentMethod: true },
+        },
         _count: { select: { sales: true } },
       },
+    });
+
+    const history = historyRaw.map((h) => {
+      const cashPayments = (h.customerPayments || [])
+        .filter((cp) => cp.paymentMethod === 'EFECTIVO')
+        .reduce((sum, cp) => sum + Number(cp.amount), 0);
+      return {
+        ...h,
+        totalCustomerPaymentsCash: cashPayments,
+        totalCashCollected: Number(h.totalCashSales || 0) + cashPayments,
+      };
     });
 
     // 4. Calcular métricas en vivo si hay turno abierto
     let metrics = null;
     if (currentShift) {
       // Solo ventas CONTADO en efectivo ingresan dinero a caja (A_CUENTA y CREDITO no ingresan efectivo hoy)
-      const cashSales = currentShift.sales
-        .filter((s) => s.paymentMethod === 'EFECTIVO' && s.paymentCondition === 'CONTADO' && s.status === 'COMPLETED')
-        .reduce((sum, s) => sum + Number(s.grandTotal), 0);
+      const cashSalesList = currentShift.sales.filter(
+        (s) => s.paymentMethod === 'EFECTIVO' && s.paymentCondition === 'CONTADO' && s.status === 'COMPLETED'
+      );
+      const cashSales = cashSalesList.reduce((sum, s) => sum + Number(s.grandTotal), 0);
+      const cashSalesCount = cashSalesList.length;
 
       // Cobros de cuentas corrientes o pagos a cuenta de clientes cobrados en efectivo
-      const customerPaymentsCash = (currentShift.customerPayments || [])
-        .filter((cp) => cp.paymentMethod === 'EFECTIVO')
-        .reduce((sum, cp) => sum + Number(cp.amount), 0);
+      const customerPaymentsCashList = (currentShift.customerPayments || []).filter(
+        (cp) => cp.paymentMethod === 'EFECTIVO'
+      );
+      const customerPaymentsCash = customerPaymentsCashList.reduce((sum, cp) => sum + Number(cp.amount), 0);
+      const customerPaymentsCashCount = customerPaymentsCashList.length;
+      const totalCashCollected = cashSales + customerPaymentsCash;
 
       const incomes = currentShift.movements
         .filter((m) => m.type === 'INCOME_CHANGE')
@@ -107,7 +126,10 @@ export async function GET() {
       metrics = {
         openingBalance: opening,
         cashSales,
+        cashSalesCount,
         customerPaymentsCash,
+        customerPaymentsCashCount,
+        totalCashCollected,
         incomes,
         expenses,
         safeDeposits,
@@ -310,7 +332,13 @@ export async function POST(req: NextRequest) {
         },
       });
 
-      return NextResponse.json(createSuccessResponse(closedShift));
+      return NextResponse.json(
+        createSuccessResponse({
+          ...closedShift,
+          totalCustomerPaymentsCash: customerPaymentsCashTotal,
+          totalCashCollected: cashSalesTotal + customerPaymentsCashTotal,
+        })
+      );
     }
 
     // ACCIÓN 3: REAPERTURA / CORRECCIÓN AUDITADA DE ÚLTIMO CIERRE CON OTP DE ÚNICO USO (OSVALDO)

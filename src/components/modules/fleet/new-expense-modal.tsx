@@ -16,6 +16,7 @@ import {
   Receipt,
   FileSpreadsheet,
   Landmark,
+  AlertTriangle,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { DateInputPY } from '@/components/common/date-input-py';
@@ -49,6 +50,8 @@ export function NewExpenseModal({
   const [receiptNumber, setReceiptNumber] = useState('');
   const [notes, setNotes] = useState('');
   const [isCashShiftOpen, setIsCashShiftOpen] = useState<boolean | null>(null);
+  const [isShiftOwnedBySession, setIsShiftOwnedBySession] = useState(false);
+  const [shiftOwnerName, setShiftOwnerName] = useState<string | null>(null);
   const [deductFromCashShift, setDeductFromCashShift] = useState(false);
 
   const [loading, setLoading] = useState(false);
@@ -70,11 +73,18 @@ export function NewExpenseModal({
         .then((res) => res.json())
         .then((json) => {
           const open = !!json?.data?.currentShift;
+          const isOwner = !!json?.data?.isCurrentShiftOwnedBySession;
+          const ownerName = json?.data?.currentShiftOwner?.name || null;
           setIsCashShiftOpen(open);
-          setDeductFromCashShift(open);
+          setIsShiftOwnedBySession(isOwner);
+          setShiftOwnerName(ownerName);
+          // Solo preseleccionar descuento de caja si el usuario actual es dueño de esa caja abierta
+          setDeductFromCashShift(open && isOwner);
         })
         .catch(() => {
           setIsCashShiftOpen(false);
+          setIsShiftOwnedBySession(false);
+          setShiftOwnerName(null);
           setDeductFromCashShift(false);
         });
     }
@@ -187,10 +197,10 @@ export function NewExpenseModal({
   };
 
   const categories = [
-    { id: 'COMBUSTIBLE', label: 'Combustible', icon: Fuel, color: 'text-amber-400', border: 'border-amber-500/40 bg-amber-500/10' },
+    { id: 'COMBUSTIBLE', label: 'Carga de Combustible', icon: Fuel, color: 'text-amber-400', border: 'border-amber-500/40 bg-amber-500/10' },
     { id: 'MANTENIMIENTO', label: 'Mantenimiento Preventivo', icon: Wrench, color: 'text-blue-400', border: 'border-blue-500/40 bg-blue-500/10' },
-    { id: 'REPARACION', label: 'Reparación Mecánica', icon: Hammer, color: 'text-rose-400', border: 'border-rose-500/40 bg-rose-500/10' },
-    { id: 'CUBIERTAS', label: 'Cubiertas & Gomería', icon: Disc, color: 'text-emerald-400', border: 'border-emerald-500/40 bg-emerald-500/10' },
+    { id: 'REPARACION', label: 'Repuestos Varios / Taller', icon: Hammer, color: 'text-rose-400', border: 'border-rose-500/40 bg-rose-500/10' },
+    { id: 'CUBIERTAS', label: 'Reparo de Gomería / Cubiertas', icon: Disc, color: 'text-emerald-400', border: 'border-emerald-500/40 bg-emerald-500/10' },
     { id: 'DOCUMENTACION', label: 'Documentos / Dinatran', icon: FileText, color: 'text-purple-400', border: 'border-purple-500/40 bg-purple-500/10' },
     { id: 'VARIOS', label: 'Varios / Lavado', icon: MoreHorizontal, color: 'text-slate-400', border: 'border-slate-500/40 bg-slate-500/10' },
   ];
@@ -522,29 +532,49 @@ export function NewExpenseModal({
             </div>
           </div>
 
-          {/* Fila 6: Origen del Dinero (Descuento en Caja del Día) y Observaciones */}
+          {/* Fila 6: Origen del Dinero (Descuento estricto solo en la Caja del usuario dueño del turno) */}
           <div className="p-3 rounded-xl bg-[#0d121c] border border-card-border space-y-2">
-            <div className="flex items-center justify-between gap-2">
+            <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-mono font-semibold text-foreground flex items-center gap-1.5">
                 <Landmark className="w-3.5 h-3.5 text-primary" />
-                <span>¿Descontar este gasto de la Caja del Día?</span>
+                <span>¿Descontar este gasto de tu Caja del Día?</span>
               </span>
               {isCashShiftOpen === false && (
                 <span className="text-[10px] font-mono text-amber-300">Caja cerrada actualmente</span>
               )}
+              {isCashShiftOpen && isShiftOwnedBySession && (
+                <span className="text-[10px] font-mono text-emerald-400">
+                  Tu caja abierta ({shiftOwnerName || 'Operador'})
+                </span>
+              )}
+              {isCashShiftOpen && !isShiftOwnedBySession && (
+                <span className="text-[10px] font-mono text-amber-300">
+                  Caja abierta de: {shiftOwnerName || 'Otro usuario'}
+                </span>
+              )}
             </div>
+
+            {isCashShiftOpen && !isShiftOwnedBySession && (
+              <div className="p-2 rounded-lg bg-amber-500/10 border border-amber-500/30 text-[11px] font-mono text-amber-200 flex items-start gap-2">
+                <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                <span>
+                  La caja actualmente abierta pertenece a <strong>{shiftOwnerName || 'otro usuario'}</strong>. Este gasto se cargará como pago propio / fuera de caja y <strong>NO afectará su caja ni su arqueo</strong>.
+                </span>
+              </div>
+            )}
+
             <div className="grid grid-cols-2 gap-2 text-xs font-mono">
               <button
                 type="button"
-                disabled={isCashShiftOpen === false}
+                disabled={!(isCashShiftOpen && isShiftOwnedBySession)}
                 onClick={() => setDeductFromCashShift(true)}
-                className={`py-2 px-2.5 rounded-lg border transition-colors text-center disabled:opacity-40 ${
+                className={`py-2 px-2.5 rounded-lg border transition-colors text-center disabled:opacity-40 disabled:cursor-not-allowed ${
                   deductFromCashShift
                     ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-bold'
                     : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
                 }`}
               >
-                Sí, Efectivo de Caja
+                Sí, Efectivo de Mi Caja
               </button>
               <button
                 type="button"
@@ -555,7 +585,7 @@ export function NewExpenseModal({
                     : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
                 }`}
               >
-                No (Transferencia / Fuera de Caja)
+                No (Pago Propio / Fuera de Caja)
               </button>
             </div>
           </div>

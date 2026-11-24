@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
+import { useAuth } from '@/lib/auth/auth-context';
 
 interface VehicleDetailModalProps {
   vehicle: any | null;
@@ -36,6 +37,8 @@ export function VehicleDetailModal({
   onAddExpense,
   onRefresh,
 }: VehicleDetailModalProps) {
+  const { user } = useAuth();
+  const canManageVehicles = ['SUPER_ADMIN', 'ADMIN', 'GENERAL_MANAGER', 'WAREHOUSE_MANAGER'].includes(user?.role || '');
   const { confirm, alert } = useCustomDialog();
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
@@ -175,13 +178,13 @@ export function VehicleDetailModal({
       case 'REPARACION':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-            <Hammer className="w-3 h-3" /> Reparación
+            <Hammer className="w-3 h-3" /> Repuestos / Taller
           </span>
         );
       case 'CUBIERTAS':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <Disc className="w-3 h-3" /> Cubiertas
+            <Disc className="w-3 h-3" /> Gomería / Cubiertas
           </span>
         );
       default:
@@ -222,16 +225,18 @@ export function VehicleDetailModal({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              type="button"
-              onClick={handleDeleteVehicle}
-              disabled={deletingVehicle}
-              className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50"
-              title="Eliminar este camión de la flota"
-            >
-              <Trash2 className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">Eliminar Camión</span>
-            </button>
+            {canManageVehicles && (
+              <button
+                type="button"
+                onClick={handleDeleteVehicle}
+                disabled={deletingVehicle}
+                className="px-2.5 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/30 rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors disabled:opacity-50"
+                title="Eliminar este camión de la flota"
+              >
+                <Trash2 className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Eliminar Camión</span>
+              </button>
+            )}
             <button
               type="button"
               onClick={() => {
@@ -390,6 +395,24 @@ export function VehicleDetailModal({
                         {exp.receiptNumber && (
                           <div className="text-[10px] text-muted-foreground font-mono">
                             Comprobante: {exp.receiptNumber}
+                          </div>
+                        )}
+                        {(exp.recordedBy || exp.paidFromCashShift) && (
+                          <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                            {exp.recordedBy && (
+                              <span className="px-1.5 py-0.5 rounded bg-[#0d121c] border border-card-border text-[9.5px] font-mono text-muted-foreground">
+                                Por: {exp.recordedBy}
+                              </span>
+                            )}
+                            <span
+                              className={`px-1.5 py-0.5 rounded border text-[9.5px] font-mono font-semibold ${
+                                exp.paidFromCashShift
+                                  ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                                  : 'bg-slate-500/10 border-slate-500/30 text-slate-300'
+                              }`}
+                            >
+                              {exp.paidFromCashShift ? 'Descontado de Caja' : 'Fuera de Caja / Pago Propio'}
+                            </span>
                           </div>
                         )}
                       </td>

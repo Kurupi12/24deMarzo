@@ -9,6 +9,8 @@ export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
+    const sessionUser = await getSessionUser();
+
     let register = await prisma.cashRegister.findFirst({
       where: { code: 'CAJA-01' },
     });
@@ -35,6 +37,17 @@ export async function GET() {
       },
       orderBy: { openedAt: 'desc' },
     });
+
+    const currentShiftOwner = currentShift
+      ? await prisma.user.findUnique({
+          where: { id: currentShift.openedByUserId },
+          select: { id: true, name: true, role: true },
+        })
+      : null;
+
+    const isCurrentShiftOwnedBySession = Boolean(
+      sessionUser && currentShift && currentShift.openedByUserId === sessionUser.id
+    );
 
     // 2. Buscar último turno cerrado para la comprobación inicial a ciegas (Blind Count)
     const lastClosedShift = await prisma.cashShift.findFirst({
@@ -137,6 +150,8 @@ export async function GET() {
       createSuccessResponse({
         register,
         currentShift,
+        currentShiftOwner: currentShiftOwner || (currentShift ? { id: currentShift.openedByUserId, name: 'Operador de Caja', role: null } : null),
+        isCurrentShiftOwnedBySession,
         lastClosedShift,
         metrics,
         history,

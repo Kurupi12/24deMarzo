@@ -10,6 +10,8 @@ export interface OptionalCashExpenseInput {
   description: string;
   beneficiary?: string | null;
   receiptNo?: string | null;
+  expectedUserId?: string | null;
+  enforceShiftOwner?: boolean;
 }
 
 /**
@@ -49,7 +51,7 @@ export async function recordCashOutflowOnOpenShift(
       cashRegister: { code: 'CAJA-01' },
     },
     orderBy: { openedAt: 'desc' },
-    select: { id: true },
+    select: { id: true, openedByUserId: true },
   });
 
   if (!openShift) {
@@ -58,6 +60,28 @@ export async function recordCashOutflowOnOpenShift(
       400,
       'NO_OPEN_SHIFT'
     );
+  }
+
+  if (input.enforceShiftOwner) {
+    if (!input.expectedUserId) {
+      throw new AppError(
+        'No se pudo identificar tu usuario activo para descontar efectivo de la caja.',
+        401,
+        'UNAUTHORIZED_CASH_DEDUCTION'
+      );
+    }
+
+    if (openShift.openedByUserId !== input.expectedUserId) {
+      const owner = await tx.user.findUnique({
+        where: { id: openShift.openedByUserId },
+        select: { name: true },
+      });
+      throw new AppError(
+        `La caja actualmente abierta pertenece a ${owner?.name || 'otro usuario'}. Solo quien abrió esa caja puede descontar efectivo de ella; cargá tu gasto como "Fuera de Caja / Pago propio".`,
+        403,
+        'SHIFT_OWNER_MISMATCH'
+      );
+    }
   }
 
   return tx.cashMovement.create({

@@ -4,8 +4,29 @@ import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-r
 import { VehicleExpenseCategory, VehicleMaintenanceType } from '@prisma/client';
 import { recordCashOutflowOnOpenShift } from '@/modules/billing/utils/cash-movement-sync';
 import { AppError } from '@/shared/errors/app-error';
+import { getSessionUser } from '@/lib/auth/session';
 
 export const dynamic = 'force-dynamic';
+
+function parseExpenseAudit(notes: string | null) {
+  const raw = notes || '';
+  const userMatch = raw.match(/\[USER:([^\]]+)\]/);
+  const cashMatch = raw.match(/\[CASH_MOV:([^\]]+)\]/);
+  const cleanNotes = raw
+    .replace(/\[CASH_MOV:[^\]]+\]/g, '')
+    .replace(/\[USER:[^\]]+\]/g, '')
+    .replace(/\[FUERA_DE_CAJA\]/g, '')
+    .replace(/Descontado de Caja(?:\s+del\s+Día|\s*\([^)]+\))?/gi, '')
+    .replace(/Pagado fuera de caja(?:\s*\([^)]+\))?/gi, '')
+    .replace(/^[\s—-]+|[\s—-]+$/g, '')
+    .trim();
+
+  return {
+    recordedBy: userMatch?.[1]?.trim() || null,
+    paidFromCashShift: Boolean(cashMatch?.[1]),
+    cleanNotes: cleanNotes || null,
+  };
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -83,7 +104,10 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json(
       createSuccessResponse({
-        expenses,
+        expenses: expenses.map((exp) => ({
+          ...exp,
+          ...parseExpenseAudit(exp.notes),
+        })),
         summary: {
           totalExpenses,
           totalParts,
@@ -142,6 +166,19 @@ export async function POST(req: NextRequest) {
       : parts + labor;
 
     const expenseDate = date ? new Date(date) : new Date();
+    const sessionUser = await getSessionUser();
+    const fallbackUserId = req.headers.get('x-user-id');
+    const actorId = sessionUser?.id || fallbackUserId || null;
+
+    const actor = actorId
+      ? await prisma.user.findUnique({
+          where: { id: actorId },
+          select: { id: true, name: true, role: true },
+        })
+      : null;
+
+    const actorName = actor?.name || sessionUser?.name || 'Operador';
+    const actorTag = `[USER:${actorName}]`;
 
     const created = await prisma.$transaction(async (tx) => {
       const vehicle = await tx.vehicle.findUnique({
@@ -149,19 +186,21 @@ export async function POST(req: NextRequest) {
         select: { plateNumber: true, brand: true, model: true },
       });
 
-      let cashNote = '';
+      let cashNote = `${actorTag} [FUERA_DE_CAJA] Pagado fuera de caja (${actorName})`;
       if (deductFromCashShift && calculatedTotal > 0) {
         const plate = vehicle?.plateNumber || 'Flota';
         const mov = await recordCashOutflowOnOpenShift(tx, {
           type: 'EXPENSE_OPERATION',
           category: `FLOTA_${category}`,
           amount: calculatedTotal,
-          description: `Gasto Vehículo (${plate}): ${description.trim()}`,
+          description: `Gasto Vehículo (${plate}): ${description.trim()} [Por: ${actorName}]`,
           beneficiary: supplierOrWorkshop?.trim() || null,
           receiptNo: receiptNumber?.trim() || null,
+          expectedUserId: actorId,
+          enforceShiftOwner: true,
         });
         if (mov) {
-          cashNote = `[CASH_MOV:${mov.id}] Descontado de Caja del Día`;
+          cashNote = `[CASH_MOV:${mov.id}] ${actorTag} Descontado de Caja (${actorName})`;
         }
       }
 

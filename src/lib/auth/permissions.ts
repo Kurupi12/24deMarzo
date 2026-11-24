@@ -53,8 +53,8 @@ export const ROLE_DEFINITIONS: Record<SystemRole, RoleConfig> = {
     label: 'Cajero de Mostrador',
     badgeColor: 'text-emerald-400 border-emerald-500/30',
     badgeBg: 'bg-emerald-500/10',
-    description: 'Punto de venta, facturación SIFEN, pedidos programados, apertura y cierre de su caja.',
-    allowedModules: ['dashboard', 'billing', 'shifts', 'scheduled', 'inventory'],
+    description: 'Punto de venta, facturación SIFEN, pedidos programados, gastos de flota, apertura y cierre de su caja.',
+    allowedModules: ['dashboard', 'billing', 'shifts', 'scheduled', 'inventory', 'fleet'],
   },
   WAREHOUSE_MANAGER: {
     label: 'Jefe de Depósito & Despacho',

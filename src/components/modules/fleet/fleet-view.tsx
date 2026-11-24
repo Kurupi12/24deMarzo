@@ -23,11 +23,14 @@ import {
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
+import { useAuth } from '@/lib/auth/auth-context';
 import { NewExpenseModal } from './new-expense-modal';
 import { VehicleDetailModal } from './vehicle-detail-modal';
 import { NewVehicleModal } from './new-vehicle-modal';
 
 export function FleetView() {
+  const { user } = useAuth();
+  const canManageVehicles = ['SUPER_ADMIN', 'ADMIN', 'GENERAL_MANAGER', 'WAREHOUSE_MANAGER'].includes(user?.role || '');
   const { confirm, alert } = useCustomDialog();
   const [activeTab, setActiveTab] = useState<'vehicles' | 'history' | 'preventive'>('vehicles');
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -202,13 +205,13 @@ export function FleetView() {
       case 'REPARACION':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-            <Hammer className="w-3 h-3" /> Reparación
+            <Hammer className="w-3 h-3" /> Repuestos / Taller
           </span>
         );
       case 'CUBIERTAS':
         return (
           <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-            <Disc className="w-3 h-3" /> Cubiertas
+            <Disc className="w-3 h-3" /> Gomería / Cubiertas
           </span>
         );
       default:
@@ -249,14 +252,16 @@ export function FleetView() {
             <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
           </button>
 
-          <button
-            type="button"
-            onClick={() => setIsNewVehicleModalOpen(true)}
-            className="px-3.5 py-2 bg-card hover:bg-muted/20 border border-card-border text-foreground rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors"
-          >
-            <Plus className="w-3.5 h-3.5 text-primary" />
-            <span>+ Nuevo Vehículo</span>
-          </button>
+          {canManageVehicles && (
+            <button
+              type="button"
+              onClick={() => setIsNewVehicleModalOpen(true)}
+              className="px-3.5 py-2 bg-card hover:bg-muted/20 border border-card-border text-foreground rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5 text-primary" />
+              <span>+ Nuevo Vehículo</span>
+            </button>
+          )}
 
           <button
             type="button"
@@ -557,10 +562,10 @@ export function FleetView() {
                   className="w-full px-3 py-2 bg-[#0d121c] border border-card-border rounded-lg text-xs text-foreground focus:outline-none focus:border-primary"
                 >
                   <option value="" className="bg-[#0d121c] text-muted-foreground">Todas las categorías</option>
-                  <option value="COMBUSTIBLE" className="bg-[#0d121c] text-foreground">Combustible</option>
+                  <option value="COMBUSTIBLE" className="bg-[#0d121c] text-foreground">Carga de Combustible</option>
                   <option value="MANTENIMIENTO" className="bg-[#0d121c] text-foreground">Mantenimiento Preventivo</option>
-                  <option value="REPARACION" className="bg-[#0d121c] text-foreground">Reparación Mecánica</option>
-                  <option value="CUBIERTAS" className="bg-[#0d121c] text-foreground">Cubiertas & Gomería</option>
+                  <option value="REPARACION" className="bg-[#0d121c] text-foreground">Repuestos Varios / Taller</option>
+                  <option value="CUBIERTAS" className="bg-[#0d121c] text-foreground">Reparo de Gomería / Cubiertas</option>
                   <option value="DOCUMENTACION" className="bg-[#0d121c] text-foreground">Documentos / Dinatran</option>
                   <option value="VARIOS" className="bg-[#0d121c] text-foreground">Varios / Lavado</option>
                 </select>
@@ -648,6 +653,24 @@ export function FleetView() {
                           {exp.receiptNumber && (
                             <div className="text-[10px] text-muted-foreground font-mono">
                               Comp.: {exp.receiptNumber}
+                            </div>
+                          )}
+                          {(exp.recordedBy || exp.paidFromCashShift) && (
+                            <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                              {exp.recordedBy && (
+                                <span className="px-1.5 py-0.5 rounded bg-[#0d121c] border border-card-border text-[9.5px] font-mono text-muted-foreground">
+                                  Por: {exp.recordedBy}
+                                </span>
+                              )}
+                              <span
+                                className={`px-1.5 py-0.5 rounded border text-[9.5px] font-mono font-semibold ${
+                                  exp.paidFromCashShift
+                                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                                    : 'bg-slate-500/10 border-slate-500/30 text-slate-300'
+                                }`}
+                              >
+                                {exp.paidFromCashShift ? 'Descontado de Caja' : 'Fuera de Caja / Pago Propio'}
+                              </span>
                             </div>
                           )}
                         </td>

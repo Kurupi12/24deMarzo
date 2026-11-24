@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { BillingService } from '@/modules/billing/services/billing.service';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
+import { getSessionUser } from '@/lib/auth/session';
+import { createCustomerAccountPayment } from '@/modules/billing/utils/customer-account-payment';
 
 export const dynamic = 'force-dynamic';
 
@@ -18,6 +20,7 @@ export async function POST(req: NextRequest) {
       paymentMethod = 'EFECTIVO',
       paymentReference,
       customDescription,
+      settleAccountBalance = true,
     } = body;
 
     if (!customerRuc || !amount || Number(amount) <= 0) {
@@ -42,16 +45,21 @@ export async function POST(req: NextRequest) {
       `MATERIALES DE CONSTRUCCIÓN VARIOS SEGÚN ÓRDENES DE ENTREGA DEL MES DE ${currentMonthName} ${currentYear}`;
 
     // Obtener o asegurar usuario administrador de auditoría
-    let user = await prisma.user.findFirst({ select: { id: true } });
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email: 'admin@deposito4demarzo.com.py',
-          name: 'Administrador 4 de Marzo',
-          passwordHash: 'dummy',
-          role: 'SUPER_ADMIN',
-        },
-      });
+    const sessionUser = await getSessionUser();
+    let userId = sessionUser?.id;
+    if (!userId) {
+      let user = await prisma.user.findFirst({ select: { id: true } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            email: 'admin@deposito4demarzo.com.py',
+            name: 'Administrador 4 de Marzo',
+            passwordHash: 'dummy',
+            role: 'SUPER_ADMIN',
+          },
+        });
+      }
+      userId = user.id;
     }
 
     // Obtener turno de caja abierto si hubiere
@@ -92,9 +100,10 @@ export async function POST(req: NextRequest) {
     }
 
     // Procesar la venta fiscal y emitir comprobante electrónico SIFEN
+    // Nota: cashShiftId va null en Sale para evitar doble conteo en caja (si se salda ahora, ingresa por CustomerPayment; si ya estaba saldado, ya ingresó antes).
     const sale = await billingService.processSale({
-      userId: user.id,
-      cashShiftId: openShift?.id || null,
+      userId,
+      cashShiftId: null,
       customerName: customerName.trim(),
       customerRuc: customerRuc.trim(),
       customerAddress: customerAddress?.trim() || 'Mostrador / Obra',
@@ -102,6 +111,9 @@ export async function POST(req: NextRequest) {
       paymentMethod: paymentMethod || 'EFECTIVO',
       paymentReference: paymentReference?.trim() || null,
       deliveryStatus: 'DELIVERED',
+      deliveryNotes: settleAccountBalance
+        ? 'Facturación consolidada de Cuenta Corriente / Libreta (Saldado en el acto)'
+        : 'Facturación consolidada de Cuenta Corriente / Libreta (Ya abonado previamente)',
       items: [
         {
           productId: genericProduct.id,
@@ -113,7 +125,23 @@ export async function POST(req: NextRequest) {
       issueInvoiceImmediately: true,
     });
 
-    return NextResponse.json(createSuccessResponse(sale), { status: 201 });
+    // Si corresponde saldar la libreta en el mismo acto, registrar el pago en cuenta corriente + ingreso a caja
+    let settlementPayment = null;
+    if (settleAccountBalance && sale) {
+      const invRef = sale.invoice?.invoiceNumber || sale.saleNumber;
+      settlementPayment = await createCustomerAccountPayment(prisma, {
+        customerRuc: customerRuc.trim(),
+        customerName: customerName.trim(),
+        amount: Number(amount),
+        paymentMethod: paymentMethod || 'EFECTIVO',
+        paymentReference: paymentReference?.trim() || null,
+        cashShiftId: openShift?.id || null,
+        notes: `Cancelación con Factura SIFEN ${invRef}`,
+        userId,
+      });
+    }
+
+    return NextResponse.json(createSuccessResponse({ ...sale, settlementPayment }), { status: 201 });
   } catch (error: any) {
     return NextResponse.json(
       createErrorResponse(error.message, 'MONTH_INVOICE_PROCESS_ERROR'),

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
+import { getSessionUser } from '@/lib/auth/session';
+import { createCustomerAccountPayment } from '@/modules/billing/utils/customer-account-payment';
 
 export const dynamic = 'force-dynamic';
 
@@ -16,16 +18,21 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    let user = await prisma.user.findFirst({ select: { id: true, name: true } });
-    if (!user) {
-      user = await prisma.user.create({
-        data: {
-          email: 'admin@deposito4demarzo.com.py',
-          name: 'Administrador 4 de Marzo',
-          passwordHash: 'dummy',
-          role: 'SUPER_ADMIN',
-        },
-      });
+    const sessionUser = await getSessionUser();
+    let userId = sessionUser?.id;
+    if (!userId) {
+      let user = await prisma.user.findFirst({ select: { id: true, name: true } });
+      if (!user) {
+        user = await prisma.user.create({
+          data: {
+            email: 'admin@deposito4demarzo.com.py',
+            name: 'Administrador 4 de Marzo',
+            passwordHash: 'dummy',
+            role: 'SUPER_ADMIN',
+          },
+        });
+      }
+      userId = user.id;
     }
 
     // Buscar turno de caja abierto para registrar el ingreso de dinero en el arqueo diario
@@ -35,31 +42,15 @@ export async function POST(req: NextRequest) {
       select: { id: true },
     });
 
-    // Generar correlativo de recibo de dinero
-    const lastPayment = await prisma.customerPayment.findFirst({
-      orderBy: { createdAt: 'desc' },
-      select: { receiptNumber: true },
-    });
-
-    let nextNum = 1;
-    if (lastPayment?.receiptNumber) {
-      const match = lastPayment.receiptNumber.match(/\d+/);
-      if (match) nextNum = parseInt(match[0], 10) + 1;
-    }
-    const receiptNumber = `REC-${nextNum.toString().padStart(6, '0')}`;
-
-    const payment = await prisma.customerPayment.create({
-      data: {
-        receiptNumber,
-        customerRuc: customerRuc.trim(),
-        customerName: customerName.trim(),
-        amount: Number(amount),
-        paymentMethod: paymentMethod || 'EFECTIVO',
-        paymentReference: paymentReference?.trim() || null,
-        cashShiftId: openShift?.id || null,
-        notes: notes?.trim() || null,
-        userId: user.id,
-      },
+    const payment = await createCustomerAccountPayment(prisma, {
+      customerRuc,
+      customerName: customerName || 'Cliente',
+      amount: Number(amount),
+      paymentMethod: paymentMethod || 'EFECTIVO',
+      paymentReference,
+      cashShiftId: openShift?.id || null,
+      notes,
+      userId,
     });
 
     return NextResponse.json(createSuccessResponse(payment), { status: 201 });

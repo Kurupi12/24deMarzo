@@ -19,6 +19,7 @@ export async function GET(req: NextRequest) {
         where: {
           customerRuc: ruc,
           paymentCondition: { in: ['A_CUENTA', 'CREDITO'] },
+          status: { notIn: ['QUOTATION', 'CANCELLED'] },
         },
         include: {
           items: { include: { product: true } },
@@ -50,10 +51,11 @@ export async function GET(req: NextRequest) {
       );
     }
 
-    // Listado general de cuentas corrientes con pedidos o pagos
+    // Listado general de cuentas corrientes con pedidos o pagos (excluyendo presupuestos y anuladas)
     const orders = await prisma.sale.findMany({
       where: {
         paymentCondition: { in: ['A_CUENTA', 'CREDITO'] },
+        status: { notIn: ['QUOTATION', 'CANCELLED'] },
       },
       select: {
         customerRuc: true,

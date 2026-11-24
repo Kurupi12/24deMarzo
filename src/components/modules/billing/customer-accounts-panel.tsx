@@ -49,26 +49,34 @@ export function CustomerAccountsPanel({
   const [accounts, setAccounts] = useState<CustomerAccountSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [accountFilter, setAccountFilter] = useState<'pending' | 'settled'>('pending');
   const [selectedRuc, setSelectedRuc] = useState<string | null>(null);
   const [selectedDetail, setSelectedDetail] = useState<any | null>(null);
   const [loadingDetail, setLoadingDetail] = useState(false);
 
-  // Modal: Registrar Pago a Cuenta (Entrega de Viernes)
+  // Modal: Registrar Pago a Cuenta (Total Sin Factura o Abono Parcial)
   const [showPaymentModal, setShowPaymentModal] = useState(false);
-  const [paymentCustomer, setPaymentCustomer] = useState<{ ruc: string; name: string } | null>(null);
+  const [paymentMode, setPaymentMode] = useState<'full_no_invoice' | 'partial'>('full_no_invoice');
+  const [paymentCustomer, setPaymentCustomer] = useState<{ ruc: string; name: string; currentBalance?: number } | null>(null);
   const [paymentAmount, setPaymentAmount] = useState<string>('');
   const [paymentMethod, setPaymentMethod] = useState<'EFECTIVO' | 'TRANSFERENCIA_BANCARIA' | 'CHEQUE'>('EFECTIVO');
   const [paymentReference, setPaymentReference] = useState('');
   const [paymentNotes, setPaymentNotes] = useState('');
   const [submittingPayment, setSubmittingPayment] = useState(false);
 
-  // Modal: Facturar Fin de Mes (SIFEN)
+  // Modal: Facturar Fin de Mes / Saldar con Factura (SIFEN)
   const [showInvoiceMonthModal, setShowInvoiceMonthModal] = useState(false);
-  const [invoiceCustomer, setInvoiceCustomer] = useState<{ ruc: string; name: string; address?: string } | null>(null);
+  const [invoiceCustomer, setInvoiceCustomer] = useState<{
+    ruc: string;
+    name: string;
+    address?: string;
+    currentBalance?: number;
+  } | null>(null);
   const [invoiceAmount, setInvoiceAmount] = useState<string>('');
   const [invoiceDescription, setInvoiceDescription] = useState<string>('');
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<'EFECTIVO' | 'TRANSFERENCIA_BANCARIA'>('EFECTIVO');
   const [invoicePaymentReference, setInvoicePaymentReference] = useState('');
+  const [settleBalanceOnInvoice, setSettleBalanceOnInvoice] = useState(true);
   const [submittingInvoice, setSubmittingInvoice] = useState(false);
   const [exportingAccountPdf, setExportingAccountPdf] = useState(false);
 
@@ -141,20 +149,39 @@ export function CustomerAccountsPanel({
     return `MATERIALES DE CONSTRUCCIÓN VARIOS SEGÚN ÓRDENES DE ENTREGA DEL MES DE ${MESES[now.getMonth()]} ${now.getFullYear()}`;
   };
 
-  // Abrir Modal de Cobro
-  const openPaymentModal = (acc: { customerRuc: string; customerName: string; currentBalance?: number }) => {
-    setPaymentCustomer({ ruc: acc.customerRuc, name: acc.customerName });
-    setPaymentAmount(acc.currentBalance && acc.currentBalance > 0 ? String(acc.currentBalance) : '');
+  // Abrir Modal de Cobro (Pago Total Sin Factura o Abono Parcial)
+  const openPaymentModal = (
+    acc: { customerRuc: string; customerName: string; currentBalance?: number },
+    mode: 'full_no_invoice' | 'partial' = 'full_no_invoice'
+  ) => {
+    const balance = acc.currentBalance && acc.currentBalance > 0 ? acc.currentBalance : 0;
+    setPaymentMode(mode);
+    setPaymentCustomer({ ruc: acc.customerRuc, name: acc.customerName, currentBalance: balance });
+    setPaymentAmount(mode === 'full_no_invoice' && balance > 0 ? String(balance) : '');
     setPaymentMethod('EFECTIVO');
     setPaymentReference('');
-    setPaymentNotes('');
+    setPaymentNotes(mode === 'full_no_invoice' ? 'Pago total por monto en libreta (sin factura)' : '');
     setShowPaymentModal(true);
   };
 
-  // Abrir Modal de Facturación de Fin de Mes
-  const openInvoiceMonthModal = (acc: { customerRuc: string; customerName: string; currentBalance?: number; customerAddress?: string | null }) => {
-    setInvoiceCustomer({ ruc: acc.customerRuc, name: acc.customerName, address: acc.customerAddress || undefined });
-    setInvoiceAmount(acc.currentBalance && acc.currentBalance > 0 ? String(acc.currentBalance) : '');
+  // Abrir Modal de Facturación (Cobrar y Facturar o Emitir Factura de Saldado)
+  const openInvoiceMonthModal = (acc: {
+    customerRuc: string;
+    customerName: string;
+    currentBalance?: number;
+    totalDelivered?: number;
+    customerAddress?: string | null;
+  }) => {
+    const balance = acc.currentBalance && acc.currentBalance > 0 ? acc.currentBalance : 0;
+    const defaultAmt = balance > 0 ? balance : acc.totalDelivered || 0;
+    setInvoiceCustomer({
+      ruc: acc.customerRuc,
+      name: acc.customerName,
+      address: acc.customerAddress || undefined,
+      currentBalance: balance,
+    });
+    setInvoiceAmount(defaultAmt > 0 ? String(defaultAmt) : '');
+    setSettleBalanceOnInvoice(balance > 0);
     setInvoiceDescription(getDefaultMonthDescription());
     setInvoicePaymentMethod('EFECTIVO');
     setInvoicePaymentReference('');
@@ -168,15 +195,6 @@ export function CustomerAccountsPanel({
       customAlert({
         title: 'Monto Inválido',
         message: 'Debe ingresar un monto mayor a 0 para el cobro.',
-        variant: 'warning',
-      });
-      return;
-    }
-
-    if (paymentMethod === 'TRANSFERENCIA_BANCARIA' && !paymentReference.trim()) {
-      customAlert({
-        title: 'Comprobante Requerido',
-        message: 'Debe ingresar el número de comprobante de la transferencia.',
         variant: 'warning',
       });
       return;
@@ -198,14 +216,23 @@ export function CustomerAccountsPanel({
       });
       const data = await res.json();
       if (data.success) {
+        const remainingAfter = (paymentCustomer.currentBalance || 0) - Number(paymentAmount);
         setShowPaymentModal(false);
         customAlert({
-          title: 'Cobro Registrado con Éxito',
-          message: `Se registró la entrega de ${formatCurrencyPYG(Number(paymentAmount))} para ${paymentCustomer.name}. El monto ingresó a la caja activa del día.`,
+          title: remainingAfter <= 0 ? 'Cuenta Saldada (Sin Factura)' : 'Abono Registrado con Éxito',
+          message:
+            remainingAfter <= 0
+              ? `Se registró el pago total de ${formatCurrencyPYG(Number(paymentAmount))} para ${paymentCustomer.name}. La cuenta quedó en ₲ 0 y salió de la lista de libretas pendientes.`
+              : `Se registró el abono de ${formatCurrencyPYG(Number(paymentAmount))} para ${paymentCustomer.name}. Ingresó a la caja activa del día.`,
           variant: 'success',
         });
-        fetchAccounts();
-        if (selectedRuc) fetchDetail(selectedRuc);
+        await fetchAccounts();
+        if (remainingAfter <= 0 && accountFilter === 'pending') {
+          setSelectedRuc(null);
+          setSelectedDetail(null);
+        } else if (selectedRuc) {
+          fetchDetail(selectedRuc);
+        }
       } else {
         customAlert({
           title: 'Error al Registrar Cobro',
@@ -218,7 +245,7 @@ export function CustomerAccountsPanel({
     }
   };
 
-  // Enviar Facturación de Fin de Mes
+  // Enviar Facturación (con o sin cancelación simultánea de saldo)
   const handleSaveInvoiceMonth = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!invoiceCustomer || !invoiceAmount || Number(invoiceAmount) <= 0) {
@@ -243,19 +270,31 @@ export function CustomerAccountsPanel({
           paymentMethod: invoicePaymentMethod,
           paymentReference: invoicePaymentReference.trim() || null,
           customDescription: invoiceDescription.trim() || undefined,
+          settleAccountBalance: settleBalanceOnInvoice,
         }),
       });
       const data = await res.json();
       if (data.success) {
+        const remainingAfter = settleBalanceOnInvoice
+          ? (invoiceCustomer.currentBalance || 0) - Number(invoiceAmount)
+          : invoiceCustomer.currentBalance || 0;
         setShowInvoiceMonthModal(false);
         customAlert({
           title: 'Factura SIFEN Emitida con Éxito',
-          message: `Se emitió la factura electrónica por ${formatCurrencyPYG(Number(invoiceAmount))} con la descripción solicitada.`,
+          message:
+            settleBalanceOnInvoice && remainingAfter <= 0
+              ? `Se cobró y facturó ${formatCurrencyPYG(Number(invoiceAmount))} para ${invoiceCustomer.name}. La libreta quedó saldada en ₲ 0 y salió de pendientes.`
+              : `Se emitió la factura electrónica por ${formatCurrencyPYG(Number(invoiceAmount))}.`,
           variant: 'success',
         });
-        fetchAccounts();
-        if (selectedRuc) fetchDetail(selectedRuc);
-        // Abrir el visor de la factura emitida para imprimir
+        await fetchAccounts();
+        if (remainingAfter <= 0 && accountFilter === 'pending') {
+          setSelectedRuc(null);
+          setSelectedDetail(null);
+        } else if (selectedRuc) {
+          fetchDetail(selectedRuc);
+        }
+        // Abrir el visor de la factura emitida para imprimir o descargar PDF
         onViewInvoice(data.data);
       } else {
         customAlert({
@@ -269,12 +308,17 @@ export function CustomerAccountsPanel({
     }
   };
 
-  // Filtrado de cuentas
-  const filteredAccounts = accounts.filter(
-    (a) =>
+  // Separar pendientes de saldados (una vez pagado todo, sale de la lista de libretas pendientes)
+  const pendingAccountsCount = accounts.filter((a) => a.currentBalance > 0).length;
+  const settledAccountsCount = accounts.filter((a) => a.currentBalance <= 0).length;
+
+  const filteredAccounts = accounts.filter((a) => {
+    const matchesStatus = accountFilter === 'pending' ? a.currentBalance > 0 : a.currentBalance <= 0;
+    const matchesSearch =
       a.customerName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      a.customerRuc.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+      a.customerRuc.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
 
   const totalGlobalDebt = accounts.reduce((sum, a) => sum + (a.currentBalance > 0 ? a.currentBalance : 0), 0);
   const totalGlobalPaid = accounts.reduce((sum, a) => sum + a.totalPaid, 0);
@@ -321,17 +365,50 @@ export function CustomerAccountsPanel({
         </div>
       </div>
 
-      {/* Barra de Búsqueda y Filtro */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card p-3 rounded-lg border border-card-border">
-        <div className="relative w-full sm:w-80">
-          <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Buscar por cliente o RUC (ej: César, 44444401)..."
-            className="w-full bg-[#0d121c] border border-card-border rounded-md pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
-          />
+      {/* Barra de Búsqueda y Filtro Pendientes / Saldados */}
+      <div className="flex flex-wrap items-center justify-between gap-3 bg-card p-3 rounded-lg border border-card-border">
+        <div className="flex flex-wrap items-center gap-2.5 w-full sm:w-auto">
+          <div className="flex items-center p-1 rounded-lg bg-[#0d121c] border border-card-border text-xs font-mono">
+            <button
+              type="button"
+              onClick={() => {
+                setAccountFilter('pending');
+                setSelectedRuc(null);
+              }}
+              className={`px-3 py-1 rounded transition-colors ${
+                accountFilter === 'pending'
+                  ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Libretas Pendientes ({pendingAccountsCount})
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setAccountFilter('settled');
+                setSelectedRuc(null);
+              }}
+              className={`px-3 py-1 rounded transition-colors ${
+                accountFilter === 'settled'
+                  ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-bold'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Saldados / Historial ({settledAccountsCount})
+            </button>
+          </div>
+
+          <div className="relative w-full sm:w-72">
+            <Search className="w-3.5 h-3.5 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Buscar por cliente o RUC..."
+              className="w-full bg-[#0d121c] border border-card-border rounded-md pl-8 pr-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
+            />
+          </div>
         </div>
 
         <button
@@ -353,7 +430,9 @@ export function CustomerAccountsPanel({
             </div>
           ) : filteredAccounts.length === 0 ? (
             <div className="p-8 text-center bg-card border border-card-border rounded-lg text-xs text-muted-foreground font-mono">
-              No hay pedidos a cuenta registrados todavía. Cuando cargues un pedido en el POS bajo la condición &quot;A Cuenta / Libreta&quot;, aparecerá aquí automáticamente.
+              {accountFilter === 'pending'
+                ? 'No hay clientes con saldo pendiente en libreta. Toda venta cargada en "A Cuenta / Libreta" aparecerá aquí hasta que se pague por completo.'
+                : 'No hay cuentas saldadas para mostrar todavía.'}
             </div>
           ) : (
             filteredAccounts.map((acc) => {
@@ -409,19 +488,36 @@ export function CustomerAccountsPanel({
                   </div>
 
                   {/* Acciones Rápidas */}
-                  <div className="flex items-center justify-end gap-2 mt-2.5 pt-2 border-t border-card-border/40">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        openPaymentModal(acc);
-                      }}
-                      className="px-2.5 py-1 rounded bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-300 border border-emerald-500/30 text-[10px] font-mono font-medium flex items-center gap-1 transition-colors"
-                      title="Registrar entrega o pago a cuenta del cliente"
-                    >
-                      <Plus className="w-3 h-3" />
-                      <span>Pago a Cuenta</span>
-                    </button>
+                  <div className="flex flex-wrap items-center justify-end gap-1.5 mt-2.5 pt-2 border-t border-card-border/40">
+                    {acc.currentBalance > 0 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openPaymentModal(acc, 'full_no_invoice');
+                          }}
+                          className="px-2.5 py-1 rounded bg-emerald-600/25 hover:bg-emerald-600/40 text-emerald-300 border border-emerald-500/40 text-[10px] font-mono font-bold flex items-center gap-1 transition-colors"
+                          title="Cobrar el saldo total pendiente sin emitir factura y sacar de la lista"
+                        >
+                          <CheckCircle2 className="w-3 h-3" />
+                          <span>Pago Total (Sin Factura)</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openPaymentModal(acc, 'partial');
+                          }}
+                          className="px-2 py-1 rounded bg-[#0d121c] hover:bg-muted/30 text-muted-foreground hover:text-foreground border border-card-border text-[10px] font-mono flex items-center gap-1 transition-colors"
+                          title="Registrar abono o entrega parcial"
+                        >
+                          <Plus className="w-3 h-3" />
+                          <span>Abono</span>
+                        </button>
+                      </>
+                    )}
 
                     <button
                       type="button"
@@ -429,11 +525,15 @@ export function CustomerAccountsPanel({
                         e.stopPropagation();
                         openInvoiceMonthModal(acc);
                       }}
-                      className="px-2.5 py-1 rounded bg-primary/20 hover:bg-primary/30 text-primary border border-primary/30 text-[10px] font-mono font-medium flex items-center gap-1 transition-colors"
-                      title="Facturar fin de mes con descripción consolidada"
+                      className="px-2.5 py-1 rounded bg-primary/20 hover:bg-primary/35 text-primary border border-primary/40 text-[10px] font-mono font-bold flex items-center gap-1 transition-colors"
+                      title={
+                        acc.currentBalance > 0
+                          ? 'Cobrar el saldo y emitir Factura Electrónica SIFEN en un solo clic'
+                          : 'Emitir Factura Electrónica SIFEN por compras ya abonadas'
+                      }
                     >
                       <ShieldCheck className="w-3 h-3" />
-                      <span>Facturar Fin de Mes</span>
+                      <span>{acc.currentBalance > 0 ? 'Cobrar y Facturar' : 'Emitir Factura'}</span>
                     </button>
                   </div>
                 </div>
@@ -488,20 +588,45 @@ export function CustomerAccountsPanel({
                       <span>WhatsApp</span>
                     </button>
 
-                    <button
-                      type="button"
-                      onClick={() =>
-                        openPaymentModal({
-                          customerRuc: selectedDetail.customer.ruc,
-                          customerName: selectedDetail.customer.name,
-                          currentBalance: selectedDetail.currentBalance,
-                        })
-                      }
-                      className="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md"
-                    >
-                      <Plus className="w-3.5 h-3.5" />
-                      <span>Registrar Cobro</span>
-                    </button>
+                    {selectedDetail.currentBalance > 0 && (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openPaymentModal(
+                              {
+                                customerRuc: selectedDetail.customer.ruc,
+                                customerName: selectedDetail.customer.name,
+                                currentBalance: selectedDetail.currentBalance,
+                              },
+                              'full_no_invoice'
+                            )
+                          }
+                          className="px-3 py-1.5 rounded-md bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold flex items-center gap-1.5 shadow-md"
+                        >
+                          <CheckCircle2 className="w-3.5 h-3.5" />
+                          <span>Pago Total (Sin Factura)</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openPaymentModal(
+                              {
+                                customerRuc: selectedDetail.customer.ruc,
+                                customerName: selectedDetail.customer.name,
+                                currentBalance: selectedDetail.currentBalance,
+                              },
+                              'partial'
+                            )
+                          }
+                          className="px-2.5 py-1.5 rounded-md bg-[#0d121c] border border-card-border hover:border-emerald-500 text-foreground text-xs font-semibold flex items-center gap-1"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                          <span>Abono</span>
+                        </button>
+                      </>
+                    )}
 
                     <button
                       type="button"
@@ -510,13 +635,14 @@ export function CustomerAccountsPanel({
                           customerRuc: selectedDetail.customer.ruc,
                           customerName: selectedDetail.customer.name,
                           currentBalance: selectedDetail.currentBalance,
+                          totalDelivered: selectedDetail.totalDelivered,
                           customerAddress: selectedDetail.customer.address,
                         })
                       }
                       className="px-3 py-1.5 rounded-md bg-primary hover:bg-primary-hover text-white text-xs font-semibold flex items-center gap-1.5 shadow-md"
                     >
                       <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Facturar Fin de Mes</span>
+                      <span>{selectedDetail.currentBalance > 0 ? 'Cobrar y Facturar' : 'Emitir Factura'}</span>
                     </button>
 
                     <button
@@ -638,7 +764,9 @@ export function CustomerAccountsPanel({
               <div className="flex items-center gap-2">
                 <Receipt className="w-4 h-4 text-emerald-400" />
                 <h3 className="text-sm font-semibold text-foreground">
-                  Registrar Cobro / Pago a Cuenta
+                  {paymentMode === 'full_no_invoice'
+                    ? 'Pago Total por Monto (Sin Factura)'
+                    : 'Registrar Abono / Entrega Parcial'}
                 </h3>
               </div>
               <button
@@ -651,20 +779,42 @@ export function CustomerAccountsPanel({
             </div>
 
             <form onSubmit={handleSavePayment} className="p-4 space-y-3.5 text-xs font-sans">
-              <div className="p-2.5 rounded-lg bg-[#0d121c] border border-card-border font-mono text-[11px]">
-                <div className="text-muted-foreground">Cliente: <strong className="text-foreground">{paymentCustomer.name}</strong></div>
-                <div className="text-muted-foreground text-[10px]">RUC: {paymentCustomer.ruc}</div>
+              <div className="p-2.5 rounded-lg bg-[#0d121c] border border-card-border font-mono text-[11px] flex items-center justify-between gap-2">
+                <div>
+                  <div className="text-muted-foreground">Cliente: <strong className="text-foreground">{paymentCustomer.name}</strong></div>
+                  <div className="text-muted-foreground text-[10px]">RUC: {paymentCustomer.ruc}</div>
+                </div>
+                {(paymentCustomer.currentBalance || 0) > 0 && (
+                  <div className="text-right">
+                    <span className="text-[9px] text-muted-foreground block">Saldo Total</span>
+                    <strong className="text-amber-400">{formatCurrencyPYG(paymentCustomer.currentBalance || 0)}</strong>
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-[11px] font-mono text-muted-foreground mb-1">
-                  Monto Entregado (Gs.) *
-                </label>
+                <div className="flex items-center justify-between mb-1">
+                  <label className="text-[11px] font-mono text-muted-foreground">
+                    Monto a Cobrar (Gs.) *
+                  </label>
+                  {(paymentCustomer.currentBalance || 0) > 0 && Number(paymentAmount) !== paymentCustomer.currentBalance && (
+                    <button
+                      type="button"
+                      onClick={() => setPaymentAmount(String(paymentCustomer.currentBalance))}
+                      className="text-[10px] font-mono text-emerald-400 hover:underline font-bold"
+                    >
+                      Cargar Total ({formatCurrencyPYG(paymentCustomer.currentBalance || 0)})
+                    </button>
+                  )}
+                </div>
                 <input
                   type="number"
                   required
+                  min="1"
+                  step="1"
                   value={paymentAmount}
                   onChange={(e) => setPaymentAmount(e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   placeholder="Ej: 300000"
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-2 text-foreground font-mono text-sm font-bold focus:outline-none focus:border-primary"
                 />
@@ -772,12 +922,34 @@ export function CustomerAccountsPanel({
                 <input
                   type="number"
                   required
+                  min="1"
+                  step="1"
                   value={invoiceAmount}
                   onChange={(e) => setInvoiceAmount(e.target.value)}
+                  onFocus={(e) => e.target.select()}
                   placeholder="Ej: 600000"
                   className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-2 text-foreground font-mono text-sm font-bold focus:outline-none focus:border-primary"
                 />
               </div>
+
+              <label className="flex items-start gap-2.5 p-2.5 rounded-lg bg-[#0d121c] border border-card-border cursor-pointer select-none">
+                <input
+                  type="checkbox"
+                  checked={settleBalanceOnInvoice}
+                  onChange={(e) => setSettleBalanceOnInvoice(e.target.checked)}
+                  className="mt-0.5 w-4 h-4 rounded border-card-border accent-emerald-500 cursor-pointer"
+                />
+                <div className="text-[11px] leading-snug">
+                  <span className="font-bold text-foreground block">
+                    Saldar libreta e ingresar el cobro a Caja al emitir factura
+                  </span>
+                  <span className="text-muted-foreground font-mono text-[10px]">
+                    {settleBalanceOnInvoice
+                      ? 'Cobra el monto, deja la libreta en ₲ 0 y saca al cliente de pendientes.'
+                      : 'Solo emite la Factura SIFEN (útil si el cliente ya había pagado previamente).'}
+                  </span>
+                </div>
+              </label>
 
               {/* Descripción Solicitada */}
               <div>

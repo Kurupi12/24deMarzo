@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
 import { AppError } from '@/shared/errors/app-error';
+import { recordCashOutflowOnOpenShift } from '@/modules/billing/utils/cash-movement-sync';
 import { z } from 'zod';
 
 export const dynamic = 'force-dynamic';
@@ -12,6 +13,7 @@ const CreateAdvanceSchema = z.object({
   deductionPeriod: z.string().regex(/^\d{4}-(0[1-9]|1[0-2])$/, 'Formato YYYY-MM requerido').optional(),
   requestDate: z.string().optional(),
   reason: z.string().max(300).optional(),
+  deductFromCashShift: z.boolean().optional().default(false),
 });
 
 export async function GET(req: NextRequest) {
@@ -81,15 +83,32 @@ export async function POST(req: NextRequest) {
       data.deductionPeriod ||
       `${requestDate.getFullYear()}-${String(requestDate.getMonth() + 1).padStart(2, '0')}`;
 
-    const advance = await prisma.advancePayment.create({
-      data: {
-        employeeId: data.employeeId,
-        amount: data.amount,
-        requestDate,
-        deductionPeriod,
-        reason: data.reason?.trim() || 'Vale / Anticipo semanal',
-        status: 'APPROVED', // Aprobado automáticamente si no excede el límite
-      },
+    const advance = await prisma.$transaction(async (tx) => {
+      let cashMovementId: string | null = null;
+      const cleanReason = data.reason?.trim() || 'Vale / Anticipo semanal';
+
+      if (data.deductFromCashShift) {
+        const mov = await recordCashOutflowOnOpenShift(tx, {
+          type: 'EXPENSE_ADVANCE',
+          category: 'ADELANTO_PERSONAL',
+          amount: data.amount,
+          description: `Adelanto RRHH: ${employee.firstName} ${employee.lastName} - ${cleanReason}`,
+          beneficiary: `${employee.firstName} ${employee.lastName}`,
+        });
+        cashMovementId = mov?.id || null;
+      }
+
+      return tx.advancePayment.create({
+        data: {
+          employeeId: data.employeeId,
+          amount: data.amount,
+          requestDate,
+          deductionPeriod,
+          reason: cleanReason,
+          notes: cashMovementId ? `[CASH_MOV:${cashMovementId}] Descontado de Caja del Día` : null,
+          status: 'APPROVED',
+        },
+      });
     });
 
     return NextResponse.json(createSuccessResponse(advance), { status: 201 });

@@ -15,6 +15,7 @@ import {
   Building2,
   Receipt,
   FileSpreadsheet,
+  Landmark,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 
@@ -46,11 +47,13 @@ export function NewExpenseModal({
   const [supplierOrWorkshop, setSupplierOrWorkshop] = useState('');
   const [receiptNumber, setReceiptNumber] = useState('');
   const [notes, setNotes] = useState('');
+  const [isCashShiftOpen, setIsCashShiftOpen] = useState<boolean | null>(null);
+  const [deductFromCashShift, setDeductFromCashShift] = useState(false);
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Inicializar fecha y vehículo preseleccionado
+  // Inicializar fecha, vehículo preseleccionado y estado de caja del día
   useEffect(() => {
     if (isOpen) {
       const today = new Date().toISOString().split('T')[0];
@@ -61,6 +64,18 @@ export function NewExpenseModal({
         setVehicleId(vehicles[0].id);
       }
       setError(null);
+
+      fetch('/api/v1/billing/shifts')
+        .then((res) => res.json())
+        .then((json) => {
+          const open = !!json?.data?.currentShift;
+          setIsCashShiftOpen(open);
+          setDeductFromCashShift(open);
+        })
+        .catch(() => {
+          setIsCashShiftOpen(false);
+          setDeductFromCashShift(false);
+        });
     }
   }, [isOpen, preSelectedVehicleId, vehicles]);
 
@@ -143,6 +158,7 @@ export function NewExpenseModal({
           supplierOrWorkshop,
           receiptNumber,
           notes,
+          deductFromCashShift,
         }),
       });
 
@@ -506,7 +522,44 @@ export function NewExpenseModal({
             </div>
           </div>
 
-          {/* Fila 6: Observaciones extras */}
+          {/* Fila 6: Origen del Dinero (Descuento en Caja del Día) y Observaciones */}
+          <div className="p-3 rounded-xl bg-[#0d121c] border border-card-border space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-xs font-mono font-semibold text-foreground flex items-center gap-1.5">
+                <Landmark className="w-3.5 h-3.5 text-primary" />
+                <span>¿Descontar este gasto de la Caja del Día?</span>
+              </span>
+              {isCashShiftOpen === false && (
+                <span className="text-[10px] font-mono text-amber-300">Caja cerrada actualmente</span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-xs font-mono">
+              <button
+                type="button"
+                disabled={isCashShiftOpen === false}
+                onClick={() => setDeductFromCashShift(true)}
+                className={`py-2 px-2.5 rounded-lg border transition-colors text-center disabled:opacity-40 ${
+                  deductFromCashShift
+                    ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-bold'
+                    : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Sí, Efectivo de Caja
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeductFromCashShift(false)}
+                className={`py-2 px-2.5 rounded-lg border transition-colors text-center ${
+                  !deductFromCashShift
+                    ? 'bg-primary/20 border-primary text-primary font-bold'
+                    : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                No (Transferencia / Fuera de Caja)
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1">
               Notas Adicionales (opcional):

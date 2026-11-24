@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
+import { verifyAndConsumeSupervisorOtp } from '@/lib/auth/otp-verifier';
+import { getSessionUser } from '@/lib/auth/session';
+import { AppError } from '@/shared/errors/app-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -39,10 +42,12 @@ export async function GET() {
       orderBy: { closedAt: 'desc' },
       select: {
         id: true,
+        openedAt: true,
         closedAt: true,
         closingBalance: true,
         expectedBalance: true,
         difference: true,
+        closingNotes: true,
         totalSafeDeposits: true,
       },
     });
@@ -150,10 +155,11 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { action, openingBalance, closingBalance, shiftId, notes, openingNotes, breakdown } = body;
+    const { action, openingBalance, closingBalance, shiftId, notes, openingNotes, breakdown, code, reason } = body;
 
+    const sessionUser = await getSessionUser();
     const admin = await prisma.user.findFirst({ select: { id: true, name: true } });
-    const userId = req.headers.get('x-user-id') || admin?.id || 'cajera-central';
+    const userId = sessionUser?.id || req.headers.get('x-user-id') || admin?.id || 'cajera-central';
 
     let register = await prisma.cashRegister.findFirst({ where: { code: 'CAJA-01' } });
     if (!register) {
@@ -269,7 +275,7 @@ export async function POST(req: NextRequest) {
               .map((s) => `${s.saleNumber} ${s.customerName} (${Number(s.grandTotal).toLocaleString('es-PY')} Gs)`)
               .join(' | ')}]`
           : '';
-      const combinedNotes = [notes?.trim(), pendingAuditNote].filter(Boolean).join(' — ') || null;
+      const combinedNotes = [shift.closingNotes?.trim(), notes?.trim(), pendingAuditNote].filter(Boolean).join(' — ') || null;
 
       const closedShift = await prisma.cashShift.update({
         where: { id: shiftId },
@@ -292,8 +298,87 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(createSuccessResponse(closedShift));
     }
 
+    // ACCIÓN 3: REAPERTURA / CORRECCIÓN AUDITADA DE ÚLTIMO CIERRE CON OTP DE ÚNICO USO (OSVALDO)
+    if (action === 'REOPEN' && shiftId) {
+      const cleanReason = String(reason || '').trim();
+      if (!cleanReason) {
+        return NextResponse.json(
+          createErrorResponse('Debe indicar el motivo de la corrección o reapertura de caja.', 'VALIDATION_ERROR'),
+          { status: 422 }
+        );
+      }
+
+      const existingOpen = await prisma.cashShift.findFirst({
+        where: { cashRegisterId: register.id, isOpen: true },
+        select: { id: true },
+      });
+      if (existingOpen) {
+        return NextResponse.json(
+          createErrorResponse('Ya existe un turno de caja abierto actualmente. No se puede reabrir un cierre anterior mientras otro turno está abierto.', 'SHIFT_ALREADY_OPEN'),
+          { status: 400 }
+        );
+      }
+
+      const latestClosed = await prisma.cashShift.findFirst({
+        where: { cashRegisterId: register.id, isOpen: false },
+        orderBy: { closedAt: 'desc' },
+        select: { id: true },
+      });
+      if (!latestClosed || latestClosed.id !== shiftId) {
+        return NextResponse.json(
+          createErrorResponse('Solo se puede corregir o reabrir el último cierre de caja registrado.', 'INVALID_REOPEN_TARGET'),
+          { status: 400 }
+        );
+      }
+
+      const targetShift = await prisma.cashShift.findUnique({
+        where: { id: shiftId },
+      });
+      if (!targetShift || targetShift.isOpen) {
+        return NextResponse.json(
+          createErrorResponse('El cierre indicado no existe o ya se encuentra abierto.', 'NOT_FOUND'),
+          { status: 404 }
+        );
+      }
+
+      const auth = await verifyAndConsumeSupervisorOtp({
+        code,
+        usedById: sessionUser?.id || null,
+        usageNote: `Reapertura de cierre accidental de caja (${cleanReason})`,
+      });
+
+      const prevTime = new Date(targetShift.closedAt || targetShift.updatedAt).toLocaleString('es-PY', {
+        dateStyle: 'short',
+        timeStyle: 'short',
+      });
+      const reopenAuditNote = `[Reapertura autorizada por ${auth.authorizedBy} (${
+        auth.type === 'OTP_TOKEN' ? `OTP ${auth.cleanCode}` : 'PIN Directo'
+      }) | Cierre accidental previo (${prevTime}): Declarado ${Number(
+        targetShift.closingBalance || 0
+      ).toLocaleString('es-PY')} Gs. | Motivo: ${cleanReason}]`;
+
+      const nextNotes = [targetShift.closingNotes?.trim(), reopenAuditNote].filter(Boolean).join(' — ');
+
+      const reopenedShift = await prisma.cashShift.update({
+        where: { id: shiftId },
+        data: {
+          isOpen: true,
+          closedAt: null,
+          closingNotes: nextNotes,
+        },
+      });
+
+      return NextResponse.json(createSuccessResponse(reopenedShift));
+    }
+
     return NextResponse.json(createErrorResponse('Acción inválida', 'BAD_REQUEST'), { status: 400 });
   } catch (error: any) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        createErrorResponse(error.message, error.code || 'SHIFT_PROCESS_ERROR'),
+        { status: error.statusCode }
+      );
+    }
     return NextResponse.json(
       createErrorResponse(error.message, 'SHIFT_PROCESS_ERROR'),
       { status: 500 }

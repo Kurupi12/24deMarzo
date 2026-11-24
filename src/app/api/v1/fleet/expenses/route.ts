@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
 import { VehicleExpenseCategory, VehicleMaintenanceType } from '@prisma/client';
+import { recordCashOutflowOnOpenShift } from '@/modules/billing/utils/cash-movement-sync';
+import { AppError } from '@/shared/errors/app-error';
 
 export const dynamic = 'force-dynamic';
 
@@ -120,6 +122,7 @@ export async function POST(req: NextRequest) {
       supplierOrWorkshop,
       receiptNumber,
       notes,
+      deductFromCashShift,
     } = body;
 
     if (!vehicleId) {
@@ -140,29 +143,60 @@ export async function POST(req: NextRequest) {
 
     const expenseDate = date ? new Date(date) : new Date();
 
-    const created = await prisma.vehicleExpense.create({
-      data: {
-        vehicleId,
-        date: expenseDate,
-        category: category as VehicleExpenseCategory,
-        maintenanceType: maintenanceType ? (maintenanceType as VehicleMaintenanceType) : null,
-        description: description.trim(),
-        partsCost: parts,
-        laborCost: labor,
-        totalCost: calculatedTotal,
-        fuelLiters: fuelLiters ? Number(fuelLiters) : null,
-        fuelPricePerLiter: fuelPricePerLiter ? Number(fuelPricePerLiter) : null,
-        supplierOrWorkshop: supplierOrWorkshop?.trim() || null,
-        receiptNumber: receiptNumber?.trim() || null,
-        notes: notes?.trim() || null,
-      },
-      include: {
-        vehicle: true,
-      },
+    const created = await prisma.$transaction(async (tx) => {
+      const vehicle = await tx.vehicle.findUnique({
+        where: { id: vehicleId },
+        select: { plateNumber: true, brand: true, model: true },
+      });
+
+      let cashNote = '';
+      if (deductFromCashShift && calculatedTotal > 0) {
+        const plate = vehicle?.plateNumber || 'Flota';
+        const mov = await recordCashOutflowOnOpenShift(tx, {
+          type: 'EXPENSE_OPERATION',
+          category: `FLOTA_${category}`,
+          amount: calculatedTotal,
+          description: `Gasto Vehículo (${plate}): ${description.trim()}`,
+          beneficiary: supplierOrWorkshop?.trim() || null,
+          receiptNo: receiptNumber?.trim() || null,
+        });
+        if (mov) {
+          cashNote = `[CASH_MOV:${mov.id}] Descontado de Caja del Día`;
+        }
+      }
+
+      const finalNotes = [notes?.trim(), cashNote].filter(Boolean).join(' — ') || null;
+
+      return tx.vehicleExpense.create({
+        data: {
+          vehicleId,
+          date: expenseDate,
+          category: category as VehicleExpenseCategory,
+          maintenanceType: maintenanceType ? (maintenanceType as VehicleMaintenanceType) : null,
+          description: description.trim(),
+          partsCost: parts,
+          laborCost: labor,
+          totalCost: calculatedTotal,
+          fuelLiters: fuelLiters ? Number(fuelLiters) : null,
+          fuelPricePerLiter: fuelPricePerLiter ? Number(fuelPricePerLiter) : null,
+          supplierOrWorkshop: supplierOrWorkshop?.trim() || null,
+          receiptNumber: receiptNumber?.trim() || null,
+          notes: finalNotes,
+        },
+        include: {
+          vehicle: true,
+        },
+      });
     });
 
     return NextResponse.json(createSuccessResponse(created));
   } catch (error: any) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        createErrorResponse(error.message, error.code || 'EXPENSE_CREATE_ERROR'),
+        { status: error.statusCode }
+      );
+    }
     console.error('Error creating vehicle expense:', error);
     return NextResponse.json(
       createErrorResponse(error.message || 'Error al registrar gasto de vehículo', 'EXPENSE_CREATE_ERROR'),

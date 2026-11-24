@@ -30,8 +30,21 @@ export async function DELETE(
       );
     }
 
-    await prisma.advancePayment.delete({
-      where: { id: advanceId },
+    await prisma.$transaction(async (tx) => {
+      const cashMovMatch = advance.notes?.match(/\[CASH_MOV:([^\]]+)\]/);
+      if (cashMovMatch?.[1]) {
+        const mov = await tx.cashMovement.findUnique({
+          where: { id: cashMovMatch[1] },
+          include: { shift: { select: { isOpen: true } } },
+        });
+        if (mov && mov.shift?.isOpen) {
+          await tx.cashMovement.delete({ where: { id: mov.id } });
+        }
+      }
+
+      await tx.advancePayment.delete({
+        where: { id: advanceId },
+      });
     });
 
     return NextResponse.json(

@@ -65,7 +65,7 @@ export function OtpGeneratorModal({ isOpen, onClose }: OtpGeneratorModalProps) {
           <div className="flex items-center gap-2">
             <KeyRound className="w-4 h-4 text-amber-400" />
             <h3 className="text-xs font-semibold text-foreground">
-              Autorización de Descuento (OTP)
+              Autorización de Único Uso (OTP)
             </h3>
           </div>
           <button
@@ -79,7 +79,7 @@ export function OtpGeneratorModal({ isOpen, onClose }: OtpGeneratorModalProps) {
         {/* Contenido */}
         <div className="p-5 text-center space-y-4">
           <p className="text-xs text-muted-foreground">
-            Genera un código dinámico de <span className="text-foreground font-semibold">único uso</span> para autorizar a Fátima o cajeros a modificar un precio de venta.
+            Genera un código dinámico de <span className="text-foreground font-semibold">único uso</span> para autorizar descuentos de precios o corregir/reabrir un cierre accidental de caja.
           </p>
 
           {code ? (

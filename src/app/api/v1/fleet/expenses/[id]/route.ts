@@ -46,8 +46,21 @@ export async function DELETE(
       return NextResponse.json(createErrorResponse('Registro no encontrado o ya eliminado', 'NOT_FOUND'), { status: 404 });
     }
 
-    await prisma.vehicleExpense.delete({
-      where: { id },
+    await prisma.$transaction(async (tx) => {
+      const cashMovMatch = existing.notes?.match(/\[CASH_MOV:([^\]]+)\]/);
+      if (cashMovMatch?.[1]) {
+        const mov = await tx.cashMovement.findUnique({
+          where: { id: cashMovMatch[1] },
+          include: { shift: { select: { isOpen: true } } },
+        });
+        if (mov && mov.shift?.isOpen) {
+          await tx.cashMovement.delete({ where: { id: mov.id } });
+        }
+      }
+
+      await tx.vehicleExpense.delete({
+        where: { id },
+      });
     });
 
     return NextResponse.json(createSuccessResponse({ success: true, id }));

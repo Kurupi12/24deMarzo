@@ -1,7 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
-import { X, DollarSign, AlertCircle, Calendar } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { X, DollarSign, AlertCircle, Calendar, Landmark } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 
 interface AdvanceModalProps {
@@ -24,8 +24,25 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
   const [amount, setAmount] = useState('');
   const [deductionPeriod, setDeductionPeriod] = useState(currentPeriod);
   const [reason, setReason] = useState('');
+  const [isCashShiftOpen, setIsCashShiftOpen] = useState<boolean | null>(null);
+  const [deductFromCashShift, setDeductFromCashShift] = useState(false);
   const [loading, setLoading] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    if (!isOpen) return;
+    fetch('/api/v1/billing/shifts')
+      .then((res) => res.json())
+      .then((json) => {
+        const open = !!json?.data?.currentShift;
+        setIsCashShiftOpen(open);
+        setDeductFromCashShift(open && requestDate === todayStr);
+      })
+      .catch(() => {
+        setIsCashShiftOpen(false);
+        setDeductFromCashShift(false);
+      });
+  }, [isOpen, requestDate, todayStr]);
 
   if (!isOpen || !employee) return null;
 
@@ -59,6 +76,7 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
           requestDate,
           deductionPeriod,
           reason: reason.trim() || undefined,
+          deductFromCashShift,
         }),
       });
       const data = await res.json();
@@ -228,6 +246,43 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
               onChange={(e) => setDeductionPeriod(e.target.value)}
               className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 font-mono text-foreground focus:outline-none focus:border-accent"
             />
+          </div>
+
+          <div className="p-2.5 rounded-lg bg-[#0d121c] border border-card-border space-y-2">
+            <div className="flex items-center justify-between gap-2">
+              <span className="text-[11px] font-mono font-semibold text-foreground flex items-center gap-1.5">
+                <Landmark className="w-3.5 h-3.5 text-primary" />
+                <span>¿Descontar de Caja del Día?</span>
+              </span>
+              {isCashShiftOpen === false && (
+                <span className="text-[10px] font-mono text-amber-300">Caja cerrada actualmente</span>
+              )}
+            </div>
+            <div className="grid grid-cols-2 gap-1.5 text-[11px] font-mono">
+              <button
+                type="button"
+                disabled={isCashShiftOpen === false}
+                onClick={() => setDeductFromCashShift(true)}
+                className={`py-1.5 px-2 rounded border transition-colors text-center disabled:opacity-40 ${
+                  deductFromCashShift
+                    ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-bold'
+                    : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                Sí, Efectivo de Caja
+              </button>
+              <button
+                type="button"
+                onClick={() => setDeductFromCashShift(false)}
+                className={`py-1.5 px-2 rounded border transition-colors text-center ${
+                  !deductFromCashShift
+                    ? 'bg-primary/20 border-primary text-primary font-bold'
+                    : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                No (Fuera de Caja)
+              </button>
+            </div>
           </div>
 
           <div className="flex items-center justify-end gap-2 pt-3 border-t border-card-border">

@@ -82,6 +82,13 @@ export function CashShiftPanel({
   // Modal de Confirmación Estilizado de Cierre
   const [pendingCloseAmount, setPendingCloseAmount] = useState<number | null>(null);
 
+  // Modal de Corrección / Reapertura de Cierre Accidental con Código OTP de Osvaldo
+  const [reopenTargetShift, setReopenTargetShift] = useState<any>(null);
+  const [reopenOtpCode, setReopenOtpCode] = useState('');
+  const [reopenReason, setReopenReason] = useState('');
+  const [reopenError, setReopenError] = useState('');
+  const [reopening, setReopening] = useState(false);
+
   // Modales Informativos y de Auditoría Post-Cierre
   const [showClosingSuccessModal, setShowClosingSuccessModal] = useState<any>(null);
   const [selectedShiftForBreakdown, setSelectedShiftForBreakdown] = useState<any>(null);
@@ -158,8 +165,52 @@ export function CashShiftPanel({
   };
 
   const currentShift = shiftData?.currentShift;
+  const lastClosedShift = shiftData?.lastClosedShift;
   const metrics = shiftData?.metrics;
   const history = shiftData?.history || [];
+
+  const handleReopenShift = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!reopenTargetShift) return;
+    if (!reopenOtpCode.trim() || !reopenReason.trim()) {
+      setReopenError('Ingrese el código de único uso de Osvaldo y el motivo.');
+      return;
+    }
+
+    setReopening(true);
+    setReopenError('');
+    try {
+      const res = await fetch('/api/v1/billing/shifts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'REOPEN',
+          shiftId: reopenTargetShift.id,
+          code: reopenOtpCode.trim(),
+          reason: reopenReason.trim(),
+        }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        setReopenTargetShift(null);
+        setReopenOtpCode('');
+        setReopenReason('');
+        setShowHistoryView(false);
+        await fetchShift();
+        await customAlert({
+          title: 'Cierre Reabierto con Auditoría',
+          message: 'El turno volvió a quedar abierto conservando el registro del cierre previo en el acta. Puede continuar operando o realizar el nuevo conteo de cierre.',
+          variant: 'primary',
+        });
+      } else {
+        setReopenError(json.error?.message || 'Código inválido o expirado.');
+      }
+    } catch {
+      setReopenError('Error de conexión al verificar el código.');
+    } finally {
+      setReopening(false);
+    }
+  };
   const pendingTransfers: any[] = shiftData?.pendingTransfers || [];
   const pendingTransfersTotal: number = shiftData?.pendingTransfersTotal || 0;
 
@@ -575,11 +626,33 @@ export function CashShiftPanel({
                         )}
                       </td>
                       <td className="py-2.5 px-3 text-center">
-                        {s.isOpen ? (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">Abierto</span>
-                        ) : (
-                          <span className="px-1.5 py-0.5 rounded text-[9px] bg-card border border-card-border text-muted-foreground font-bold">Cerrado</span>
-                        )}
+                        <div className="inline-flex items-center gap-1.5">
+                          {s.isOpen ? (
+                            <span className="px-1.5 py-0.5 rounded text-[9px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold">Abierto</span>
+                          ) : (
+                            <span
+                              title={s.closingNotes || 'Turno cerrado e inmutable'}
+                              className="px-1.5 py-0.5 rounded text-[9px] bg-card border border-card-border text-muted-foreground font-bold"
+                            >
+                              Cerrado
+                            </span>
+                          )}
+                          {!s.isOpen && !currentShift && lastClosedShift?.id === s.id && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setReopenTargetShift(s);
+                                setReopenOtpCode('');
+                                setReopenReason('Cierre accidental (verificado y corregido)');
+                                setReopenError('');
+                              }}
+                              className="px-2 py-0.5 rounded bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 text-[10px] font-bold transition-colors"
+                              title="Corregir / Reabrir este cierre con código OTP de Osvaldo"
+                            >
+                              Corregir Cierre
+                            </button>
+                          )}
+                        </div>
                       </td>
                     </tr>
                   );
@@ -591,6 +664,15 @@ export function CashShiftPanel({
       ) : currentShift ? (
         /* VISTA: TURNO DE CAJA ACTIVO */
         <div className="space-y-5">
+          {currentShift.closingNotes && (
+            <div className="p-3.5 rounded-xl bg-sky-500/10 border border-sky-500/30 flex items-start gap-3 text-xs text-sky-200 shadow-md">
+              <ShieldCheck className="w-5 h-5 shrink-0 text-sky-400 mt-0.5" />
+              <div className="space-y-0.5">
+                <p className="font-bold">Turno Reabierto para Corrección (Auditoría Activa)</p>
+                <p className="text-[11px] text-sky-200/80 font-mono leading-relaxed">{currentShift.closingNotes}</p>
+              </div>
+            </div>
+          )}
           {/* Alerta de Apertura con Discrepancia Justificada si hubo diferencia al abrir */}
           {currentShift.openingDifference && Number(currentShift.openingDifference) !== 0 && (
             <div className="p-3.5 rounded-xl bg-warning/10 border border-warning/30 flex items-start gap-3 text-xs text-warning shadow-md">
@@ -932,6 +1014,127 @@ export function CashShiftPanel({
               <span>Confirmar Conteo Inicial e Iniciar Turno del Día</span>
             </button>
           </form>
+
+          {lastClosedShift && (
+            <div className="pt-4 border-t border-card-border flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="space-y-0.5 font-mono">
+                <p className="text-amber-300 font-bold">¿Cerraste la caja anterior por accidente?</p>
+                <p className="text-[11px] text-muted-foreground">
+                  Último cierre:{' '}
+                  {lastClosedShift.closedAt
+                    ? format(new Date(lastClosedShift.closedAt), 'dd/MM/yyyy HH:mm', { locale: es })
+                    : '-'}{' '}
+                  &bull; Declarado: <strong className="text-foreground">{formatCurrencyPYG(Number(lastClosedShift.closingBalance || 0))}</strong>
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setReopenTargetShift(lastClosedShift);
+                  setReopenOtpCode('');
+                  setReopenReason('Cierre accidental (verificado y corregido)');
+                  setReopenError('');
+                }}
+                className="px-3.5 py-2 rounded-lg bg-amber-500/15 border border-amber-500/40 text-amber-300 hover:bg-amber-500/25 font-mono font-bold text-xs shrink-0 transition-colors"
+              >
+                Corregir / Reabrir Último Cierre (OTP)
+              </button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODAL: CORREGIR / REABRIR CIERRE ACCIDENTAL CON CÓDIGO DE ÚNICO USO (OSVALDO) */}
+      {reopenTargetShift && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/85 backdrop-blur-md p-4">
+          <div className="bg-card border-2 border-amber-500/50 rounded-xl shadow-2xl max-w-md w-full overflow-hidden p-5 space-y-4 text-xs font-mono">
+            <div className="flex items-start justify-between border-b border-card-border pb-3">
+              <div className="flex items-center gap-2">
+                <ShieldCheck className="w-5 h-5 text-amber-400 shrink-0" />
+                <div>
+                  <h3 className="text-sm font-bold text-foreground font-sans">
+                    Corregir / Reabrir Cierre de Caja
+                  </h3>
+                  <p className="text-[11px] text-muted-foreground">
+                    Requiere código de único uso generado por Osvaldo.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => setReopenTargetShift(null)}
+                className="text-muted-foreground hover:text-foreground p-1"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="p-3 rounded-lg bg-[#0d121c] border border-card-border space-y-1 text-[11px]">
+              <div className="flex justify-between">
+                <span className="text-muted-foreground">Cierre previo declarado:</span>
+                <strong className="text-emerald-400">
+                  {formatCurrencyPYG(Number(reopenTargetShift.closingBalance || 0))}
+                </strong>
+              </div>
+              <p className="text-[10px] text-muted-foreground font-sans">
+                El cierre accidental no se borra: quedará asentado en las notas de auditoría del acta al volver a cerrar.
+              </p>
+            </div>
+
+            <form onSubmit={handleReopenShift} className="space-y-3">
+              <div>
+                <label className="block text-[11px] text-amber-300 font-bold mb-1">
+                  Código de Único Uso de Osvaldo (6 dígitos) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  autoFocus
+                  value={reopenOtpCode}
+                  onChange={(e) => setReopenOtpCode(e.target.value)}
+                  placeholder="Ej: 482910"
+                  className="w-full text-center text-2xl tracking-[0.35em] font-bold bg-[#0d121c] border border-amber-500/40 rounded-lg py-2.5 text-amber-300 focus:outline-none focus:border-amber-400"
+                />
+              </div>
+
+              <div>
+                <label className="block text-[11px] text-muted-foreground mb-1">
+                  Motivo de Corrección (Auditoría) *
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={reopenReason}
+                  onChange={(e) => setReopenReason(e.target.value)}
+                  placeholder="Ej: Se cerró por error antes de terminar el día"
+                  className="w-full bg-[#0d121c] border border-card-border rounded-lg px-3 py-2 text-foreground font-sans text-xs focus:outline-none focus:border-primary"
+                />
+              </div>
+
+              {reopenError && (
+                <div className="p-2.5 rounded bg-danger/10 border border-danger/30 text-danger text-[11px] font-sans">
+                  {reopenError}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2 pt-2 border-t border-card-border">
+                <button
+                  type="button"
+                  onClick={() => setReopenTargetShift(null)}
+                  className="px-3.5 py-2 rounded-lg border border-card-border text-muted-foreground hover:text-foreground"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  disabled={reopening}
+                  className="px-4 py-2 rounded-lg bg-amber-600 hover:bg-amber-500 text-white font-bold disabled:opacity-50"
+                >
+                  {reopening ? 'Validando...' : 'Autorizar y Reabrir Turno'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 

@@ -1,9 +1,10 @@
 'use client';
 
-import React from 'react';
-import { X, Printer, FileText } from 'lucide-react';
+import React, { useState } from 'react';
+import { X, Printer, FileText, FileDown, Loader2 } from 'lucide-react';
 import { WeeklyReceiptA4, SettlementEmployeeData } from './weekly-receipt-a4';
 import { printElementById } from '@/shared/utils/print-html';
+import { downloadElementAsPdf } from '@/shared/utils/pdf-export';
 
 interface WeeklyReceiptModalProps {
   settlement: SettlementEmployeeData | null;
@@ -16,14 +17,30 @@ interface WeeklyReceiptModalProps {
 }
 
 export function WeeklyReceiptModal({ settlement, period, isOpen, onClose }: WeeklyReceiptModalProps) {
+  const [exportingPdf, setExportingPdf] = useState(false);
+
   if (!isOpen || !settlement) return null;
+
+  const baseFileName = `Recibo_Semanal_${settlement.firstName}_${settlement.lastName}`;
 
   const handlePrint = () => {
     printElementById('printable-weekly-receipt', {
       paperSize: 'A4',
-      title: `Recibo_Semanal_${settlement.firstName}_${settlement.lastName}`,
+      title: baseFileName,
       pageMargin: '0',
     });
+  };
+
+  const handleDownloadPdf = async () => {
+    setExportingPdf(true);
+    try {
+      await downloadElementAsPdf('printable-weekly-receipt', {
+        fileName: baseFileName,
+        paperSize: 'A4',
+      });
+    } finally {
+      setExportingPdf(false);
+    }
   };
 
   return (
@@ -44,6 +61,15 @@ export function WeeklyReceiptModal({ settlement, period, isOpen, onClose }: Week
           </div>
 
           <div className="flex items-center gap-2">
+            <button
+              type="button"
+              disabled={exportingPdf}
+              onClick={handleDownloadPdf}
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-md bg-[#0d121c] border border-sky-500/40 text-sky-300 hover:bg-[#172133] text-xs font-semibold shadow transition-colors disabled:opacity-50"
+            >
+              {exportingPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileDown className="w-3.5 h-3.5" />}
+              <span>Descargar PDF</span>
+            </button>
             <button
               type="button"
               onClick={handlePrint}

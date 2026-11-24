@@ -20,9 +20,13 @@ import {
   ArrowUpRight,
   ShieldCheck,
   X,
+  FileDown,
+  MessageCircle,
+  Loader2,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
+import { downloadElementAsPdf, openWhatsAppShareWindow } from '@/shared/utils/pdf-export';
 
 interface CustomerAccountSummary {
   customerRuc: string;
@@ -66,6 +70,31 @@ export function CustomerAccountsPanel({
   const [invoicePaymentMethod, setInvoicePaymentMethod] = useState<'EFECTIVO' | 'TRANSFERENCIA_BANCARIA'>('EFECTIVO');
   const [invoicePaymentReference, setInvoicePaymentReference] = useState('');
   const [submittingInvoice, setSubmittingInvoice] = useState(false);
+  const [exportingAccountPdf, setExportingAccountPdf] = useState(false);
+
+  const handleDownloadStatementPdf = async (alsoWhatsApp = false) => {
+    if (!selectedDetail?.customer) return;
+    setExportingAccountPdf(true);
+    try {
+      const safeName = `Estado_Cuenta_${selectedDetail.customer.name || selectedDetail.customer.ruc}`;
+      await downloadElementAsPdf('printable-account-statement', {
+        fileName: safeName,
+        paperSize: 'A4',
+        lightMode: true,
+      });
+      if (alsoWhatsApp) {
+        const msg = [
+          `Depósito 4 de Marzo - Estado de Cuenta`,
+          `Cliente: ${selectedDetail.customer.name} (${selectedDetail.customer.ruc})`,
+          `Saldo actual: ${formatCurrencyPYG(selectedDetail.currentBalance)}`,
+          `Adjunto el extracto detallado en PDF.`,
+        ].join('\n');
+        openWhatsAppShareWindow(msg, selectedDetail.customer.phone);
+      }
+    } finally {
+      setExportingAccountPdf(false);
+    }
+  };
 
   const fetchAccounts = async () => {
     setLoading(true);
@@ -415,7 +444,10 @@ export function CustomerAccountsPanel({
 
         {/* Detalle del Estado de Cuenta / Extracto (Derecha) */}
         {selectedRuc && (
-          <div className="lg:col-span-7 bg-card border border-card-border rounded-lg p-4 space-y-4">
+          <div
+            id="printable-account-statement"
+            className="lg:col-span-7 bg-card border border-card-border rounded-lg p-4 space-y-4"
+          >
             {loadingDetail ? (
               <div className="p-8 text-center text-xs text-muted-foreground font-mono">
                 Cargando extracto del cliente...
@@ -423,7 +455,7 @@ export function CustomerAccountsPanel({
             ) : selectedDetail ? (
               <>
                 {/* Cabecera del Cliente */}
-                <div className="flex items-start justify-between pb-3 border-b border-card-border">
+                <div className="flex flex-wrap items-start justify-between gap-2 pb-3 border-b border-card-border">
                   <div>
                     <h3 className="text-sm font-bold text-foreground">
                       {selectedDetail.customer?.name}
@@ -433,7 +465,29 @@ export function CustomerAccountsPanel({
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex flex-wrap items-center gap-2 no-print">
+                    <button
+                      type="button"
+                      disabled={exportingAccountPdf}
+                      onClick={() => handleDownloadStatementPdf(false)}
+                      className="px-2.5 py-1.5 rounded-md bg-[#0d121c] border border-sky-500/40 text-sky-300 hover:bg-[#172133] text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50"
+                      title="Descargar extracto de cuenta en PDF"
+                    >
+                      {exportingAccountPdf ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <FileDown className="w-3.5 h-3.5" />}
+                      <span>PDF</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      disabled={exportingAccountPdf}
+                      onClick={() => handleDownloadStatementPdf(true)}
+                      className="px-2.5 py-1.5 rounded-md bg-emerald-700/20 border border-emerald-500/40 text-emerald-300 hover:bg-emerald-700/35 text-xs font-semibold flex items-center gap-1.5 disabled:opacity-50"
+                      title="Descargar PDF y abrir WhatsApp para enviar extracto"
+                    >
+                      <MessageCircle className="w-3.5 h-3.5" />
+                      <span>WhatsApp</span>
+                    </button>
+
                     <button
                       type="button"
                       onClick={() =>

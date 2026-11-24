@@ -1,12 +1,28 @@
 'use client';
 
 import React, { useState } from 'react';
-import { X, Printer, ShieldCheck, CheckCircle2, Truck, FileText, Copy, FileSpreadsheet, MapPin, ExternalLink, Pencil } from 'lucide-react';
+import {
+  X,
+  Printer,
+  ShieldCheck,
+  CheckCircle2,
+  Truck,
+  FileText,
+  Copy,
+  FileSpreadsheet,
+  MapPin,
+  ExternalLink,
+  Pencil,
+  FileDown,
+  MessageCircle,
+  Loader2,
+} from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { DeliveryOrderA4 } from './delivery-order-a4';
 import { ReservationReceiptA4 } from './reservation-receipt-a4';
 import { QuotationA4 } from './quotation-a4';
 import { printElementById } from '@/shared/utils/print-html';
+import { downloadElementAsPdf, openWhatsAppShareWindow } from '@/shared/utils/pdf-export';
 
 interface InvoiceDetailModalProps {
   sale: any | null;
@@ -29,6 +45,8 @@ export function InvoiceDetailModal({
 }: InvoiceDetailModalProps) {
   // Documento activo para previsualizar e imprimir: 'delivery_order' (A4 duplicado) o 'invoice' (fiscal SIFEN)
   const [activeDoc, setActiveDoc] = useState<'delivery_order' | 'invoice'>('delivery_order');
+  const [exportingPdf, setExportingPdf] = useState(false);
+  const [pdfNotice, setPdfNotice] = useState<string | null>(null);
 
   if (!isOpen || !sale) return null;
 
@@ -48,23 +66,84 @@ export function InvoiceDetailModal({
     }
   };
 
-  const handlePrint = (mode: 'delivery_order' | 'invoice') => {
+  const getDocumentDescriptor = (mode: 'delivery_order' | 'invoice') => {
     if (mode === 'delivery_order') {
-      const docTitle = isQuotation
-        ? `Presupuesto_${sale.saleNumber || 'A4'}`
-        : sale.isScheduled
-        ? `Comprobante_Reserva_${sale.reservationReceiptNumber || sale.saleNumber || 'A4'}`
-        : `Orden_Entrega_${sale.saleNumber || 'A4'}`;
+      if (isQuotation) {
+        return {
+          elementId: 'printable-delivery-order',
+          paperSize: 'A4' as const,
+          lightMode: false,
+          fileName: `Presupuesto_${sale.saleNumber || 'A4'}`,
+          docLabel: 'Presupuesto de Materiales',
+        };
+      }
+      if (sale.isScheduled) {
+        return {
+          elementId: 'printable-delivery-order',
+          paperSize: 'A4' as const,
+          lightMode: false,
+          fileName: `Comprobante_Reserva_${sale.reservationReceiptNumber || sale.saleNumber || 'A4'}`,
+          docLabel: 'Comprobante de Reserva y Seña',
+        };
+      }
+      return {
+        elementId: 'printable-delivery-order',
+        paperSize: 'A4' as const,
+        lightMode: false,
+        fileName: `Orden_Entrega_${sale.saleNumber || 'A4'}`,
+        docLabel: 'Orden de Entrega / Acuse de Recibo',
+      };
+    }
 
-      printElementById('printable-delivery-order', {
-        paperSize: 'A4',
-        title: docTitle,
+    return {
+      elementId: 'printable-receipt',
+      paperSize: 'ticket' as const,
+      lightMode: true,
+      fileName: invoice
+        ? `Factura_SIFEN_${invoice.invoiceNumber || sale.saleNumber || 'Ticket'}`
+        : `Ticket_${sale.saleNumber || 'Venta'}`,
+      docLabel: invoice ? 'Factura Electrónica SIFEN' : 'Comprobante de Venta',
+    };
+  };
+
+  const handlePrint = (mode: 'delivery_order' | 'invoice') => {
+    const desc = getDocumentDescriptor(mode);
+    printElementById(desc.elementId, {
+      paperSize: desc.paperSize,
+      title: desc.fileName,
+    });
+  };
+
+  const handleDownloadPdf = async (mode: 'delivery_order' | 'invoice', alsoOpenWhatsApp = false) => {
+    const desc = getDocumentDescriptor(mode);
+    setExportingPdf(true);
+    setPdfNotice(null);
+    try {
+      const savedFile = await downloadElementAsPdf(desc.elementId, {
+        fileName: desc.fileName,
+        paperSize: desc.paperSize,
+        lightMode: desc.lightMode,
       });
-    } else {
-      printElementById('printable-receipt', {
-        paperSize: 'ticket',
-        title: `Ticket_${sale.saleNumber || 'Venta'}`,
-      });
+
+      if (alsoOpenWhatsApp) {
+        const message = [
+          `Depósito 4 de Marzo`,
+          `${desc.docLabel} N° ${sale.saleNumber || ''}`,
+          `Cliente: ${sale.customerName || 'Consumidor Final'}`,
+          `Total: ${formatCurrencyPYG(Number(sale.grandTotal || 0))}`,
+          `Adjunto el comprobante en PDF.`,
+        ].join('\n');
+        openWhatsAppShareWindow(message, sale.project?.contactPhone);
+        setPdfNotice(
+          `PDF descargado (${savedFile}). Se abrió WhatsApp: solo arrastrá o adjuntá el archivo desde Descargas.`
+        );
+      } else {
+        setPdfNotice(`PDF guardado en Descargas: ${savedFile}`);
+      }
+    } catch (err: any) {
+      setPdfNotice(err?.message || 'No se pudo generar el PDF.');
+    } finally {
+      setExportingPdf(false);
     }
   };
 
@@ -185,7 +264,36 @@ export function InvoiceDetailModal({
           </div>
 
           {/* Botones de Acción */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
+            {(() => {
+              const mode = activeDoc === 'delivery_order' || isQuotation ? 'delivery_order' : 'invoice';
+              return (
+                <>
+                  <button
+                    type="button"
+                    disabled={exportingPdf}
+                    onClick={() => handleDownloadPdf(mode, false)}
+                    className="px-3.5 py-2 bg-[#0d121c] hover:bg-[#172133] text-sky-300 border border-sky-500/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow transition-all disabled:opacity-50"
+                    title="Descargar este documento en archivo PDF"
+                  >
+                    {exportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+                    <span>Descargar PDF</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    disabled={exportingPdf}
+                    onClick={() => handleDownloadPdf(mode, true)}
+                    className="px-3.5 py-2 bg-emerald-700/20 hover:bg-emerald-700/35 text-emerald-300 border border-emerald-500/40 rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow transition-all disabled:opacity-50"
+                    title="Descargar PDF y abrir WhatsApp para enviarlo al cliente"
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>WhatsApp (PDF)</span>
+                  </button>
+                </>
+              );
+            })()}
+
             {activeDoc === 'delivery_order' || isQuotation ? (
               <button
                 type="button"
@@ -224,6 +332,20 @@ export function InvoiceDetailModal({
             </button>
           </div>
         </div>
+
+        {pdfNotice && (
+          <div className="px-4 py-2 bg-sky-500/15 border-b border-sky-500/30 flex items-center justify-between gap-2 text-xs text-sky-200 no-print">
+            <span className="font-mono">{pdfNotice}</span>
+            <button
+              type="button"
+              onClick={() => setPdfNotice(null)}
+              className="text-sky-300 hover:text-white p-0.5"
+              title="Ocultar aviso"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
 
         {/* Área de Visualización y Contenedor de Impresión */}
         <div className="p-4 overflow-y-auto flex-1 bg-[#06080d]">

@@ -17,10 +17,13 @@ import {
   DollarSign,
   ChevronRight,
   Package,
+  FileDown,
+  Loader2,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
+import { downloadElementAsPdf } from '@/shared/utils/pdf-export';
 
 type ReportTab = 'sales_by_project' | 'deliveries_by_driver' | 'kardex_valuation' | 'price_list';
 
@@ -33,6 +36,21 @@ export function ReportsView() {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [exportingPdf, setExportingPdf] = useState(false);
+
+  const handleExportPdf = async () => {
+    if (!data) return;
+    setExportingPdf(true);
+    try {
+      await downloadElementAsPdf('printable-report-view', {
+        fileName: `Reporte_${activeTab}_${format(new Date(), 'yyyyMMdd_HHmm')}`,
+        paperSize: 'A4',
+        lightMode: true,
+      });
+    } finally {
+      setExportingPdf(false);
+    }
+  };
 
   const fetchReport = async () => {
     setLoading(true);
@@ -123,6 +141,15 @@ export function ReportsView() {
           >
             <Download className="w-4 h-4" />
             <span>Exportar a Excel (.csv)</span>
+          </button>
+          <button
+            type="button"
+            onClick={handleExportPdf}
+            disabled={!data || loading || exportingPdf}
+            className="inline-flex items-center gap-2 px-3.5 py-2 rounded-lg bg-sky-700/30 border border-sky-500/40 hover:bg-sky-700/45 text-sky-200 text-xs font-semibold shadow-md transition-colors disabled:opacity-50"
+          >
+            {exportingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileDown className="w-4 h-4" />}
+            <span>Descargar PDF</span>
           </button>
           <button
             type="button"
@@ -224,7 +251,7 @@ export function ReportsView() {
       </div>
 
       {/* Contenido Dinámico de Reporte */}
-      <div className="bg-card border border-card-border rounded-xl overflow-hidden shadow-lg">
+      <div id="printable-report-view" className="bg-card border border-card-border rounded-xl overflow-hidden shadow-lg">
         {loading ? (
           <div className="p-16 text-center text-xs text-muted-foreground font-mono">
             Procesando métricas y consolidando datos en Neon Postgres...

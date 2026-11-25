@@ -165,7 +165,11 @@ export async function POST(req: NextRequest) {
       ? Number(totalCost)
       : parts + labor;
 
-    const expenseDate = date ? new Date(date) : new Date();
+    const expenseDate = date
+      ? date.includes('T')
+        ? new Date(date)
+        : new Date(`${date}T12:00:00Z`)
+      : new Date();
     const sessionUser = await getSessionUser();
     const fallbackUserId = req.headers.get('x-user-id');
     const actorId = sessionUser?.id || fallbackUserId || null;

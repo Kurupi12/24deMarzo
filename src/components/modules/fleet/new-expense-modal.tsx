@@ -60,7 +60,7 @@ export function NewExpenseModal({
   // Inicializar fecha, vehículo preseleccionado y estado de caja del día
   useEffect(() => {
     if (isOpen) {
-      const today = new Date().toISOString().split('T')[0];
+      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion' }).format(new Date());
       setDate(today);
       if (preSelectedVehicleId) {
         setVehicleId(preSelectedVehicleId);

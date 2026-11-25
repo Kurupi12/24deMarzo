@@ -288,7 +288,7 @@ export function VehicleDetailModal({
                 Último cambio:{' '}
                 <strong className="text-foreground">
                   {maintDates.lastMotorOilChange
-                    ? new Date(maintDates.lastMotorOilChange).toLocaleDateString('es-PY')
+                    ? new Date(maintDates.lastMotorOilChange).toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
                     : 'Sin registro previo'}
                 </strong>{' '}
                 {maintDates.motorOilMonths !== null && `(hace ${maintDates.motorOilMonths} meses)`}
@@ -324,7 +324,7 @@ export function VehicleDetailModal({
                 Último cambio:{' '}
                 <strong className="text-foreground">
                   {maintDates.lastGearboxOilChange
-                    ? new Date(maintDates.lastGearboxOilChange).toLocaleDateString('es-PY')
+                    ? new Date(maintDates.lastGearboxOilChange).toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })
                     : 'Sin registro previo'}
                 </strong>{' '}
                 {maintDates.gearboxOilMonths !== null && `(hace ${maintDates.gearboxOilMonths} meses)`}
@@ -380,7 +380,7 @@ export function VehicleDetailModal({
                   {filteredExpenses.map((exp) => (
                     <tr key={exp.id} className="hover:bg-muted/10 transition-colors">
                       <td className="py-2 px-3 font-mono text-[11px] text-muted-foreground whitespace-nowrap">
-                        {new Date(exp.date).toLocaleDateString('es-PY')}
+                        {new Date(exp.date).toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}
                       </td>
                       <td className="py-2 px-3 whitespace-nowrap">
                         {getCategoryBadge(exp.category)}

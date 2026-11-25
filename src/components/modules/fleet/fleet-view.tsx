@@ -630,7 +630,7 @@ export function FleetView() {
                     expenses.map((exp) => (
                       <tr key={exp.id} className="hover:bg-muted/10 transition-colors">
                         <td className="py-2.5 px-4 font-mono text-[11px] text-muted-foreground whitespace-nowrap">
-                          {new Date(exp.date).toLocaleDateString('es-PY')}
+                          {new Date(exp.date).toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}
                         </td>
                         <td className="py-2.5 px-4 whitespace-nowrap">
                           <div className="font-bold text-foreground">
@@ -747,7 +747,7 @@ export function FleetView() {
                         <td className="py-3 px-4 font-mono text-[11px]">
                           {m.lastMotorOilChange ? (
                             <div>
-                              <div>{new Date(m.lastMotorOilChange).toLocaleDateString('es-PY')}</div>
+                              <div>{new Date(m.lastMotorOilChange).toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}</div>
                               <span className="text-[10px] text-muted-foreground">Hace {m.motorOilMonths} meses</span>
                             </div>
                           ) : (
@@ -774,7 +774,7 @@ export function FleetView() {
                         <td className="py-3 px-4 font-mono text-[11px]">
                           {m.lastGearboxOilChange ? (
                             <div>
-                              <div>{new Date(m.lastGearboxOilChange).toLocaleDateString('es-PY')}</div>
+                              <div>{new Date(m.lastGearboxOilChange).toLocaleDateString('es-PY', { day: '2-digit', month: '2-digit', year: 'numeric', timeZone: 'UTC' })}</div>
                               <span className="text-[10px] text-muted-foreground">Hace {m.gearboxOilMonths} meses</span>
                             </div>
                           ) : (

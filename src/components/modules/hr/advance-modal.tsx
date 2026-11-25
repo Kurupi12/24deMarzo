@@ -19,7 +19,7 @@ interface AdvanceModalProps {
 }
 
 export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: AdvanceModalProps) {
-  const todayStr = new Date().toISOString().slice(0, 10); // YYYY-MM-DD
+  const todayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion' }).format(new Date()); // YYYY-MM-DD (Paraguay)
   const currentPeriod = todayStr.slice(0, 7); // YYYY-MM
   const [requestDate, setRequestDate] = useState(todayStr);
   const [amount, setAmount] = useState('');
@@ -93,9 +93,9 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-card border border-card-border rounded-lg w-full max-w-md p-5 space-y-4">
-        <div className="flex items-center justify-between border-b border-card-border pb-3">
+    <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-card border border-card-border rounded-lg w-full max-w-md max-h-[92vh] flex flex-col overflow-hidden shadow-2xl">
+        <div className="shrink-0 flex items-center justify-between px-4 sm:px-5 py-3.5 border-b border-card-border bg-[#0b0e14]">
           <div className="flex items-center gap-2">
             <DollarSign className="w-4 h-4 text-accent" />
             <h3 className="text-sm font-semibold text-foreground">Solicitud de Adelanto Salarial</h3>
@@ -105,36 +105,36 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
           </button>
         </div>
 
-        <div className="p-3 rounded-md bg-[#0d121c] border border-card-border space-y-1 text-xs">
-          <p className="font-semibold text-foreground">{employee.firstName} {employee.lastName} ({employee.code})</p>
-          <div className="flex justify-between items-center text-muted-foreground font-mono text-[11px]">
-            <span>Salario Semanal: <strong className="text-foreground">{formatCurrencyPYG(weeklySalary)}</strong></span>
-            <span className="text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
-              Límite 100% de Salario
-            </span>
-          </div>
-        </div>
-
-        {isOverdraft && (
-          <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
-            <div className="space-y-0.5">
-              <strong className="block text-amber-200">Aviso de Sobregiro ({formatCurrencyPYG(parsedAmount)})</strong>
-              <p className="text-[11px] text-amber-300/90 leading-tight">
-                Este vale supera el 100% del salario semanal por <strong className="text-foreground font-mono font-bold">+{formatCurrencyPYG(overdraftDiff)}</strong>. Se registrará como sobregiro y podrá ser financiado en cuotas en la Liquidación Semanal.
-              </p>
+        <form onSubmit={handleSubmit} className="flex flex-col flex-1 min-h-0 overflow-hidden font-sans text-xs">
+          <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-3">
+            <div className="p-3 rounded-md bg-[#0d121c] border border-card-border space-y-1 text-xs">
+              <p className="font-semibold text-foreground">{employee.firstName} {employee.lastName} ({employee.code})</p>
+              <div className="flex justify-between items-center text-muted-foreground font-mono text-[11px]">
+                <span>Salario Semanal: <strong className="text-foreground">{formatCurrencyPYG(weeklySalary)}</strong></span>
+                <span className="text-emerald-400 font-semibold px-2 py-0.5 rounded bg-emerald-500/10 border border-emerald-500/20">
+                  Límite 100% de Salario
+                </span>
+              </div>
             </div>
-          </div>
-        )}
 
-        {errorMsg && (
-          <div className="p-2.5 rounded bg-danger/10 border border-danger/20 text-danger text-xs flex items-center gap-2">
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{errorMsg}</span>
-          </div>
-        )}
+            {isOverdraft && (
+              <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/30 text-amber-300 text-xs flex items-start gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-amber-400" />
+                <div className="space-y-0.5">
+                  <strong className="block text-amber-200">Aviso de Sobregiro ({formatCurrencyPYG(parsedAmount)})</strong>
+                  <p className="text-[11px] text-amber-300/90 leading-tight">
+                    Este vale supera el 100% del salario semanal por <strong className="text-foreground font-mono font-bold">+{formatCurrencyPYG(overdraftDiff)}</strong>. Se registrará como sobregiro y podrá ser financiado en cuotas en la Liquidación Semanal.
+                  </p>
+                </div>
+              </div>
+            )}
 
-        <form onSubmit={handleSubmit} className="space-y-3.5 font-sans text-xs">
+            {errorMsg && (
+              <div className="p-2.5 rounded bg-danger/10 border border-danger/20 text-danger text-xs flex items-center gap-2">
+                <AlertCircle className="w-4 h-4 shrink-0" />
+                <span>{errorMsg}</span>
+              </div>
+            )}
           {/* Fecha del Adelanto / Retroactiva */}
           <div className="p-2.5 rounded-lg bg-[#0d121c] border border-card-border space-y-1">
             <label className="text-[11px] font-mono font-semibold text-sky-300 flex items-center gap-1.5">
@@ -284,14 +284,16 @@ export function AdvanceModal({ employee, isOpen, onClose, onAdvanceCreated }: Ad
             </div>
           </div>
 
-          <div className="flex items-center justify-end gap-2 pt-3 border-t border-card-border">
+          </div>
+
+          <div className="shrink-0 flex items-center justify-end gap-2 px-4 sm:px-5 py-3 bg-[#0b0e14] border-t border-card-border">
             <button type="button" onClick={onClose} className="px-3 py-1.5 rounded-md border border-card-border text-xs text-muted-foreground hover:text-foreground">
               Cancelar
             </button>
             <button
               type="submit"
               disabled={loading}
-              className={`px-3 py-1.5 rounded-md text-white text-xs font-semibold disabled:opacity-50 transition-colors ${
+              className={`px-3.5 py-1.5 rounded-md text-white text-xs font-semibold disabled:opacity-50 transition-colors ${
                 isOverdraft
                   ? 'bg-amber-600 hover:bg-amber-500'
                   : 'bg-accent hover:bg-accent/80'

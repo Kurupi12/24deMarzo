@@ -9,13 +9,14 @@ export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const filter = searchParams.get('filter'); // 'today' | 'upcoming' | 'all' | 'history'
 
-    const now = new Date();
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0, 0);
-    const endOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59, 999);
+    // Calcular fecha de HOY según zona horaria oficial de Paraguay (evita salto a mañana después de las 21:00 en Vercel UTC)
+    const pyTodayStr = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion' }).format(new Date());
+    const startOfToday = new Date(`${pyTodayStr}T00:00:00.000Z`);
+    const endOfToday = new Date(`${pyTodayStr}T23:59:59.999Z`);
 
     const where: any = {
       isScheduled: true,
-      status: { not: 'CANCELLED' },
+      status: { notIn: ['CANCELLED', 'QUOTATION'] },
     };
 
     if (filter === 'today') {
@@ -54,11 +55,12 @@ export async function GET(req: NextRequest) {
       take: 100,
     });
 
-    // Conteo de alertas para HOY
+    // Conteo de alertas para HOY (excluyendo anulados y presupuestos)
     const todayAlertCount = await prisma.sale.count({
       where: {
         isScheduled: true,
         deliveryStatus: 'PENDING_DELIVERY',
+        status: { notIn: ['CANCELLED', 'QUOTATION'] },
         scheduledDeliveryDate: {
           gte: startOfToday,
           lte: endOfToday,
@@ -70,6 +72,7 @@ export async function GET(req: NextRequest) {
       where: {
         isScheduled: true,
         deliveryStatus: 'PENDING_DELIVERY',
+        status: { notIn: ['CANCELLED', 'QUOTATION'] },
       },
     });
 

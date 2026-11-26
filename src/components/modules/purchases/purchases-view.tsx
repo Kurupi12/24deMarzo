@@ -516,7 +516,7 @@ export function PurchasesView() {
                           <td className="py-3 px-4 text-[11px]">{dateStr}</td>
                           <td className="py-3 px-4 font-sans">
                             <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-card border border-card-border text-foreground block w-fit">
-                              {p.paymentCondition}
+                              {p.creditLabel || p.paymentCondition}
                             </span>
                             {p.paymentCondition === 'CONTADO' && (
                               <span
@@ -1266,7 +1266,7 @@ export function PurchasesView() {
               </div>
               <div>
                 <p className="text-[10px] uppercase font-mono text-muted-foreground">Condición & Liquidación</p>
-                <p className="font-bold text-foreground">{selectedPurchase.paymentCondition}</p>
+                <p className="font-bold text-foreground">{selectedPurchase.creditLabel || selectedPurchase.paymentCondition}</p>
                 {selectedPurchase.paymentCondition === 'CONTADO' && (
                   <p className={`text-[10.5px] font-mono ${selectedPurchase.paidFromCashShift ? 'text-emerald-300' : 'text-slate-300'}`}>
                     {selectedPurchase.paidFromCashShift ? 'Descontado de Caja' : 'Pago propio / Fuera de Caja'}

@@ -11,20 +11,23 @@ function parsePurchaseAudit(notes: string | null) {
   const raw = notes || '';
   const userMatch = raw.match(/\[USER:([^\]]+)\]/);
   const cashMatch = raw.match(/\[CASH_MOV:([^\]]+)\]/);
+  const termMatch = raw.match(/\[PLAZO:([^\]]+)\]/);
   const cleanNotes = raw
     .replace(/\[CASH_MOV:[^\]]+\]/g, '')
     .replace(/\[USER:[^\]]+\]/g, '')
+    .replace(/\[PLAZO:[^\]]+\]/g, '')
     .replace(/\[FUERA_DE_CAJA\]/g, '')
     .replace(/\[CREDITO_PROVEEDOR\]/g, '')
     .replace(/Descontado de Caja(?:\s*\([^)]+\))?/gi, '')
     .replace(/Pagado fuera de caja(?:\s*\([^)]+\))?/gi, '')
-    .replace(/Compra a crédito(?:\s*\([^)]+\))?/gi, '')
+    .replace(/Compra a crédito(?:\s*\([^)]+\))?(?:\s*\([^)]+\))?/gi, '')
     .replace(/^[\s—-]+|[\s—-]+$/g, '')
     .trim();
 
   return {
     recordedBy: userMatch?.[1]?.trim() || null,
     paidFromCashShift: Boolean(cashMatch?.[1]),
+    creditLabel: termMatch?.[1]?.trim() || null,
     cleanNotes: cleanNotes || null,
   };
 }
@@ -180,11 +183,26 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        // 1. Si paga al CONTADO desde Caja del Día, registrar egreso validando dueño del turno abierto
-        const isCashPurchase = paymentCondition === 'CONTADO';
+        // 1. Normalizar condición al enum PaymentCondition ('CONTADO' | 'CREDITO' | 'A_CUENTA')
+        // y si paga al CONTADO desde Caja del Día, registrar egreso validando dueño del turno abierto
+        const rawCondition = String(paymentCondition || 'CONTADO').trim().toUpperCase();
+        const dbPaymentCondition: 'CONTADO' | 'CREDITO' | 'A_CUENTA' =
+          rawCondition === 'CONTADO'
+            ? 'CONTADO'
+            : rawCondition === 'A_CUENTA'
+            ? 'A_CUENTA'
+            : 'CREDITO';
+        const creditDaysMatch = rawCondition.match(/^CREDITO_(\d+)$/);
+        const creditLabel = creditDaysMatch
+          ? `Crédito ${creditDaysMatch[1]} días`
+          : dbPaymentCondition === 'CREDITO'
+          ? 'Crédito'
+          : null;
+
+        const isCashPurchase = dbPaymentCondition === 'CONTADO';
         let cashNote = isCashPurchase
           ? `${actorTag} [FUERA_DE_CAJA] Pagado fuera de caja (${actorName})`
-          : `${actorTag} [CREDITO_PROVEEDOR] Compra a crédito (${actorName})`;
+          : `${actorTag} [CREDITO_PROVEEDOR]${creditLabel ? ` [PLAZO:${creditLabel}]` : ''} Compra a crédito (${actorName})`;
 
         if (isCashPurchase && deductFromCashShift && grandTotal > 0) {
           const mov = await recordCashOutflowOnOpenShift(tx, {
@@ -212,7 +230,7 @@ export async function POST(req: NextRequest) {
             supplierId: supplierRecord.id,
             supplierRuc: supplierRuc.trim(),
             supplierName: supplierName.trim(),
-            paymentCondition: paymentCondition as any,
+            paymentCondition: dbPaymentCondition,
             subtotal: grandTotal - vatAmount,
             vatAmount,
             grandTotal,

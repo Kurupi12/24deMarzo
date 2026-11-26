@@ -1,16 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Plus, PackagePlus, Sparkles } from 'lucide-react';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 
 interface CreateProductModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onProductCreated: () => void;
+  onProductCreated: (product?: any) => void;
+  initialName?: string;
 }
 
-export function CreateProductModal({ isOpen, onClose, onProductCreated }: CreateProductModalProps) {
+export function CreateProductModal({
+  isOpen,
+  onClose,
+  onProductCreated,
+  initialName = '',
+}: CreateProductModalProps) {
   const { alert: customAlert } = useCustomDialog();
   const [form, setForm] = useState({
     sku: '',
@@ -24,8 +30,6 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
   });
   const [loading, setLoading] = useState(false);
   const [generatingSku, setGeneratingSku] = useState(false);
-
-  if (!isOpen) return null;
 
   const fetchNextSku = async (name: string) => {
     try {
@@ -41,6 +45,26 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
       setGeneratingSku(false);
     }
   };
+
+  useEffect(() => {
+    if (!isOpen) return;
+    const cleanInitName = initialName.trim();
+    setForm({
+      sku: '',
+      barcode: '',
+      name: cleanInitName,
+      unitOfMeasure: 'UNIDAD',
+      vatRate: 'IVA_10',
+      costPrice: '',
+      salePrice: '',
+      minStockAlert: '5',
+    });
+    if (cleanInitName) {
+      fetchNextSku(cleanInitName);
+    }
+  }, [isOpen, initialName]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +86,7 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
       });
       const data = await res.json();
       if (data.success) {
-        onProductCreated();
+        onProductCreated(data.data);
         onClose();
       } else {
         customAlert({
@@ -77,8 +101,8 @@ export function CreateProductModal({ isOpen, onClose, onProductCreated }: Create
   };
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
-      <div className="bg-card border border-card-border rounded-lg w-full max-w-lg p-5 space-y-4">
+    <div className="fixed inset-0 z-[60] bg-black/75 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+      <div className="bg-card border border-card-border rounded-lg w-full max-w-lg max-h-[92vh] overflow-y-auto p-5 space-y-4 shadow-2xl">
         <div className="flex items-center justify-between border-b border-card-border pb-3">
           <div className="flex items-center gap-2">
             <PackagePlus className="w-4 h-4 text-primary" />

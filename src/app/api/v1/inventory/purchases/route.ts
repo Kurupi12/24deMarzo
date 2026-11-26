@@ -1,8 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
+import { getSessionUser } from '@/lib/auth/session';
+import { recordCashOutflowOnOpenShift } from '@/modules/billing/utils/cash-movement-sync';
+import { AppError } from '@/shared/errors/app-error';
 
 export const dynamic = 'force-dynamic';
+
+function parsePurchaseAudit(notes: string | null) {
+  const raw = notes || '';
+  const userMatch = raw.match(/\[USER:([^\]]+)\]/);
+  const cashMatch = raw.match(/\[CASH_MOV:([^\]]+)\]/);
+  const cleanNotes = raw
+    .replace(/\[CASH_MOV:[^\]]+\]/g, '')
+    .replace(/\[USER:[^\]]+\]/g, '')
+    .replace(/\[FUERA_DE_CAJA\]/g, '')
+    .replace(/\[CREDITO_PROVEEDOR\]/g, '')
+    .replace(/Descontado de Caja(?:\s*\([^)]+\))?/gi, '')
+    .replace(/Pagado fuera de caja(?:\s*\([^)]+\))?/gi, '')
+    .replace(/Compra a crédito(?:\s*\([^)]+\))?/gi, '')
+    .replace(/^[\s—-]+|[\s—-]+$/g, '')
+    .trim();
+
+  return {
+    recordedBy: userMatch?.[1]?.trim() || null,
+    paidFromCashShift: Boolean(cashMatch?.[1]),
+    cleanNotes: cleanNotes || null,
+  };
+}
 
 export async function GET(req: NextRequest) {
   try {
@@ -45,12 +70,18 @@ export async function GET(req: NextRequest) {
     ]);
 
     return NextResponse.json(
-      createSuccessResponse(items, {
-        page,
-        limit,
-        total,
-        timestamp: new Date().toISOString(),
-      })
+      createSuccessResponse(
+        items.map((p) => ({
+          ...p,
+          ...parsePurchaseAudit(p.notes),
+        })),
+        {
+          page,
+          limit,
+          total,
+          timestamp: new Date().toISOString(),
+        }
+      )
     );
   } catch (error: any) {
     return NextResponse.json(
@@ -68,6 +99,7 @@ export async function POST(req: NextRequest) {
       supplierRuc,
       supplierName,
       paymentCondition = 'CONTADO',
+      deductFromCashShift = false,
       items,
       notes,
     } = body;
@@ -102,9 +134,19 @@ export async function POST(req: NextRequest) {
       };
     });
 
-    // Encontrar o crear usuario fallback
-    const systemUser = await prisma.user.findFirst();
-    const userId = systemUser ? systemUser.id : 'system-admin';
+    // Identificar usuario real de la sesión (o fallback si no hay sesión)
+    const sessionUser = await getSessionUser();
+    const fallbackHeaderUserId = req.headers.get('x-user-id');
+    const resolvedActor = (sessionUser?.id || fallbackHeaderUserId)
+      ? await prisma.user.findUnique({
+          where: { id: (sessionUser?.id || fallbackHeaderUserId)! },
+          select: { id: true, name: true },
+        })
+      : await prisma.user.findFirst({ select: { id: true, name: true } });
+
+    const userId = resolvedActor?.id || sessionUser?.id || 'system-admin';
+    const actorName = resolvedActor?.name || sessionUser?.name || 'Operador';
+    const actorTag = `[USER:${actorName}]`;
 
     // Generar correlativo de compra: COM-0001
     const lastPurchase = await prisma.purchase.findFirst({
@@ -138,7 +180,31 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        // 1. Crear comprobante de compra
+        // 1. Si paga al CONTADO desde Caja del Día, registrar egreso validando dueño del turno abierto
+        const isCashPurchase = paymentCondition === 'CONTADO';
+        let cashNote = isCashPurchase
+          ? `${actorTag} [FUERA_DE_CAJA] Pagado fuera de caja (${actorName})`
+          : `${actorTag} [CREDITO_PROVEEDOR] Compra a crédito (${actorName})`;
+
+        if (isCashPurchase && deductFromCashShift && grandTotal > 0) {
+          const mov = await recordCashOutflowOnOpenShift(tx, {
+            type: 'EXPENSE_OPERATION',
+            category: 'COMPRA_PROVEEDOR',
+            amount: grandTotal,
+            description: `Compra ${purchaseNumber} (${supplierName.trim()}) - Fact. ${invoiceNumber.trim()} [Por: ${actorName}]`,
+            beneficiary: supplierName.trim(),
+            receiptNo: invoiceNumber.trim(),
+            expectedUserId: userId,
+            enforceShiftOwner: true,
+          });
+          if (mov) {
+            cashNote = `[CASH_MOV:${mov.id}] ${actorTag} Descontado de Caja (${actorName})`;
+          }
+        }
+
+        const finalNotes = [notes ? notes.trim() : null, cashNote].filter(Boolean).join(' — ') || null;
+
+        // 2. Crear comprobante de compra
         const purchase = await tx.purchase.create({
           data: {
             purchaseNumber,
@@ -150,7 +216,7 @@ export async function POST(req: NextRequest) {
             subtotal: grandTotal - vatAmount,
             vatAmount,
             grandTotal,
-            notes: notes ? notes.trim() : null,
+            notes: finalNotes,
             userId,
             status: 'COMPLETED',
             items: {
@@ -256,6 +322,12 @@ export async function POST(req: NextRequest) {
 
     return NextResponse.json(createSuccessResponse(result), { status: 201 });
   } catch (error: any) {
+    if (error instanceof AppError) {
+      return NextResponse.json(
+        createErrorResponse(error.message, error.code || 'PURCHASE_PROCESS_ERROR'),
+        { status: error.statusCode }
+      );
+    }
     return NextResponse.json(
       createErrorResponse(error.message, 'PURCHASE_PROCESS_ERROR'),
       { status: 500 }

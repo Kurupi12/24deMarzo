@@ -23,11 +23,15 @@ import {
   Tag,
   CreditCard,
   ChevronDown,
+  Landmark,
+  AlertTriangle,
+  PackagePlus,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { format } from 'date-fns';
 import { es } from 'date-fns/locale';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
+import { CreateProductModal } from '../inventory/create-product-modal';
 
 const SUPPLIER_CATEGORIES = [
   { value: 'ALL', label: 'Todos los Rubros' },
@@ -59,10 +63,18 @@ export function PurchasesView() {
   const [items, setItems] = useState<any[]>([]);
   const [showSupplierDropdown, setShowSupplierDropdown] = useState(false);
 
-  // Buscador de productos para compra
+  // Buscador de productos para compra y alta rápida de producto
   const [productSearch, setProductSearch] = useState('');
   const [productResults, setProductResults] = useState<any[]>([]);
   const [savingPurchase, setSavingPurchase] = useState(false);
+  const [showQuickProductModal, setShowQuickProductModal] = useState(false);
+  const [quickProductInitialName, setQuickProductInitialName] = useState('');
+
+  // Control de Caja del Día (estricto por dueño del turno abierto)
+  const [isCashShiftOpen, setIsCashShiftOpen] = useState<boolean | null>(null);
+  const [isShiftOwnedBySession, setIsShiftOwnedBySession] = useState(false);
+  const [shiftOwnerName, setShiftOwnerName] = useState<string | null>(null);
+  const [deductFromCashShift, setDeductFromCashShift] = useState(false);
 
   // --- Estados de Proveedores ---
   const [suppliers, setSuppliers] = useState<any[]>([]);
@@ -123,6 +135,27 @@ export function PurchasesView() {
   useEffect(() => {
     fetchSuppliers();
   }, [supplierQuery, selectedCategory]);
+
+  useEffect(() => {
+    if (!showCreateModal) return;
+    fetch('/api/v1/billing/shifts')
+      .then((res) => res.json())
+      .then((json) => {
+        const open = !!json?.data?.currentShift;
+        const isOwner = !!json?.data?.isCurrentShiftOwnedBySession;
+        const ownerName = json?.data?.currentShiftOwner?.name || null;
+        setIsCashShiftOpen(open);
+        setIsShiftOwnedBySession(isOwner);
+        setShiftOwnerName(ownerName);
+        setDeductFromCashShift(open && isOwner && paymentCondition === 'CONTADO');
+      })
+      .catch(() => {
+        setIsCashShiftOpen(false);
+        setIsShiftOwnedBySession(false);
+        setShiftOwnerName(null);
+        setDeductFromCashShift(false);
+      });
+  }, [showCreateModal]);
 
   // Buscar productos mientras tipea en la compra (con debounce y AbortController)
   useEffect(() => {
@@ -224,6 +257,7 @@ export function PurchasesView() {
           supplierName: supplierName.trim(),
           supplierRuc: supplierRuc.trim(),
           paymentCondition,
+          deductFromCashShift: paymentCondition === 'CONTADO' ? deductFromCashShift : false,
           notes: notes.trim(),
           items,
         }),
@@ -481,9 +515,25 @@ export function PurchasesView() {
                           </td>
                           <td className="py-3 px-4 text-[11px]">{dateStr}</td>
                           <td className="py-3 px-4 font-sans">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-card border border-card-border text-foreground">
+                            <span className="px-2 py-0.5 rounded text-[10px] font-mono bg-card border border-card-border text-foreground block w-fit">
                               {p.paymentCondition}
                             </span>
+                            {p.paymentCondition === 'CONTADO' && (
+                              <span
+                                className={`inline-block mt-1 px-1.5 py-0.5 rounded border text-[9.5px] font-mono ${
+                                  p.paidFromCashShift
+                                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                                    : 'bg-slate-500/10 border-slate-500/30 text-slate-300'
+                                }`}
+                              >
+                                {p.paidFromCashShift ? 'Efectivo de Caja' : 'Pago Propio / Fuera de Caja'}
+                              </span>
+                            )}
+                            {p.recordedBy && (
+                              <span className="block text-[9.5px] font-mono text-muted-foreground mt-0.5">
+                                Por: {p.recordedBy}
+                              </span>
+                            )}
                           </td>
                           <td className="py-3 px-4 text-right font-mono">{p.items.length} SKUs</td>
                           <td className="py-3 px-4 text-right font-bold text-emerald-400 font-mono">
@@ -743,9 +793,22 @@ export function PurchasesView() {
 
               {/* Selector de Materiales a Cargar */}
               <div className="space-y-2">
-                <label className="block text-[11px] font-mono text-primary font-semibold">
-                  Buscar Material / Producto para Ingreso de Stock:
-                </label>
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <label className="block text-[11px] font-mono text-primary font-semibold">
+                    Buscar Material / Producto para Ingreso de Stock:
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setQuickProductInitialName(productSearch.trim());
+                      setShowQuickProductModal(true);
+                    }}
+                    className="inline-flex items-center gap-1 text-[11px] font-mono text-emerald-400 hover:text-emerald-300 hover:underline font-semibold"
+                  >
+                    <PackagePlus className="w-3.5 h-3.5" />
+                    <span>+ Nuevo Producto en Catálogo</span>
+                  </button>
+                </div>
                 <div className="relative">
                   <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
                   <input
@@ -776,6 +839,24 @@ export function PurchasesView() {
                           </span>
                         </div>
                       ))}
+                    </div>
+                  )}
+                  {productSearch.trim().length >= 2 && productResults.length === 0 && (
+                    <div className="mt-1.5 p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-between gap-2 text-xs">
+                      <span className="text-muted-foreground font-mono text-[11px]">
+                        No existe &ldquo;{productSearch.trim()}&rdquo; en el catálogo todavía.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setQuickProductInitialName(productSearch.trim());
+                          setShowQuickProductModal(true);
+                        }}
+                        className="px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-[11px] flex items-center gap-1 shrink-0"
+                      >
+                        <PackagePlus className="w-3.5 h-3.5" />
+                        <span>Crear Producto Nuevo</span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -860,12 +941,20 @@ export function PurchasesView() {
                     className="w-full bg-[#0d121c] border border-card-border rounded-md px-3 py-1.5 text-foreground text-xs"
                   />
                 </div>
-                <div className="p-3 rounded-lg bg-[#0d121c] border border-card-border font-mono space-y-1">
-                  <div className="flex justify-between text-muted-foreground text-[11px]">
+                <div className="p-3 rounded-lg bg-[#0d121c] border border-card-border font-mono space-y-2">
+                  <div className="flex justify-between items-center text-muted-foreground text-[11px]">
                     <span>Condición de Pago:</span>
                     <select
                       value={paymentCondition}
-                      onChange={(e) => setPaymentCondition(e.target.value)}
+                      onChange={(e) => {
+                        const val = e.target.value;
+                        setPaymentCondition(val);
+                        if (val !== 'CONTADO') {
+                          setDeductFromCashShift(false);
+                        } else {
+                          setDeductFromCashShift(Boolean(isCashShiftOpen && isShiftOwnedBySession));
+                        }
+                      }}
                       className="bg-card border border-card-border rounded px-2 py-0.5 text-foreground text-xs"
                     >
                       <option value="CONTADO">Contado</option>
@@ -875,7 +964,66 @@ export function PurchasesView() {
                       <option value="CREDITO_60">Crédito 60 días</option>
                     </select>
                   </div>
-                  <div className="flex justify-between text-xs pt-1 border-t border-card-border text-foreground font-bold">
+
+                  {paymentCondition === 'CONTADO' ? (
+                    <div className="pt-2 border-t border-card-border space-y-1.5">
+                      <div className="flex flex-wrap items-center justify-between gap-1 text-[10.5px]">
+                        <span className="text-foreground font-semibold flex items-center gap-1">
+                          <Landmark className="w-3.5 h-3.5 text-primary" />
+                          <span>¿Descontar de tu Caja del Día?</span>
+                        </span>
+                        {isCashShiftOpen === false && (
+                          <span className="text-[10px] text-amber-300">Caja cerrada</span>
+                        )}
+                        {isCashShiftOpen && !isShiftOwnedBySession && (
+                          <span className="text-[10px] text-amber-300">
+                            Caja de: {shiftOwnerName || 'Otro usuario'}
+                          </span>
+                        )}
+                      </div>
+
+                      {isCashShiftOpen && !isShiftOwnedBySession && (
+                        <div className="p-2 rounded bg-amber-500/10 border border-amber-500/30 text-[10px] text-amber-200 flex items-start gap-1.5 font-sans">
+                          <AlertTriangle className="w-3.5 h-3.5 text-amber-400 shrink-0 mt-0.5" />
+                          <span>
+                            La caja abierta pertenece a <strong>{shiftOwnerName || 'otro usuario'}</strong>. Se registrará como pago propio / fuera de caja para no afectar su efectivo.
+                          </span>
+                        </div>
+                      )}
+
+                      <div className="grid grid-cols-2 gap-1.5 text-[11px]">
+                        <button
+                          type="button"
+                          disabled={!(isCashShiftOpen && isShiftOwnedBySession)}
+                          onClick={() => setDeductFromCashShift(true)}
+                          className={`py-1.5 px-2 rounded border transition-colors text-center disabled:opacity-40 disabled:cursor-not-allowed ${
+                            deductFromCashShift
+                              ? 'bg-emerald-600/20 border-emerald-500 text-emerald-300 font-bold'
+                              : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          Sí, Efectivo de Mi Caja
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDeductFromCashShift(false)}
+                          className={`py-1.5 px-2 rounded border transition-colors text-center ${
+                            !deductFromCashShift
+                              ? 'bg-primary/20 border-primary text-primary font-bold'
+                              : 'bg-card border-card-border text-muted-foreground hover:text-foreground'
+                          }`}
+                        >
+                          No (Pago Propio / Fuera de Caja)
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-[10px] text-muted-foreground pt-1 border-t border-card-border">
+                      Compra a crédito — No descuenta efectivo de Caja hoy.
+                    </div>
+                  )}
+
+                  <div className="flex justify-between text-xs pt-1.5 border-t border-card-border text-foreground font-bold">
                     <span>Total Factura Compra:</span>
                     <span className="text-emerald-400 text-sm">{formatCurrencyPYG(grandTotal)}</span>
                   </div>
@@ -1119,6 +1267,12 @@ export function PurchasesView() {
               <div>
                 <p className="text-[10px] uppercase font-mono text-muted-foreground">Condición & Liquidación</p>
                 <p className="font-bold text-foreground">{selectedPurchase.paymentCondition}</p>
+                {selectedPurchase.paymentCondition === 'CONTADO' && (
+                  <p className={`text-[10.5px] font-mono ${selectedPurchase.paidFromCashShift ? 'text-emerald-300' : 'text-slate-300'}`}>
+                    {selectedPurchase.paidFromCashShift ? 'Descontado de Caja' : 'Pago propio / Fuera de Caja'}
+                    {selectedPurchase.recordedBy ? ` (${selectedPurchase.recordedBy})` : ''}
+                  </p>
+                )}
                 <p className="text-emerald-400 font-bold font-mono">
                   Total: {formatCurrencyPYG(Number(selectedPurchase.grandTotal))}
                 </p>
@@ -1151,9 +1305,10 @@ export function PurchasesView() {
               </table>
             </div>
 
-            {selectedPurchase.notes && (
+            {(selectedPurchase.cleanNotes || selectedPurchase.notes) && (
               <p className="text-xs text-muted-foreground bg-[#0d121c] p-2.5 rounded border border-card-border">
-                <strong className="text-foreground">Notas de entrada:</strong> {selectedPurchase.notes}
+                <strong className="text-foreground">Notas de entrada:</strong>{' '}
+                {selectedPurchase.cleanNotes || selectedPurchase.notes}
               </p>
             )}
 
@@ -1169,6 +1324,18 @@ export function PurchasesView() {
           </div>
         </div>
       )}
+
+      {/* Sub-modal rápido para crear Producto Nuevo sin salir de la Factura de Compra */}
+      <CreateProductModal
+        isOpen={showQuickProductModal}
+        initialName={quickProductInitialName}
+        onClose={() => setShowQuickProductModal(false)}
+        onProductCreated={(createdProduct) => {
+          if (createdProduct?.id) {
+            addProductToPurchase(createdProduct);
+          }
+        }}
+      />
     </div>
   );
 }

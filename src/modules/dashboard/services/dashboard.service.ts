@@ -50,12 +50,13 @@ export class DashboardService {
         where: { status: 'ACTIVE' },
         include: { salaryStructure: true },
       }),
-      // Alertas de Stock Crítico (SQL crudo)
+      // Alertas de Stock Crítico (SQL crudo, excluyendo ítems de servicio de alquiler de contenedores)
       prisma.$queryRaw<Array<{ id: string; name: string; sku: string; current_stock: number; min_stock: number }>>`
         SELECT p.id, p.name, p.sku, COALESCE(SUM(si."currentStock"), 0) as current_stock, p."minStockAlert" as min_stock
         FROM products p
         LEFT JOIN stock_items si ON p.id = si."productId"
         WHERE p."isActive" = true
+          AND UPPER(TRIM(p.sku)) NOT IN ('S2001', 'S2002', 'S2003')
         GROUP BY p.id, p.name, p.sku, p."minStockAlert"
         HAVING COALESCE(SUM(si."currentStock"), 0) <= p."minStockAlert"
         ORDER BY current_stock ASC

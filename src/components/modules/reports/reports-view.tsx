@@ -20,6 +20,7 @@ import {
   FileDown,
   Loader2,
   X,
+  Layers,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { format } from 'date-fns';
@@ -35,9 +36,11 @@ function normalizeSearch(value: string | number | null | undefined): string {
 }
 
 type ReportTab = 'sales_by_project' | 'deliveries_by_driver' | 'kardex_valuation' | 'price_list';
+type SalesSegment = 'all' | 'materials' | 'containers';
 
 export function ReportsView() {
   const [activeTab, setActiveTab] = useState<ReportTab>('sales_by_project');
+  const [segment, setSegment] = useState<SalesSegment>('all');
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -65,6 +68,7 @@ export function ReportsView() {
     setLoading(true);
     try {
       const params = new URLSearchParams({ type: activeTab });
+      if (activeTab === 'sales_by_project') params.append('segment', segment);
       if (startDate) params.append('startDate', startDate);
       if (endDate) params.append('endDate', endDate);
 
@@ -80,7 +84,7 @@ export function ReportsView() {
 
   useEffect(() => {
     fetchReport();
-  }, [activeTab, startDate, endDate]);
+  }, [activeTab, startDate, endDate, segment]);
 
   // Filtrado en vivo sobre la tabla actual (sin tildes ni mayúsculas, por cliente, RUC, obra, chofer, factura o producto/SKU)
   const filteredData = useMemo(() => {
@@ -439,6 +443,48 @@ export function ReportsView() {
             </button>
           )}
         </div>
+
+        {activeTab === 'sales_by_project' && (
+          <div className="flex flex-wrap items-center gap-1.5 bg-[#0d121c] p-1 rounded-lg border border-card-border">
+            <span className="text-[10px] font-mono uppercase text-muted-foreground px-2 flex items-center gap-1">
+              <Layers className="w-3 h-3 text-primary" />
+              Rubro:
+            </span>
+            <button
+              type="button"
+              onClick={() => setSegment('all')}
+              className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors ${
+                segment === 'all'
+                  ? 'bg-primary text-white font-bold shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Todo Junto
+            </button>
+            <button
+              type="button"
+              onClick={() => setSegment('materials')}
+              className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors ${
+                segment === 'materials'
+                  ? 'bg-emerald-600 text-white font-bold shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Solo Materiales
+            </button>
+            <button
+              type="button"
+              onClick={() => setSegment('containers')}
+              className={`px-2.5 py-1 rounded text-[11px] font-mono transition-colors ${
+                segment === 'containers'
+                  ? 'bg-purple-600 text-white font-bold shadow-sm'
+                  : 'text-muted-foreground hover:text-foreground'
+              }`}
+            >
+              Solo Contenedores (S2001–S2003)
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Contenido Dinámico de Reporte */}
@@ -456,17 +502,88 @@ export function ReportsView() {
             {/* REPORTE 1: VENTAS POR CLIENTE Y POR OBRA */}
             {activeTab === 'sales_by_project' && (
               <div className="space-y-4 p-5">
+                {/* Comparativo Automático: Todo vs 100% Materiales vs Contenedores */}
+                {data?.summaryBySegment && !searchTerm.trim() && (
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-3 pb-1">
+                    <button
+                      type="button"
+                      onClick={() => setSegment('all')}
+                      className={`text-left p-3.5 rounded-xl border transition-all ${
+                        segment === 'all'
+                          ? 'bg-primary/15 border-primary ring-1 ring-primary/40'
+                          : 'bg-[#0d121c] border-card-border hover:border-primary/40'
+                      }`}
+                    >
+                      <span className="text-[10px] font-mono uppercase text-muted-foreground block">
+                        Total General (Todo Junto)
+                      </span>
+                      <p className="text-lg font-bold font-mono text-foreground mt-0.5">
+                        {formatCurrencyPYG(data.summaryBySegment.totalAll || 0)}
+                      </p>
+                      <span className="text-[10px] font-mono text-muted-foreground">
+                        Materiales + Contenedores en el período
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSegment('materials')}
+                      className={`text-left p-3.5 rounded-xl border transition-all ${
+                        segment === 'materials'
+                          ? 'bg-emerald-500/15 border-emerald-500 ring-1 ring-emerald-500/40'
+                          : 'bg-[#0d121c] border-card-border hover:border-emerald-500/40'
+                      }`}
+                    >
+                      <span className="text-[10px] font-mono uppercase text-emerald-400 block">
+                        100% Materiales (Sin Contenedores)
+                      </span>
+                      <p className="text-lg font-bold font-mono text-emerald-400 mt-0.5">
+                        {formatCurrencyPYG(data.summaryBySegment.totalMaterials || 0)}
+                      </p>
+                      <span className="text-[10px] font-mono text-muted-foreground">
+                        Excluye S2001, S2002 y S2003
+                      </span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => setSegment('containers')}
+                      className={`text-left p-3.5 rounded-xl border transition-all ${
+                        segment === 'containers'
+                          ? 'bg-purple-500/15 border-purple-500 ring-1 ring-purple-500/40'
+                          : 'bg-[#0d121c] border-card-border hover:border-purple-500/40'
+                      }`}
+                    >
+                      <span className="text-[10px] font-mono uppercase text-purple-300 block">
+                        Solo Contenedores (S2001 / S2002 / S2003)
+                      </span>
+                      <p className="text-lg font-bold font-mono text-purple-300 mt-0.5">
+                        {formatCurrencyPYG(data.summaryBySegment.totalContainers || 0)}
+                      </p>
+                      <span className="text-[10px] font-mono text-muted-foreground">
+                        Área servicio de alquiler de contenedores
+                      </span>
+                    </button>
+                  </div>
+                )}
+
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pb-2">
                   <div className="p-4 rounded-xl bg-[#0d121c] border border-card-border">
                     <span className="text-[11px] font-mono uppercase text-muted-foreground">Clientes con Operaciones</span>
                     <p className="text-xl font-bold text-foreground mt-1">{filteredData.clients?.length || 0}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-[#0d121c] border border-card-border">
-                    <span className="text-[11px] font-mono uppercase text-muted-foreground">Comprobantes Emitidos</span>
+                    <span className="text-[11px] font-mono uppercase text-muted-foreground">Comprobantes Incluidos</span>
                     <p className="text-xl font-bold text-foreground mt-1">{filteredData.totalSales || 0}</p>
                   </div>
                   <div className="p-4 rounded-xl bg-[#0d121c] border border-card-border">
-                    <span className="text-[11px] font-mono uppercase text-muted-foreground">Monto Total Facturado</span>
+                    <span className="text-[11px] font-mono uppercase text-muted-foreground">
+                      {segment === 'materials'
+                        ? 'Total Filtrado (Solo Materiales)'
+                        : segment === 'containers'
+                        ? 'Total Filtrado (Solo Contenedores)'
+                        : 'Monto Total Facturado'}
+                    </span>
                     <p className="text-xl font-bold text-emerald-400 font-mono mt-1">
                       {formatCurrencyPYG(filteredData.grandTotalAmount || 0)}
                     </p>
@@ -555,9 +672,12 @@ export function ReportsView() {
                                                 className={`px-1.5 py-0.5 rounded text-[10px] border ${
                                                   isMatch
                                                     ? 'bg-sky-500/20 border-sky-400/60 text-sky-200 font-bold'
+                                                    : it.isContainerService
+                                                    ? 'bg-purple-500/15 border-purple-500/35 text-purple-200'
                                                     : 'bg-[#0d121c] border-card-border text-muted-foreground'
                                                 }`}
                                               >
+                                                {it.isContainerService ? `[${it.sku}] ` : ''}
                                                 {it.quantity} {it.unitOfMeasure || ''} {it.name}
                                               </span>
                                             );

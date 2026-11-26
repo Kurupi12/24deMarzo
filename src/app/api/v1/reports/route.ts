@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { createSuccessResponse, createErrorResponse } from '@/shared/types/api-response';
+import { isContainerServiceSku } from '@/shared/constants/service-items';
 
 export const dynamic = 'force-dynamic';
 
@@ -8,6 +9,9 @@ export async function GET(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type') || 'sales_by_project';
+    const segmentParam = searchParams.get('segment') || 'all';
+    const segment: 'all' | 'materials' | 'containers' =
+      segmentParam === 'materials' || segmentParam === 'containers' ? segmentParam : 'all';
     const startDateParam = searchParams.get('startDate');
     const endDateParam = searchParams.get('endDate');
     const customerRuc = searchParams.get('customerRuc') || undefined;
@@ -46,7 +50,7 @@ export async function GET(req: NextRequest) {
         orderBy: { createdAt: 'desc' },
       });
 
-      // Agrupación analítica por cliente y obra
+      // Agrupación analítica por cliente y obra con separación exacta por ítem (Materiales vs Contenedores)
       const groupedClients: Record<string, {
         customerName: string;
         customerRuc: string;
@@ -61,7 +65,54 @@ export async function GET(req: NextRequest) {
         }>;
       }> = {};
 
+      let totalAll = 0;
+      let totalMaterials = 0;
+      let totalContainers = 0;
+      let includedSalesCount = 0;
+
       for (const sale of sales) {
+        const rawGrandTotal = Number(sale.grandTotal || 0);
+        const allItemsSum = sale.items.reduce((acc, it) => acc + Number(it.subtotal || 0), 0);
+
+        const containerItems = sale.items.filter((it) => isContainerServiceSku(it.product.sku));
+        const materialItems = sale.items.filter((it) => !isContainerServiceSku(it.product.sku));
+
+        const rawContainerSum = containerItems.reduce((acc, it) => acc + Number(it.subtotal || 0), 0);
+        const rawMaterialSum = materialItems.reduce((acc, it) => acc + Number(it.subtotal || 0), 0);
+
+        const scaleFactor = allItemsSum > 0 ? rawGrandTotal / allItemsSum : 1;
+        const saleContainersAmount = Math.round(rawContainerSum * scaleFactor);
+        const saleMaterialsAmount =
+          containerItems.length === 0
+            ? rawGrandTotal
+            : materialItems.length === 0
+            ? 0
+            : Math.max(0, rawGrandTotal - saleContainersAmount);
+
+        totalAll += rawGrandTotal;
+        totalMaterials += saleMaterialsAmount;
+        totalContainers += saleContainersAmount;
+
+        const activeItems =
+          segment === 'containers'
+            ? containerItems
+            : segment === 'materials'
+            ? materialItems
+            : sale.items;
+
+        if (activeItems.length === 0) {
+          continue;
+        }
+
+        const saleTotal =
+          segment === 'containers'
+            ? saleContainersAmount
+            : segment === 'materials'
+            ? saleMaterialsAmount
+            : rawGrandTotal;
+
+        includedSalesCount += 1;
+
         if (!groupedClients[sale.customerRuc]) {
           groupedClients[sale.customerRuc] = {
             customerName: sale.customerName,
@@ -87,7 +138,6 @@ export async function GET(req: NextRequest) {
           };
         }
 
-        const saleTotal = Number(sale.grandTotal);
         clientGroup.totalAmount += saleTotal;
         clientGroup.salesCount += 1;
 
@@ -103,27 +153,36 @@ export async function GET(req: NextRequest) {
           deliveryStatus: sale.deliveryStatus,
           driverName: sale.driver ? `${sale.driver.firstName} ${sale.driver.lastName}` : 'Mostrador / Propio',
           vehiclePlate: sale.vehiclePlate || '-',
-          itemsCount: sale.items.length,
-          items: sale.items.map((it) => ({
+          itemsCount: activeItems.length,
+          items: activeItems.map((it) => ({
             name: it.product.name,
             sku: it.product.sku,
             unitOfMeasure: it.product.unitOfMeasure,
             quantity: Number(it.quantity),
             unitPrice: Number(it.unitPrice),
             subtotal: Number(it.subtotal),
+            isContainerService: isContainerServiceSku(it.product.sku),
           })),
         });
       }
 
+      const clientsList = Object.values(groupedClients).map((c) => ({
+        ...c,
+        projects: Object.values(c.projects),
+      }));
+
       return NextResponse.json(
         createSuccessResponse({
           reportType: 'sales_by_project',
-          totalSales: sales.length,
-          grandTotalAmount: sales.reduce((acc, s) => acc + Number(s.grandTotal), 0),
-          clients: Object.values(groupedClients).map((c) => ({
-            ...c,
-            projects: Object.values(c.projects),
-          })),
+          segment,
+          totalSales: includedSalesCount,
+          grandTotalAmount: clientsList.reduce((acc, c) => acc + c.totalAmount, 0),
+          summaryBySegment: {
+            totalAll,
+            totalMaterials,
+            totalContainers,
+          },
+          clients: clientsList,
         })
       );
     }

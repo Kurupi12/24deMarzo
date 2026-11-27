@@ -63,6 +63,11 @@ export function PurchasesView() {
   const [items, setItems] = useState<any[]>([]);
   const [showSupplierDropdown, setShowSupplierDropdown] = useState(false);
 
+  // Buscador de proveedores dentro de la factura de compra
+  const [allSuppliers, setAllSuppliers] = useState<any[]>([]);
+  const [supplierSearchInput, setSupplierSearchInput] = useState('');
+  const [showSupplierLookupDropdown, setShowSupplierLookupDropdown] = useState(false);
+
   // Buscador de productos para compra y alta rápida de producto
   const [productSearch, setProductSearch] = useState('');
   const [productResults, setProductResults] = useState<any[]>([]);
@@ -128,6 +133,19 @@ export function PurchasesView() {
     }
   };
 
+  // Cargar todos los proveedores sin filtros de pestaña para el buscador de compras
+  const fetchAllSuppliers = async () => {
+    try {
+      const res = await fetch('/api/v1/inventory/suppliers');
+      const json = await res.json();
+      if (json.success) {
+        setAllSuppliers(json.data || []);
+      }
+    } catch {
+      // Ignorar errores transitorios
+    }
+  };
+
   useEffect(() => {
     fetchPurchases();
   }, [searchQuery]);
@@ -137,7 +155,14 @@ export function PurchasesView() {
   }, [supplierQuery, selectedCategory]);
 
   useEffect(() => {
+    fetchAllSuppliers();
+  }, []);
+
+  useEffect(() => {
     if (!showCreateModal) return;
+    fetchAllSuppliers();
+    setSupplierSearchInput('');
+    setShowSupplierLookupDropdown(false);
     fetch('/api/v1/billing/shifts')
       .then((res) => res.json())
       .then((json) => {
@@ -229,10 +254,16 @@ export function PurchasesView() {
     setSupplierRuc(sup.ruc);
     setSupplierName(sup.name);
     if (sup.creditDays && sup.creditDays > 0) {
-      setPaymentCondition('CREDITO_30');
+      const supportedTerm = [15, 30, 45, 60].includes(Number(sup.creditDays))
+        ? `CREDITO_${sup.creditDays}`
+        : 'CREDITO_30';
+      setPaymentCondition(supportedTerm);
+      setDeductFromCashShift(false);
     } else {
       setPaymentCondition('CONTADO');
     }
+    setSupplierSearchInput('');
+    setShowSupplierLookupDropdown(false);
     setShowSupplierDropdown(false);
   };
 
@@ -290,7 +321,7 @@ export function PurchasesView() {
   };
 
   // Abrir modal de proveedor
-  const openSupplierModal = (sup?: any) => {
+  const openSupplierModal = (sup?: any, prefillName = '') => {
     if (sup) {
       setEditingSupplier(sup);
       setFormRuc(sup.ruc || '');
@@ -307,7 +338,7 @@ export function PurchasesView() {
     } else {
       setEditingSupplier(null);
       setFormRuc('');
-      setFormName('');
+      setFormName(prefillName);
       setFormTradeName('');
       setFormCategory('GENERAL');
       setFormContactName('');
@@ -347,7 +378,11 @@ export function PurchasesView() {
       const json = await res.json();
       if (json.success) {
         setShowSupplierModal(false);
-        await fetchSuppliers();
+        await Promise.all([fetchSuppliers(), fetchAllSuppliers()]);
+        // Si se creó o editó mientras estaba cargando una factura de compra, auto-seleccionarlo
+        if (showCreateModal && json.data?.ruc) {
+          selectSupplierForPurchase(json.data);
+        }
       } else {
         customAlert({
           title: 'Error de Proveedor',
@@ -718,34 +753,147 @@ export function PurchasesView() {
             </div>
 
             <form onSubmit={handleSavePurchase} className="p-5 overflow-y-auto space-y-4 flex-1 text-xs">
-              {/* Chips de Selección Rápida de Proveedor */}
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-mono text-muted-foreground">Proveedores Habituales (1 Clic):</span>
+              {/* Buscador de Proveedores + Chips de Acceso Rápido */}
+              <div className="space-y-2">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <span className="text-[11px] font-mono text-primary font-semibold">
+                    Buscar / Seleccionar Proveedor:
+                  </span>
                   <button
                     type="button"
-                    onClick={() => openSupplierModal()}
-                    className="text-[10px] font-mono text-primary hover:underline"
+                    onClick={() => openSupplierModal(undefined, supplierSearchInput.trim())}
+                    className="inline-flex items-center gap-1 text-[11px] font-mono text-primary hover:underline font-semibold"
                   >
-                    + Nuevo Proveedor en Catálogo
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>+ Nuevo Proveedor en Catálogo</span>
                   </button>
                 </div>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {suppliers.slice(0, 6).map((sup) => (
-                    <button
-                      key={sup.id}
-                      type="button"
-                      onClick={() => selectSupplierForPurchase(sup)}
-                      className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors ${
-                        supplierRuc === sup.ruc
-                          ? 'bg-primary/20 border-primary text-primary font-bold'
-                          : 'bg-[#0d121c] hover:bg-card border-card-border text-muted-foreground hover:text-foreground'
-                      }`}
-                    >
-                      {sup.tradeName || sup.name.split(' ')[0]} ({sup.ruc.split('-')[0]})
-                    </button>
-                  ))}
-                </div>
+
+                {/* Buscador Autocompletado de TODOS los Proveedores */}
+                {(() => {
+                  const normalize = (v: string) =>
+                    String(v || '')
+                      .toLowerCase()
+                      .normalize('NFD')
+                      .replace(/[\u0300-\u036f]/g, '');
+                  const q = normalize(supplierSearchInput).trim();
+                  const sourceList = allSuppliers.length > 0 ? allSuppliers : suppliers;
+                  const matchedSuppliers = q
+                    ? sourceList.filter(
+                        (s) =>
+                          normalize(s.name).includes(q) ||
+                          normalize(s.tradeName).includes(q) ||
+                          normalize(s.ruc).includes(q)
+                      )
+                    : sourceList;
+
+                  const quickChips = [...sourceList]
+                    .sort((a, b) => {
+                      const diffCount = (b._count?.purchases || 0) - (a._count?.purchases || 0);
+                      if (diffCount !== 0) return diffCount;
+                      return new Date(b.createdAt || 0).getTime() - new Date(a.createdAt || 0).getTime();
+                    })
+                    .slice(0, 6);
+
+                  return (
+                    <>
+                      <div className="relative">
+                        <Search className="w-4 h-4 text-muted-foreground absolute left-3 top-1/2 -translate-y-1/2" />
+                        <input
+                          type="text"
+                          value={supplierSearchInput}
+                          onFocus={() => setShowSupplierLookupDropdown(true)}
+                          onBlur={() => setTimeout(() => setShowSupplierLookupDropdown(false), 180)}
+                          onChange={(e) => {
+                            setSupplierSearchInput(e.target.value);
+                            setShowSupplierLookupDropdown(true);
+                          }}
+                          placeholder="Buscar proveedor por razón social, marca o RUC (clic para ver todos)..."
+                          className="w-full bg-[#0d121c] border border-card-border rounded-lg pl-9 pr-8 py-2 text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:border-primary font-mono"
+                        />
+                        {supplierSearchInput && (
+                          <button
+                            type="button"
+                            onClick={() => setSupplierSearchInput('')}
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                          >
+                            <X className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
+                        {showSupplierLookupDropdown && matchedSuppliers.length > 0 && (
+                          <div className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-border rounded-lg shadow-2xl z-30 max-h-60 overflow-y-auto divide-y divide-card-border">
+                            <div className="sticky top-0 bg-[#0d121c] px-3 py-1.5 border-b border-card-border flex items-center justify-between text-[10px] font-mono text-muted-foreground z-10">
+                              <span>Proveedores disponibles ({matchedSuppliers.length})</span>
+                              <span className="text-[9px] text-primary">Haz clic para seleccionar</span>
+                            </div>
+                            {matchedSuppliers.map((sup) => (
+                              <div
+                                key={sup.id}
+                                onMouseDown={(e) => {
+                                  e.preventDefault();
+                                  selectSupplierForPurchase(sup);
+                                }}
+                                className="p-2 hover:bg-muted/30 cursor-pointer flex items-center justify-between gap-2 text-xs"
+                              >
+                                <div className="min-w-0">
+                                  <span className="font-semibold text-foreground block truncate">
+                                    {sup.name}
+                                  </span>
+                                  <span className="text-[10px] font-mono text-muted-foreground">
+                                    RUC: {sup.ruc}
+                                    {sup.tradeName ? ` • ${sup.tradeName}` : ''}
+                                  </span>
+                                </div>
+                                <span className="text-[10px] font-mono px-2 py-0.5 rounded bg-[#0d121c] border border-card-border text-muted-foreground shrink-0">
+                                  {sup.creditDays > 0 ? `Crédito ${sup.creditDays}d` : 'Contado'}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+
+                      {q.length >= 2 && matchedSuppliers.length === 0 && (
+                        <div className="p-2 rounded-lg bg-primary/10 border border-primary/30 flex items-center justify-between gap-2 text-xs">
+                          <span className="text-muted-foreground font-mono text-[11px]">
+                            No se encontró proveedor &ldquo;{supplierSearchInput.trim()}&rdquo;.
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => openSupplierModal(undefined, supplierSearchInput.trim())}
+                            className="px-2.5 py-1 rounded bg-primary hover:bg-primary-hover text-white font-semibold text-[11px] flex items-center gap-1 shrink-0"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                            <span>Crear Proveedor Nuevo</span>
+                          </button>
+                        </div>
+                      )}
+
+                      {quickChips.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                          <span className="text-[10px] font-mono text-muted-foreground mr-1">
+                            Frecuentes / Recientes:
+                          </span>
+                          {quickChips.map((sup) => (
+                            <button
+                              key={sup.id}
+                              type="button"
+                              onClick={() => selectSupplierForPurchase(sup)}
+                              className={`px-2 py-0.5 rounded text-[10px] font-mono border transition-colors ${
+                                supplierRuc === sup.ruc
+                                  ? 'bg-primary/20 border-primary text-primary font-bold'
+                                  : 'bg-[#0d121c] hover:bg-card border-card-border text-muted-foreground hover:text-foreground'
+                              }`}
+                            >
+                              {sup.tradeName || sup.name.split(' ')[0]} ({sup.ruc.split('-')[0]})
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </>
+                  );
+                })()}
               </div>
 
               {/* Datos de Cabecera */}
@@ -1056,8 +1204,8 @@ export function PurchasesView() {
       {/* MODAL 2: CREAR O EDITAR PROVEEDOR */}
       {/* ========================================================================= */}
       {showSupplierModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-          <div className="bg-card border border-card-border rounded-xl shadow-2xl max-w-lg w-full overflow-hidden flex flex-col">
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-sm p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-card border border-card-border rounded-xl shadow-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto flex flex-col">
             <div className="px-5 py-4 border-b border-card-border flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Building2 className="w-4 h-4 text-primary" />

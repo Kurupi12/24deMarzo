@@ -20,6 +20,7 @@ import {
   Trash2,
   Eye,
   RefreshCw,
+  Pencil,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
@@ -31,6 +32,7 @@ import { NewVehicleModal } from './new-vehicle-modal';
 export function FleetView() {
   const { user } = useAuth();
   const canManageVehicles = ['SUPER_ADMIN', 'ADMIN', 'GENERAL_MANAGER', 'WAREHOUSE_MANAGER'].includes(user?.role || '');
+  const canEditOrDeleteExpenses = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
   const { confirm, alert } = useCustomDialog();
   const [activeTab, setActiveTab] = useState<'vehicles' | 'history' | 'preventive'>('vehicles');
   const [vehicles, setVehicles] = useState<any[]>([]);
@@ -49,6 +51,7 @@ export function FleetView() {
   // Modales
   const [isExpenseModalOpen, setIsExpenseModalOpen] = useState(false);
   const [selectedVehicleForExpense, setSelectedVehicleForExpense] = useState<string | null>(null);
+  const [editingExpense, setEditingExpense] = useState<any | null>(null);
 
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false);
   const [selectedVehicleForDetail, setSelectedVehicleForDetail] = useState<any | null>(null);
@@ -179,6 +182,7 @@ export function FleetView() {
   };
 
   const openNewExpenseForVehicle = (vehicleId: string) => {
+    setEditingExpense(null);
     setSelectedVehicleForExpense(vehicleId);
     setIsExpenseModalOpen(true);
   };
@@ -266,6 +270,7 @@ export function FleetView() {
           <button
             type="button"
             onClick={() => {
+              setEditingExpense(null);
               setSelectedVehicleForExpense(null);
               setIsExpenseModalOpen(true);
             }}
@@ -687,14 +692,32 @@ export function FleetView() {
                           {formatCurrencyPYG(Number(exp.totalCost))}
                         </td>
                         <td className="py-2.5 px-3 text-center">
-                          <button
-                            type="button"
-                            onClick={() => handleDeleteExpense(exp.id)}
-                            title="Eliminar gasto"
-                            className="p-1 rounded text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </button>
+                          {canEditOrDeleteExpenses ? (
+                            <div className="flex items-center justify-center gap-1">
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setEditingExpense(exp);
+                                  setSelectedVehicleForExpense(exp.vehicleId);
+                                  setIsExpenseModalOpen(true);
+                                }}
+                                title="Editar detalles del gasto"
+                                className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                              >
+                                <Pencil className="w-3.5 h-3.5" />
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteExpense(exp.id)}
+                                title="Eliminar gasto"
+                                className="p-1 rounded text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-[10px] font-mono text-muted-foreground">-</span>
+                          )}
                         </td>
                       </tr>
                     ))
@@ -817,21 +840,26 @@ export function FleetView() {
         </div>
       )}
 
-      {/* MODAL 1: Cargar Nuevo Gasto / Mantenimiento */}
+      {/* MODAL 1: Cargar o Editar Gasto / Mantenimiento */}
       <NewExpenseModal
         isOpen={isExpenseModalOpen}
-        onClose={() => setIsExpenseModalOpen(false)}
+        onClose={() => {
+          setIsExpenseModalOpen(false);
+          setEditingExpense(null);
+        }}
         onSuccess={() => {
           fetchSummary();
           fetchExpenses();
         }}
         vehicles={vehicles}
         preSelectedVehicleId={selectedVehicleForExpense}
+        expenseToEdit={editingExpense}
       />
 
       {/* MODAL 2: Ficha y Detalle de un Camión */}
       <VehicleDetailModal
         vehicle={selectedVehicleForDetail}
+        vehicles={vehicles}
         isOpen={isDetailModalOpen}
         onClose={() => setIsDetailModalOpen(false)}
         onAddExpense={(vId) => openNewExpenseForVehicle(vId)}

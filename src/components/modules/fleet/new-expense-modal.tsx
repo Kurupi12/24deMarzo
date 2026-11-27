@@ -27,6 +27,7 @@ interface NewExpenseModalProps {
   onSuccess: () => void;
   vehicles: any[];
   preSelectedVehicleId?: string | null;
+  expenseToEdit?: any | null;
 }
 
 export function NewExpenseModal({
@@ -35,7 +36,9 @@ export function NewExpenseModal({
   onSuccess,
   vehicles,
   preSelectedVehicleId,
+  expenseToEdit = null,
 }: NewExpenseModalProps) {
+  const isEditing = Boolean(expenseToEdit?.id);
   const [vehicleId, setVehicleId] = useState('');
   const [date, setDate] = useState('');
   const [category, setCategory] = useState<'COMBUSTIBLE' | 'MANTENIMIENTO' | 'REPARACION' | 'CUBIERTAS' | 'DOCUMENTACION' | 'VARIOS'>('COMBUSTIBLE');
@@ -57,38 +60,69 @@ export function NewExpenseModal({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Inicializar fecha, vehículo preseleccionado y estado de caja del día
+  // Inicializar fecha, vehículo preseleccionado y estado de caja del día (o precargar si está editando)
   useEffect(() => {
-    if (isOpen) {
-      const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion' }).format(new Date());
-      setDate(today);
-      if (preSelectedVehicleId) {
-        setVehicleId(preSelectedVehicleId);
-      } else if (vehicles.length > 0 && !vehicleId) {
-        setVehicleId(vehicles[0].id);
-      }
-      setError(null);
+    if (!isOpen) return;
 
-      fetch('/api/v1/billing/shifts')
-        .then((res) => res.json())
-        .then((json) => {
-          const open = !!json?.data?.currentShift;
-          const isOwner = !!json?.data?.isCurrentShiftOwnedBySession;
-          const ownerName = json?.data?.currentShiftOwner?.name || null;
-          setIsCashShiftOpen(open);
-          setIsShiftOwnedBySession(isOwner);
-          setShiftOwnerName(ownerName);
-          // Solo preseleccionar descuento de caja si el usuario actual es dueño de esa caja abierta
-          setDeductFromCashShift(open && isOwner);
-        })
-        .catch(() => {
-          setIsCashShiftOpen(false);
-          setIsShiftOwnedBySession(false);
-          setShiftOwnerName(null);
-          setDeductFromCashShift(false);
-        });
+    setError(null);
+
+    if (expenseToEdit?.id) {
+      setVehicleId(expenseToEdit.vehicleId || preSelectedVehicleId || vehicles[0]?.id || '');
+      const rawDate = expenseToEdit.date
+        ? new Date(expenseToEdit.date).toISOString().slice(0, 10)
+        : new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion' }).format(new Date());
+      setDate(rawDate);
+      setCategory(expenseToEdit.category || 'COMBUSTIBLE');
+      setMaintenanceType(expenseToEdit.maintenanceType || 'ACEITE_MOTOR');
+      setDescription(expenseToEdit.description || '');
+      setPartsCost(Number(expenseToEdit.partsCost) > 0 ? String(Number(expenseToEdit.partsCost)) : '');
+      setLaborCost(Number(expenseToEdit.laborCost) > 0 ? String(Number(expenseToEdit.laborCost)) : '');
+      setFuelLiters(expenseToEdit.fuelLiters ? String(Number(expenseToEdit.fuelLiters)) : '');
+      setFuelPricePerLiter(expenseToEdit.fuelPricePerLiter ? String(Number(expenseToEdit.fuelPricePerLiter)) : '');
+      setSupplierOrWorkshop(expenseToEdit.supplierOrWorkshop || '');
+      setReceiptNumber(expenseToEdit.receiptNumber || '');
+      setNotes(expenseToEdit.cleanNotes || '');
+      setDeductFromCashShift(Boolean(expenseToEdit.paidFromCashShift));
+      return;
     }
-  }, [isOpen, preSelectedVehicleId, vehicles]);
+
+    const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion' }).format(new Date());
+    setDate(today);
+    if (preSelectedVehicleId) {
+      setVehicleId(preSelectedVehicleId);
+    } else if (vehicles.length > 0 && !vehicleId) {
+      setVehicleId(vehicles[0].id);
+    }
+    setCategory('COMBUSTIBLE');
+    setMaintenanceType('ACEITE_MOTOR');
+    setDescription('');
+    setPartsCost('');
+    setLaborCost('');
+    setFuelLiters('');
+    setFuelPricePerLiter('');
+    setSupplierOrWorkshop('');
+    setReceiptNumber('');
+    setNotes('');
+
+    fetch('/api/v1/billing/shifts')
+      .then((res) => res.json())
+      .then((json) => {
+        const open = !!json?.data?.currentShift;
+        const isOwner = !!json?.data?.isCurrentShiftOwnedBySession;
+        const ownerName = json?.data?.currentShiftOwner?.name || null;
+        setIsCashShiftOpen(open);
+        setIsShiftOwnedBySession(isOwner);
+        setShiftOwnerName(ownerName);
+        // Solo preseleccionar descuento de caja si el usuario actual es dueño de esa caja abierta
+        setDeductFromCashShift(open && isOwner);
+      })
+      .catch(() => {
+        setIsCashShiftOpen(false);
+        setIsShiftOwnedBySession(false);
+        setShiftOwnerName(null);
+        setDeductFromCashShift(false);
+      });
+  }, [isOpen, preSelectedVehicleId, vehicles, expenseToEdit]);
 
   if (!isOpen) return null;
 
@@ -152,8 +186,11 @@ export function NewExpenseModal({
 
     setLoading(true);
     try {
-      const res = await fetch('/api/v1/fleet/expenses', {
-        method: 'POST',
+      const endpoint = isEditing
+        ? `/api/v1/fleet/expenses/${expenseToEdit.id}`
+        : '/api/v1/fleet/expenses';
+      const res = await fetch(endpoint, {
+        method: isEditing ? 'PATCH' : 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           vehicleId,
@@ -206,7 +243,7 @@ export function NewExpenseModal({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div className="fixed inset-0 z-[60] bg-black/85 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
       <div className="relative bg-card border border-card-border rounded-xl w-full max-w-2xl shadow-2xl overflow-hidden my-auto animate-in fade-in zoom-in-95 duration-150">
         
         {/* Cabecera */}
@@ -217,10 +254,10 @@ export function NewExpenseModal({
             </div>
             <div>
               <h3 className="text-sm font-bold text-foreground">
-                Cargar Gasto / Mantenimiento de Vehículo
+                {isEditing ? 'Editar Detalles del Gasto / Mantenimiento' : 'Cargar Gasto / Mantenimiento de Vehículo'}
               </h3>
               <p className="text-[11px] text-muted-foreground font-mono">
-                Control de costos de taller, repuestos y combustible
+                {isEditing ? 'Edición exclusiva de Administrador (Osvaldo)' : 'Control de costos de taller, repuestos y combustible'}
               </p>
             </div>
           </div>
@@ -532,7 +569,24 @@ export function NewExpenseModal({
             </div>
           </div>
 
-          {/* Fila 6: Origen del Dinero (Descuento estricto solo en la Caja del usuario dueño del turno) */}
+          {/* Fila 6: Origen del Dinero (solo editable al crear; en edición muestra estado guardado) */}
+          {isEditing ? (
+            <div className="p-3 rounded-xl bg-[#0d121c] border border-card-border flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
+              <span className="text-muted-foreground flex items-center gap-1.5">
+                <Landmark className="w-3.5 h-3.5 text-primary" />
+                <span>Origen del gasto registrado:</span>
+              </span>
+              <span
+                className={`px-2 py-0.5 rounded border text-[11px] font-semibold ${
+                  deductFromCashShift
+                    ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
+                    : 'bg-slate-500/10 border-slate-500/30 text-slate-300'
+                }`}
+              >
+                {deductFromCashShift ? 'Descontado de Caja' : 'Fuera de Caja / Pago Propio'}
+              </span>
+            </div>
+          ) : (
           <div className="p-3 rounded-xl bg-[#0d121c] border border-card-border space-y-2">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-xs font-mono font-semibold text-foreground flex items-center gap-1.5">
@@ -589,6 +643,7 @@ export function NewExpenseModal({
               </button>
             </div>
           </div>
+          )}
 
           <div>
             <label className="block text-xs font-semibold text-foreground mb-1">
@@ -619,7 +674,13 @@ export function NewExpenseModal({
               className="px-5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-lg text-xs font-semibold flex items-center gap-2 shadow-lg transition-all disabled:opacity-50"
             >
               <CheckCircle2 className="w-4 h-4" />
-              <span>{loading ? 'Guardando...' : 'Guardar Registro de Gasto'}</span>
+              <span>
+                {loading
+                  ? 'Guardando...'
+                  : isEditing
+                  ? 'Guardar Cambios del Gasto'
+                  : 'Guardar Registro de Gasto'}
+              </span>
             </button>
           </div>
         </form>

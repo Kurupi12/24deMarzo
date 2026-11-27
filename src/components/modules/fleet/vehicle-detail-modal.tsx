@@ -17,13 +17,16 @@ import {
   Trash2,
   Search,
   ArrowUpDown,
+  Pencil,
 } from 'lucide-react';
 import { formatCurrencyPYG } from '@/shared/utils/currency';
 import { useCustomDialog } from '@/components/common/custom-dialog-provider';
 import { useAuth } from '@/lib/auth/auth-context';
+import { NewExpenseModal } from './new-expense-modal';
 
 interface VehicleDetailModalProps {
   vehicle: any | null;
+  vehicles?: any[];
   isOpen: boolean;
   onClose: () => void;
   onAddExpense: (vehicleId: string) => void;
@@ -32,6 +35,7 @@ interface VehicleDetailModalProps {
 
 export function VehicleDetailModal({
   vehicle,
+  vehicles,
   isOpen,
   onClose,
   onAddExpense,
@@ -39,12 +43,14 @@ export function VehicleDetailModal({
 }: VehicleDetailModalProps) {
   const { user } = useAuth();
   const canManageVehicles = ['SUPER_ADMIN', 'ADMIN', 'GENERAL_MANAGER', 'WAREHOUSE_MANAGER'].includes(user?.role || '');
+  const canEditOrDeleteExpenses = user?.role === 'SUPER_ADMIN' || user?.role === 'ADMIN';
   const { confirm, alert } = useCustomDialog();
   const [expenses, setExpenses] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [deletingVehicle, setDeletingVehicle] = useState(false);
+  const [editingExpense, setEditingExpense] = useState<any | null>(null);
 
   const fetchExpenses = async () => {
     if (!vehicle) return;
@@ -429,15 +435,29 @@ export function VehicleDetailModal({
                         {formatCurrencyPYG(Number(exp.totalCost))}
                       </td>
                       <td className="py-2 px-2 text-center">
-                        <button
-                          type="button"
-                          disabled={deletingId === exp.id}
-                          onClick={() => handleDeleteExpense(exp.id)}
-                          title="Eliminar registro"
-                          className="p-1 rounded text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+                        {canEditOrDeleteExpenses ? (
+                          <div className="flex items-center justify-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => setEditingExpense(exp)}
+                              title="Editar detalles del gasto"
+                              className="p-1 rounded text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                            <button
+                              type="button"
+                              disabled={deletingId === exp.id}
+                              onClick={() => handleDeleteExpense(exp.id)}
+                              title="Eliminar registro"
+                              className="p-1 rounded text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+                        ) : (
+                          <span className="text-[10px] font-mono text-muted-foreground">-</span>
+                        )}
                       </td>
                     </tr>
                   ))}
@@ -448,6 +468,19 @@ export function VehicleDetailModal({
         </div>
 
       </div>
+
+      {/* Modal de Edición de Gasto (Exclusivo Administrador) */}
+      <NewExpenseModal
+        isOpen={!!editingExpense}
+        expenseToEdit={editingExpense}
+        vehicles={vehicles && vehicles.length > 0 ? vehicles : [vehicle]}
+        preSelectedVehicleId={vehicle.id}
+        onClose={() => setEditingExpense(null)}
+        onSuccess={() => {
+          fetchExpenses();
+          onRefresh();
+        }}
+      />
     </div>
   );
 }

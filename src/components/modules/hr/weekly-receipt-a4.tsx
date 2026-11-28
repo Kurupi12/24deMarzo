@@ -219,7 +219,24 @@ export function WeeklyReceiptA4({ settlement, period }: WeeklyReceiptA4Props) {
             {settlement.hasFinancedOverdraft && settlement.financedOverdraftAmount && settlement.financedOverdraftAmount > 0 && (
               <div className="grid grid-cols-12 text-[8px] font-mono py-0.5 px-2 border-b border-neutral-200 items-center bg-purple-50/50">
                 <div className="col-span-6 text-purple-900">
-                  &bull; <strong>Refinanciación de Sobregiro a Cuotas:</strong> {settlement.financedLoans?.[0]?.loanNumber ? `(${settlement.financedLoans[0].loanNumber}) ` : ''}A amortizar desde la prox. semana
+                  &bull; <strong>Refinanciación de Sobregiro a Cuotas:</strong>{' '}
+                  {settlement.financedLoans && settlement.financedLoans.length > 0
+                    ? settlement.financedLoans
+                        .map((fl: any) => {
+                          const startStr = fl.firstDeductionDate
+                            ? new Date(fl.firstDeductionDate).toLocaleDateString('es-PY', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric',
+                                timeZone: 'UTC',
+                              })
+                            : null;
+                          return `${fl.loanNumber ? `(${fl.loanNumber}) ` : ''}${
+                            startStr ? `A amortizar desde el ${startStr}` : 'A amortizar desde la prox. semana'
+                          }`;
+                        })
+                        .join(' / ')
+                    : 'A amortizar desde la prox. semana'}
                 </div>
                 <div className="col-span-2 text-center font-bold text-purple-800">
                   Refinanciado

@@ -96,6 +96,9 @@ export function LoansManager({
   const [togglingLoanId, setTogglingLoanId] = useState<string | null>(null);
   const [deletingLoanId, setDeletingLoanId] = useState<string | null>(null);
 
+  const getParaguayDateStr = (d: Date) =>
+    new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Asuncion' }).format(d);
+
   // Modal Nuevo Préstamo
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('');
@@ -103,14 +106,14 @@ export function LoansManager({
   const [installmentAmount, setInstallmentAmount] = useState('');
   const [calculationMode, setCalculationMode] = useState<'BY_WEEKS' | 'BY_AMOUNT'>('BY_WEEKS');
   const [weeksCount, setWeeksCount] = useState<string>('10');
-  const [issueDate, setIssueDate] = useState(() => new Date().toISOString().slice(0, 10));
+  const [issueDate, setIssueDate] = useState(() => getParaguayDateStr(new Date()));
   const [firstDeductionDate, setFirstDeductionDate] = useState(() => {
     const today = new Date();
     const day = today.getDay();
     const daysUntilNextSat = (6 - day + 7) % 7 || 7;
     const nextSat = new Date(today);
     nextSat.setDate(today.getDate() + daysUntilNextSat);
-    return nextSat.toISOString().slice(0, 10);
+    return getParaguayDateStr(nextSat);
   });
   const [reason, setReason] = useState('');
   const [notes, setNotes] = useState('');
@@ -120,6 +123,8 @@ export function LoansManager({
 
   // Modal Ver Cronograma / Cuotas
   const [selectedLoan, setSelectedLoan] = useState<EmployeeLoan | null>(null);
+  const [rescheduleDate, setRescheduleDate] = useState('');
+  const [reschedulingLoan, setReschedulingLoan] = useState(false);
 
   // Modal Abono Extraordinario
   const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
@@ -181,12 +186,53 @@ export function LoansManager({
           const nextWeekSatDays = daysUntilThisSat === 0 ? 7 : daysUntilThisSat + 7;
           const nextSat = new Date(today);
           nextSat.setDate(today.getDate() + nextWeekSatDays);
-          setFirstDeductionDate(nextSat.toISOString().slice(0, 10));
+          setFirstDeductionDate(getParaguayDateStr(nextSat));
         }
       }
       setIsCreateModalOpen(true);
     }
   }, [initialEmployeeId, initialAmount, initialIsOverdraft, initialFirstDeductionDate]);
+
+  useEffect(() => {
+    if (selectedLoan?.firstDeductionDate) {
+      setRescheduleDate(new Date(selectedLoan.firstDeductionDate).toISOString().slice(0, 10));
+    } else {
+      setRescheduleDate('');
+    }
+  }, [selectedLoan?.id, selectedLoan?.firstDeductionDate]);
+
+  const handleRescheduleStart = async () => {
+    if (!selectedLoan || !rescheduleDate) return;
+    setReschedulingLoan(true);
+    try {
+      const res = await fetch(`/api/v1/hr/loans/${selectedLoan.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'reschedule_start',
+          firstDeductionDate: rescheduleDate,
+        }),
+      });
+      const json = await res.json();
+      if (json.success && json.data) {
+        setSelectedLoan(json.data);
+        await fetchLoans();
+        customAlert({
+          title: 'Fecha de Inicio Actualizada',
+          message: json.message || 'Cronograma de cuotas actualizado.',
+          variant: 'success',
+        });
+      } else {
+        customAlert({
+          title: 'Error',
+          message: json.error || 'No se pudo reprogramar la fecha de inicio.',
+          variant: 'danger',
+        });
+      }
+    } finally {
+      setReschedulingLoan(false);
+    }
+  };
 
   // Cantidad total de cuotas calculada
   const totalInstallmentsCount =
@@ -1052,7 +1098,7 @@ export function LoansManager({
                   />
                   {!disbursedFromCash && (
                     <p className="text-[10px] text-purple-300 font-mono mt-0.5">
-                      • Inicia a descontarse a partir del siguiente período semanal.
+                      • Elegí la fecha exacta en que empezará a descontarse la Cuota 1 (puede ser la semana que viene o más adelante).
                     </p>
                   )}
                 </div>
@@ -1158,6 +1204,35 @@ export function LoansManager({
               </div>
             </div>
 
+            {/* Reprogramar Fecha Exacta de Inicio de Descuento */}
+            {selectedLoan.status === 'ACTIVE' && selectedLoan.paidInstallments === 0 && (
+              <div className="px-4 py-2.5 bg-purple-500/10 border-b border-purple-500/20 flex flex-wrap items-center justify-between gap-2 text-xs">
+                <div className="font-mono text-[11px] text-purple-200">
+                  <strong className="block text-purple-100">Fecha de inicio del descuento:</strong>
+                  <span className="text-[10px] text-purple-300">
+                    Si aún no empezó a cobrarse, podés cambiar el día exacto de la Cuota 1.
+                  </span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <div className="w-36">
+                    <DateInputPY
+                      value={rescheduleDate}
+                      onChange={setRescheduleDate}
+                      className="bg-card border border-purple-400/40 rounded px-2 py-1 text-foreground text-xs"
+                    />
+                  </div>
+                  <button
+                    type="button"
+                    disabled={reschedulingLoan || !rescheduleDate}
+                    onClick={handleRescheduleStart}
+                    className="px-3 py-1.5 rounded bg-purple-600 hover:bg-purple-500 text-white font-semibold text-[11px] disabled:opacity-50 transition-colors"
+                  >
+                    {reschedulingLoan ? 'Guardando...' : 'Aplicar Fecha'}
+                  </button>
+                </div>
+              </div>
+            )}
+
             {/* Lista de Cuotas Programadas */}
             <div className="p-4 max-h-72 overflow-y-auto space-y-2">
               <div className="text-[11px] font-mono text-muted-foreground uppercase tracking-wider mb-2 flex items-center justify-between">
@@ -1171,6 +1246,7 @@ export function LoansManager({
                   day: '2-digit',
                   month: '2-digit',
                   year: 'numeric',
+                  timeZone: 'UTC',
                 });
                 return (
                   <div

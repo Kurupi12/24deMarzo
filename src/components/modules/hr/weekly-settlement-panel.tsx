@@ -583,7 +583,15 @@ export function WeeklySettlementPanel({ onFinanceOverdraft }: WeeklySettlementPa
                                   </span>
                                 </div>
                                 <span className="text-[10px] text-purple-200">
-                                  Primer descuento: Siguiente período semanal
+                                  Primer descuento:{' '}
+                                  {emp.financedLoans?.[0]?.firstDeductionDate
+                                    ? new Date(emp.financedLoans[0].firstDeductionDate).toLocaleDateString('es-PY', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                        timeZone: 'UTC',
+                                      })
+                                    : 'Siguiente período semanal'}
                                 </span>
                               </div>
                             )}

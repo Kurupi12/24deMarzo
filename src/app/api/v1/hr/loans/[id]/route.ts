@@ -10,7 +10,7 @@ export async function PATCH(
   try {
     const loanId = params.id;
     const body = await req.json();
-    const { action, status, amount, installmentId, notes } = body;
+    const { action, status, amount, installmentId, notes, firstDeductionDate } = body;
 
     const loan = await prisma.employeeLoan.findUnique({
       where: { id: loanId },
@@ -36,6 +36,93 @@ export async function PATCH(
         success: true,
         data: updated,
         message: `Estado del préstamo actualizado a ${status}`,
+      });
+    }
+
+    // 1.5 Reprogramar fecha de inicio de descuento (y todas las cuotas pendientes cada +7 días)
+    if (action === 'reschedule_start' && firstDeductionDate) {
+      const newStartDate = String(firstDeductionDate).includes('T')
+        ? new Date(firstDeductionDate)
+        : new Date(`${firstDeductionDate}T12:00:00Z`);
+
+      if (Number.isNaN(newStartDate.getTime())) {
+        return NextResponse.json(
+          { success: false, error: 'La fecha de inicio indicada no es válida' },
+          { status: 400 }
+        );
+      }
+
+      const pendingInstallments = loan.installments.filter((i) => !i.isDeducted);
+      if (pendingInstallments.length === 0) {
+        return NextResponse.json(
+          { success: false, error: 'Este préstamo ya no tiene cuotas pendientes por reprogramar.' },
+          { status: 400 }
+        );
+      }
+
+      const updatedLoan = await prisma.$transaction(
+        async (tx) => {
+          if (loan.paidInstallments === 0) {
+            await tx.employeeLoan.update({
+              where: { id: loanId },
+              data: { firstDeductionDate: newStartDate },
+            });
+          }
+
+          await Promise.all(
+            pendingInstallments.map((item, idx) =>
+              tx.loanInstallment.update({
+                where: { id: item.id },
+                data: {
+                  scheduledDate: addDays(newStartDate, idx * 7),
+                },
+              })
+            )
+          );
+
+          return tx.employeeLoan.findUnique({
+            where: { id: loanId },
+            include: {
+              employee: {
+                select: {
+                  id: true,
+                  code: true,
+                  firstName: true,
+                  lastName: true,
+                  documentNumber: true,
+                  jobTitle: true,
+                },
+              },
+              installments: { orderBy: { installmentNumber: 'asc' } },
+            },
+          });
+        },
+        { maxWait: 10000, timeout: 30000 }
+      );
+
+      const formattedLoan = updatedLoan
+        ? {
+            ...updatedLoan,
+            totalAmount: Number(updatedLoan.totalAmount),
+            installmentAmount: Number(updatedLoan.installmentAmount),
+            totalPaid: Number(updatedLoan.totalPaid),
+            remainingBalance: Number(updatedLoan.remainingBalance),
+            installments: updatedLoan.installments.map((inst) => ({
+              ...inst,
+              amount: Number(inst.amount),
+            })),
+          }
+        : null;
+
+      return NextResponse.json({
+        success: true,
+        data: formattedLoan,
+        message: `Fecha de inicio de descuento reprogramada al ${newStartDate.toLocaleDateString('es-PY', {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric',
+          timeZone: 'UTC',
+        })}.`,
       });
     }
 

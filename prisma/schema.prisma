@@ -50,6 +50,8 @@ model User {
   approvedLeaves      LeaveRequest[]     @relation("LeaveApprover")
   createdTokens       PriceOverrideToken[] @relation("TokenCreator")
   usedTokens          PriceOverrideToken[] @relation("TokenConsumer")
+  createdReminders    LocalReminder[]      @relation("ReminderCreator")
+  targetedReminders   LocalReminder[]      @relation("ReminderTarget")
 
   createdAt     DateTime    @default(now())
   updatedAt     DateTime    @updatedAt
@@ -880,5 +882,25 @@ model VehicleExpense {
   @@index([date])
   @@index([category])
   @@map("vehicle_expenses")
+}
+
+// ------------------------------------------------------------------------------
+// DOMINIO: RECORDATORIOS OPERATIVOS DEL LOCAL (NOTAS DE DIRECCIÓN)
+// ------------------------------------------------------------------------------
+
+model LocalReminder {
+  id           String   @id @default(uuid())
+  text         String   @db.VarChar(200)
+  targetUserId String?
+  targetUser   User?    @relation("ReminderTarget", fields: [targetUserId], references: [id], onDelete: SetNull)
+  createdById  String
+  createdBy    User     @relation("ReminderCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  isActive     Boolean  @default(true)
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive, targetUserId])
+  @@map("local_reminders")
 }
 

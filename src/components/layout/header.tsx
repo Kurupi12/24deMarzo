@@ -15,6 +15,7 @@ import {
   Shield,
   ChevronDown,
   Sparkles,
+  StickyNote,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth/auth-context';
 import { ROLE_DEFINITIONS } from '@/lib/auth/permissions';
@@ -104,6 +105,19 @@ export function Header() {
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Recordatorios del Local (Exclusivo para Osvaldo / Super Admin) */}
+          {isSuperAdmin && (
+            <button
+              type="button"
+              onClick={() => window.dispatchEvent(new Event('open-local-reminders'))}
+              title="Gestionar recordatorios cortos para el personal del local"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 text-amber-300 text-xs font-semibold shadow-sm transition-all active:scale-[0.98]"
+            >
+              <StickyNote className="w-3.5 h-3.5 text-amber-400" />
+              <span className="hidden md:inline">Recordatorios</span>
+            </button>
+          )}
+
           {/* Botón de Generar Código de Descuento (Exclusivo para Osvaldo / Super Admin) */}
           {isSuperAdmin && (
             <button

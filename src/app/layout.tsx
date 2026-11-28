@@ -3,6 +3,7 @@ import './globals.css';
 import { QuickNumberProvider } from '@/components/common/quick-number-provider';
 import { CustomDialogProvider } from '@/components/common/custom-dialog-provider';
 import { AuthProvider } from '@/lib/auth/auth-context';
+import { LocalRemindersWidget } from '@/components/layout/local-reminders-widget';
 
 export const metadata: Metadata = {
   title: 'Core ERP Empresarial | Suite Operativa',
@@ -21,6 +22,7 @@ export default function RootLayout({
           <CustomDialogProvider>
             <QuickNumberProvider />
             {children}
+            <LocalRemindersWidget />
           </CustomDialogProvider>
         </AuthProvider>
       </body>
